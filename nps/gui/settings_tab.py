@@ -180,8 +180,8 @@ class SettingsTab:
         self._sec_status_label = tk.Label(
             sec_frame,
             text=f"Status: {enc_status}",
-            font=F["small"],
-            fg=C["text"],
+            font=F["body"],
+            fg=C["text_bright"],
             bg=C["bg_card"],
         )
         self._sec_status_label.pack(anchor="w", padx=8, pady=4)
@@ -192,9 +192,6 @@ class SettingsTab:
             command=self._change_master_key,
             bg=C["bg_button"],
             fg=C["text_bright"],
-            font=F["small"],
-            padx=8,
-            pady=3,
         ).pack(anchor="w", padx=8, pady=4)
 
         # ── Scanner Settings ──
