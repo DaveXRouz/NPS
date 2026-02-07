@@ -163,13 +163,14 @@ cd v4 && make backup
 
 ### V4 Phase Status
 
-| Phase | Description                                 | Status      |
-| ----- | ------------------------------------------- | ----------- |
-| 0     | Full scaffolding                            | Done        |
-| 1     | Foundation (DB + API skeleton + encryption) | Not started |
-| 2     | Python Oracle service                       | Not started |
-| 3     | API layer (all endpoints)                   | Not started |
-| 4     | Rust scanner                                | Not started |
-| 5     | React frontend                              | Not started |
-| 6     | Infrastructure + DevOps                     | Not started |
-| 7     | Integration testing + polish                | Not started |
+| Phase | Description                                  | Status      |
+| ----- | -------------------------------------------- | ----------- |
+| 0a    | Full scaffolding (93 files)                  | Done        |
+| 0b    | V3 file migration + documentation (45 files) | Done        |
+| 1     | Foundation (DB + API skeleton + encryption)  | Not started |
+| 2     | Python Oracle service                        | Not started |
+| 3     | API layer (all endpoints)                    | Not started |
+| 4     | Rust scanner                                 | Not started |
+| 5     | React frontend                               | Not started |
+| 6     | Infrastructure + DevOps                      | Not started |
+| 7     | Integration testing + polish                 | Not started |
