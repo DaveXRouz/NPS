@@ -1,11 +1,17 @@
-# V3 logic files will be copied here during Phase 2.
-#
-# These files are kept AS-IS from V3 (near-zero rewrite):
-#   - timing_advisor.py (236 LOC) — Cosmic timing alignment
-#
-# These files need adaptation:
-#   - strategy_engine.py (336 LOC) — Strategy logic (30% rewrite)
-#
-# Copy from:
-#   nps/logic/timing_advisor.py -> oracle_service/logic/timing_advisor.py
-#   nps/logic/strategy_engine.py -> oracle_service/logic/strategy_engine.py
+"""V4 Oracle Service — Logic Layer.
+
+Intelligence modules for smart scanning decisions.
+All V3 logic files copied as-is. These provide strategy, timing,
+pattern analysis, scoring, and range optimization.
+"""
+
+from oracle_service.logic.strategy_engine import StrategyEngine
+from oracle_service.logic.pattern_tracker import PatternTracker
+from oracle_service.logic.key_scorer import KeyScorer
+from oracle_service.logic.history_manager import HistoryManager
+from oracle_service.logic.timing_advisor import (
+    get_current_quality,
+    get_optimal_hours_today,
+    get_cosmic_alignment,
+)
+from oracle_service.logic.range_optimizer import RangeOptimizer
