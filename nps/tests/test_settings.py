@@ -48,7 +48,7 @@ class TestTelegramDispatch(unittest.TestCase):
         from engines.notifier import process_telegram_command
 
         result = process_telegram_command("/help")
-        self.assertIn("Available Commands", result)
+        self.assertIn("Command Reference", result)
         self.assertIn("/status", result)
 
     def test_status_returns_nonempty(self):

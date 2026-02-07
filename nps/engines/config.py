@@ -112,6 +112,7 @@ def load_config(path=None):
             with open(config_path, "w") as f:
                 json.dump(_config, f, indent=2)
 
+    validate()
     return _config
 
 
@@ -227,23 +228,83 @@ def get_chat_id() -> str:
 
 
 def validate():
-    """Validate config, warn about common issues. Returns list of warnings."""
+    """Validate config, warn about common issues, fix invalid values.
+
+    Checks format and range constraints on all fields.  Invalid values
+    are silently reset to their defaults and logged as warnings.
+
+    Returns list of warning strings.
+    """
     global _config
     if _config is None:
         load_config()
 
     warnings = []
+
+    # --- Telegram ---
     token = get("telegram.bot_token", "")
     chat_id = get("telegram.chat_id", "")
 
     if not token:
         warnings.append("Telegram bot_token is empty")
+    elif len(token) < 20 or ":" not in token:
+        warnings.append(
+            "Telegram bot_token looks malformed (expected digits:alphanumeric)"
+        )
+        _config["telegram"]["bot_token"] = ""
+
     if not chat_id:
         warnings.append("Telegram chat_id is empty — notifications disabled")
+    elif chat_id and not str(chat_id).lstrip("-").isdigit():
+        warnings.append("Telegram chat_id must be numeric — resetting")
+        _config["telegram"]["chat_id"] = ""
 
+    # --- Balance check ---
     endpoints = get("balance_check.eth_rpc_endpoints", [])
     if not endpoints:
         warnings.append("No ETH RPC endpoints configured")
+
+    # --- Scanner ---
+    valid_chains = {"btc", "eth", "bsc", "polygon"}
+    chains = get("scanner.chains", [])
+    if chains:
+        invalid = [c for c in chains if c not in valid_chains]
+        if invalid:
+            warnings.append(f"Invalid chain(s) {invalid} — removing")
+            _config.setdefault("scanner", {})["chains"] = [
+                c for c in chains if c in valid_chains
+            ] or ["btc", "eth"]
+
+    batch_size = get("scanner.batch_size", 1000)
+    if not isinstance(batch_size, int) or batch_size < 100 or batch_size > 100000:
+        warnings.append(
+            f"scanner.batch_size={batch_size} out of range [100,100000] — reset to 1000"
+        )
+        _config.setdefault("scanner", {})["batch_size"] = 1000
+
+    check_every = get("scanner.check_every_n", 5000)
+    if not isinstance(check_every, int) or check_every < 100 or check_every > 1000000:
+        warnings.append(
+            f"scanner.check_every_n={check_every} out of range [100,1000000] — reset to 5000"
+        )
+        _config.setdefault("scanner", {})["check_every_n"] = 5000
+
+    threads = get("scanner.threads", 1)
+    if not isinstance(threads, int) or threads < 1 or threads > 16:
+        warnings.append(f"scanner.threads={threads} out of range [1,16] — reset to 1")
+        _config.setdefault("scanner", {})["threads"] = 1
+
+    # --- Headless ---
+    status_hours = get("headless.status_interval_hours", 24)
+    if (
+        not isinstance(status_hours, (int, float))
+        or status_hours < 1
+        or status_hours > 168
+    ):
+        warnings.append(
+            f"headless.status_interval_hours={status_hours} out of range [1,168] — reset to 24"
+        )
+        _config.setdefault("headless", {})["status_interval_hours"] = 24
 
     for w in warnings:
         logger.warning(f"Config: {w}")

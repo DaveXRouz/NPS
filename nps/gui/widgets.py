@@ -8,6 +8,60 @@ from tkinter import ttk
 from gui.theme import COLORS, FONTS, CURRENCY_SYMBOLS
 
 
+class ToolTip:
+    """Hover tooltip for any tkinter widget.
+
+    Shows a dark popup after a short delay (default 500ms).
+    """
+
+    def __init__(self, widget, text, delay=500):
+        self._widget = widget
+        self._text = text
+        self._delay = delay
+        self._tip_window = None
+        self._after_id = None
+        widget.bind("<Enter>", self._schedule, add="+")
+        widget.bind("<Leave>", self._hide, add="+")
+        widget.bind("<ButtonPress>", self._hide, add="+")
+
+    def _schedule(self, event=None):
+        self._hide()
+        self._after_id = self._widget.after(self._delay, self._show)
+
+    def _show(self):
+        if self._tip_window or not self._text:
+            return
+        x = self._widget.winfo_rootx() + 20
+        y = self._widget.winfo_rooty() + self._widget.winfo_height() + 4
+        self._tip_window = tw = tk.Toplevel(self._widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+        label = tk.Label(
+            tw,
+            text=self._text,
+            bg="#1a1a2e",
+            fg="#e0e0e0",
+            font=FONTS["small"],
+            relief="solid",
+            borderwidth=1,
+            padx=8,
+            pady=4,
+            wraplength=300,
+        )
+        label.pack()
+
+    def _hide(self, event=None):
+        if self._after_id:
+            self._widget.after_cancel(self._after_id)
+            self._after_id = None
+        if self._tip_window:
+            self._tip_window.destroy()
+            self._tip_window = None
+
+    def update_text(self, text):
+        self._text = text
+
+
 class StyledButton(tk.Frame):
     """Cross-platform colored button (macOS ignores bg/fg on tk.Button).
     Uses a Label inside a Frame so colors work everywhere."""
@@ -24,6 +78,7 @@ class StyledButton(tk.Frame):
         pady=6,
         cursor="hand2",
         state="normal",
+        tooltip=None,
         **kwargs,
     ):
         bg = bg or COLORS["bg_button"]
@@ -49,6 +104,11 @@ class StyledButton(tk.Frame):
             cursor=cursor,
         )
         self._label.pack()
+
+        if tooltip:
+            self._tooltip = ToolTip(self, tooltip)
+        else:
+            self._tooltip = None
 
         if state == "normal":
             self._label.bind("<Button-1>", self._on_click)

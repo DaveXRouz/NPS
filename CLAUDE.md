@@ -16,12 +16,22 @@ NPS (Numerology Puzzle Solver) V3 is a Python/tkinter desktop app that combines 
   - `session_manager.py` — Session tracking and archival
   - `terminal_manager.py` — Multi-terminal orchestration (max 10)
   - `health.py` — Endpoint health monitoring
-  - `config.py` — Config management with env var support
-  - `notifier.py` — Telegram notifications + command dispatch
+  - `config.py` — Config management with env var support + validation
+  - `notifier.py` — Telegram bot (25+ commands, inline keyboards, rate limiting)
   - `balance.py` — Multi-chain balance checking (BTC, ETH, BSC, Polygon)
   - `oracle.py` — Oracle readings, question signs, daily insights
+  - `events.py` — Thread-safe pub/sub event bus with GUI-safe callbacks
+  - `logger.py` — Centralized logging with RotatingFileHandler + Telegram error handler
+  - `errors.py` — Result class, @safe_callback decorator, safe_file_read
   - `memory.py` — Legacy memory system
   - `perf.py` — Performance timing
+- `nps/logic/` — Intelligence layer for smart scanning decisions
+  - `strategy_engine.py` — Level-gated strategy brain with timing + range integration
+  - `pattern_tracker.py` — Pattern analysis: batch recording, finding analysis, coverage
+  - `key_scorer.py` — LRU-cached scoring (10K entries), top-N heap tracking
+  - `timing_advisor.py` — Cosmic timing: moon phase, FC60, numerology alignment
+  - `range_optimizer.py` — Smart range selection with coverage tracking
+  - `history_manager.py` — Throttled atomic persistence for logic data
 - `nps/solvers/` — Puzzle solvers
   - `unified_solver.py` — V3 unified hunter (random_key/seed_phrase/both + puzzle toggle + checkpoints)
   - `btc_solver.py`, `scanner_solver.py` — V2 solvers (still functional)
@@ -32,8 +42,8 @@ NPS (Numerology Puzzle Solver) V3 is a Python/tkinter desktop app that combines 
   - `oracle_tab.py` — Question mode + name cipher
   - `memory_tab.py` — AI learning center
   - `settings_tab.py` — Telegram config, security, scanner defaults
-  - `theme.py`, `widgets.py` — Shared UI components
-- `nps/tests/` — Test suite (25 test files, 238 tests)
+  - `theme.py`, `widgets.py` — Shared UI components (ToolTip, StyledButton with tooltips)
+- `nps/tests/` — Test suite (33 test files, 361 tests)
 - `nps/data/` — Runtime data (gitignored)
   - `findings/`, `sessions/`, `learning/`, `checkpoints/`
 - `docs/` — Architecture specs
@@ -65,6 +75,8 @@ cd nps && python3 -m unittest tests/test_fc60.py -v
 - **config.json** in `nps/` holds all runtime configuration (API keys, chain settings, Telegram).
 - **Security first** — Sensitive data (private keys, seeds) encrypted via `engines/security.py`. Use `encrypt_dict`/`decrypt_dict` for vault records.
 - **Thread safety** — Vault, terminal manager, and learner use `threading.Lock`. Atomic file writes via `.tmp` + `os.replace`.
+- **Event bus** — Cross-component communication via `engines/events.py`. Subscribe with `gui_root` for GUI-safe callbacks. Events: `FINDING_FOUND`, `HEALTH_CHANGED`, `LEVEL_UP`, `TERMINAL_STATUS_CHANGED`, `SCAN_STARTED`, `SCAN_STOPPED`, `CHECKPOINT_SAVED`, `CONFIG_CHANGED`, `SHUTDOWN`.
+- **Logic layer** — `logic/` modules provide intelligence for scanning decisions. StrategyEngine is level-gated (fixed at L1-2, suggestions at L3+, auto-adjust at L4+).
 
 ## Code Standards
 
@@ -77,7 +89,7 @@ cd nps && python3 -m unittest tests/test_fc60.py -v
 
 ## Testing
 
-Tests live in `nps/tests/`. Each engine and solver has its own test file. Tests should be runnable without network access or API keys (mock external calls). Current: 238 tests across 19 files.
+Tests live in `nps/tests/`. Each engine and solver has its own test file. Tests should be runnable without network access or API keys (mock external calls). Current: 361 tests across 33 files.
 
 ## Git Workflow
 

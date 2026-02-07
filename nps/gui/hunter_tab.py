@@ -24,6 +24,8 @@ class HunterTab:
         self.app = app
         self._puzzle_solver = None
         self._scanner_solver = None
+        self._puzzle_terminal_id = None
+        self._scanner_terminal_id = None
         self._build_ui()
 
     def _build_ui(self):
@@ -194,6 +196,7 @@ class HunterTab:
             font=FONTS["small"],
             padx=12,
             pady=4,
+            tooltip="Start solving the selected puzzle number",
         )
         self._puzzle_start_btn.pack(side="left", padx=(0, 4))
         self._puzzle_stop_btn = StyledButton(
@@ -206,6 +209,7 @@ class HunterTab:
             padx=12,
             pady=4,
             state="disabled",
+            tooltip="Stop the puzzle solver",
         )
         self._puzzle_stop_btn.pack(side="left")
 
@@ -306,6 +310,7 @@ class HunterTab:
             font=FONTS["small"],
             padx=12,
             pady=4,
+            tooltip="Start scanning with selected chains and mode",
         )
         self._scan_start_btn.pack(side="left", padx=(0, 4))
         self._scan_stop_btn = StyledButton(
@@ -318,6 +323,7 @@ class HunterTab:
             padx=12,
             pady=4,
             state="disabled",
+            tooltip="Stop the scanner",
         )
         self._scan_stop_btn.pack(side="left")
 
@@ -408,26 +414,48 @@ class HunterTab:
     # ═══ Puzzle solver control ═══
 
     def _start_puzzle(self):
-        if self._puzzle_solver and self._puzzle_solver.running:
+        if self._puzzle_terminal_id:
             return
         try:
-            from solvers.btc_solver import BTCSolver
+            from engines.terminal_manager import create_terminal, start_terminal
+            from engines.session_manager import start_session
+            from engines.events import emit, SCAN_STARTED
 
             puzzle_num = int(self._puzzle_var.get())
             strategy = self._strategy_var.get()
 
-            self._puzzle_solver = BTCSolver(
-                puzzle_number=puzzle_num,
-                strategy=strategy,
-                callback=self._puzzle_callback,
-            )
-            self._puzzle_solver.start()
+            settings = {
+                "mode": "random_key",
+                "puzzle_enabled": True,
+                "puzzle_number": puzzle_num,
+                "strategy": strategy,
+                "chains": ["btc"],
+                "tokens": [],
+                "online_check": False,
+                "use_brain": False,
+                "callback": self._puzzle_callback,
+            }
 
-            if self.app:
-                self.app.register_solver_v2(self._puzzle_solver, "puzzle")
+            tid = create_terminal(settings)
+            if not tid:
+                self._log_activity("Max terminals reached", "error")
+                return
+
+            self._puzzle_terminal_id = tid
+            start_terminal(tid)
+
+            try:
+                start_session(tid, settings)
+            except Exception:
+                pass
 
             self._puzzle_start_btn.config(state="disabled")
             self._puzzle_stop_btn.config(state="normal")
+
+            emit(
+                SCAN_STARTED,
+                {"terminal_id": tid, "type": "puzzle", "puzzle": puzzle_num},
+            )
 
             self._notify_dashboard(
                 "puzzle",
@@ -444,33 +472,70 @@ class HunterTab:
             self._log_activity(f"Puzzle start error: {e}", "error")
 
     def _stop_puzzle(self):
-        if self._puzzle_solver:
-            # Record session to memory
+        if self._puzzle_terminal_id:
             try:
-                stats = (
-                    self._puzzle_solver.get_stats()
-                    if hasattr(self._puzzle_solver, "get_stats")
-                    else {}
+                from engines.terminal_manager import (
+                    stop_terminal,
+                    get_terminal_stats,
+                    remove_terminal,
                 )
-                from engines.memory import record_session
+                from engines.session_manager import end_session
+                from engines.learner import add_xp
+                from engines.events import emit, SCAN_STOPPED
 
-                record_session(
-                    {
-                        "mode": "puzzle",
-                        "puzzle": int(self._puzzle_var.get()),
-                        "strategy": self._strategy_var.get(),
-                        "keys_tested": stats.get("keys_tested", 0),
-                        "best_score": stats.get("best_score", 0),
-                        "duration": stats.get("elapsed", 0),
-                    }
+                stats = get_terminal_stats(self._puzzle_terminal_id) or {}
+                stop_terminal(self._puzzle_terminal_id)
+
+                try:
+                    end_session(self._puzzle_terminal_id, stats)
+                except Exception:
+                    pass
+
+                try:
+                    keys = stats.get("keys_tested", 0)
+                    xp = max(1, keys // 10000)
+                    add_xp(xp, "puzzle_session")
+                except Exception:
+                    pass
+
+                # Record to legacy memory
+                try:
+                    from engines.memory import record_session
+
+                    record_session(
+                        {
+                            "mode": "puzzle",
+                            "puzzle": int(self._puzzle_var.get()),
+                            "strategy": self._strategy_var.get(),
+                            "keys_tested": stats.get("keys_tested", 0),
+                            "best_score": stats.get("high_score", 0),
+                            "duration": stats.get("elapsed", 0),
+                        }
+                    )
+                except Exception:
+                    pass
+
+                try:
+                    remove_terminal(self._puzzle_terminal_id)
+                except Exception:
+                    pass
+
+                emit(
+                    SCAN_STOPPED,
+                    {"terminal_id": self._puzzle_terminal_id, "type": "puzzle"},
                 )
             except Exception:
                 pass
 
+            self._puzzle_terminal_id = None
+
+        # Also stop legacy solver if active
+        if self._puzzle_solver:
             self._puzzle_solver.stop()
             if self.app:
                 self.app.unregister_solver_v2(self._puzzle_solver)
             self._puzzle_solver = None
+
         self._puzzle_start_btn.config(state="normal")
         self._puzzle_stop_btn.config(state="disabled")
         self._notify_dashboard("puzzle", {"status": "Stopped"})
@@ -553,12 +618,17 @@ class HunterTab:
     # ═══ Scanner control ═══
 
     def _start_scanner(self):
-        if self._scanner_solver and self._scanner_solver.running:
+        if self._scanner_terminal_id:
             return
         try:
-            from solvers.scanner_solver import ScannerSolver
+            from engines.terminal_manager import create_terminal, start_terminal
+            from engines.session_manager import start_session
+            from engines.events import emit, SCAN_STARTED
 
             mode = self._scan_mode_var.get()
+            # Map UI mode names to UnifiedSolver mode names
+            mode_map = {"random": "random_key", "bip39": "seed_phrase", "both": "both"}
+            solver_mode = mode_map.get(mode, mode)
             balance = self._scan_balance_var.get()
 
             selected_chains = [
@@ -578,20 +648,36 @@ class HunterTab:
 
             self._rebuild_feed_table(selected_chains, selected_tokens)
 
-            self._scanner_solver = ScannerSolver(
-                mode=mode,
-                callback=self._scanner_callback,
-                check_balance_online=balance,
-                chains=selected_chains,
-                tokens=selected_tokens,
-            )
-            self._scanner_solver.start()
+            settings = {
+                "mode": solver_mode,
+                "puzzle_enabled": False,
+                "chains": selected_chains,
+                "tokens": selected_tokens,
+                "online_check": balance,
+                "use_brain": True,
+                "callback": self._scanner_callback,
+            }
 
-            if self.app:
-                self.app.register_solver_v2(self._scanner_solver, "scanner")
+            tid = create_terminal(settings)
+            if not tid:
+                self._log_activity("Max terminals reached", "error")
+                return
+
+            self._scanner_terminal_id = tid
+            start_terminal(tid)
+
+            try:
+                start_session(tid, settings)
+            except Exception:
+                pass
 
             self._scan_start_btn.config(state="disabled")
             self._scan_stop_btn.config(state="normal")
+
+            emit(
+                SCAN_STARTED,
+                {"terminal_id": tid, "type": "scanner", "mode": solver_mode},
+            )
 
             self._notify_dashboard(
                 "scanner",
@@ -608,33 +694,70 @@ class HunterTab:
             self._log_activity(f"Scanner start error: {e}", "error")
 
     def _stop_scanner(self):
-        if self._scanner_solver:
-            # Record session to memory
+        if self._scanner_terminal_id:
             try:
-                stats = (
-                    self._scanner_solver.get_stats()
-                    if hasattr(self._scanner_solver, "get_stats")
-                    else {}
+                from engines.terminal_manager import (
+                    stop_terminal,
+                    get_terminal_stats,
+                    remove_terminal,
                 )
-                from engines.memory import record_session
+                from engines.session_manager import end_session
+                from engines.learner import add_xp
+                from engines.events import emit, SCAN_STOPPED
 
-                record_session(
-                    {
-                        "mode": "scanner",
-                        "puzzle": 0,
-                        "strategy": self._scan_mode_var.get(),
-                        "keys_tested": stats.get("keys_tested", 0),
-                        "best_score": 0,
-                        "duration": stats.get("elapsed", 0),
-                    }
+                stats = get_terminal_stats(self._scanner_terminal_id) or {}
+                stop_terminal(self._scanner_terminal_id)
+
+                try:
+                    end_session(self._scanner_terminal_id, stats)
+                except Exception:
+                    pass
+
+                try:
+                    keys = stats.get("keys_tested", 0)
+                    xp = max(1, keys // 10000)
+                    add_xp(xp, "scanner_session")
+                except Exception:
+                    pass
+
+                # Record to legacy memory
+                try:
+                    from engines.memory import record_session
+
+                    record_session(
+                        {
+                            "mode": "scanner",
+                            "puzzle": 0,
+                            "strategy": self._scan_mode_var.get(),
+                            "keys_tested": stats.get("keys_tested", 0),
+                            "best_score": 0,
+                            "duration": stats.get("elapsed", 0),
+                        }
+                    )
+                except Exception:
+                    pass
+
+                try:
+                    remove_terminal(self._scanner_terminal_id)
+                except Exception:
+                    pass
+
+                emit(
+                    SCAN_STOPPED,
+                    {"terminal_id": self._scanner_terminal_id, "type": "scanner"},
                 )
             except Exception:
                 pass
 
+            self._scanner_terminal_id = None
+
+        # Also stop legacy solver if active
+        if self._scanner_solver:
             self._scanner_solver.stop()
             if self.app:
                 self.app.unregister_solver_v2(self._scanner_solver)
             self._scanner_solver = None
+
         self._scan_start_btn.config(state="normal")
         self._scan_stop_btn.config(state="disabled")
         self._rebuild_feed_table()  # restore default columns
@@ -847,6 +970,24 @@ class HunterTab:
 
     def stop_all(self):
         """Stop all active missions (called on app close)."""
+        # Stop terminal-managed solvers
+        if self._puzzle_terminal_id:
+            try:
+                from engines.terminal_manager import stop_terminal
+
+                stop_terminal(self._puzzle_terminal_id)
+            except Exception:
+                pass
+            self._puzzle_terminal_id = None
+        if self._scanner_terminal_id:
+            try:
+                from engines.terminal_manager import stop_terminal
+
+                stop_terminal(self._scanner_terminal_id)
+            except Exception:
+                pass
+            self._scanner_terminal_id = None
+        # Stop legacy solvers
         if self._puzzle_solver and self._puzzle_solver.running:
             self._puzzle_solver.stop()
         if self._scanner_solver and self._scanner_solver.running:

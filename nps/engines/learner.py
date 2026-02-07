@@ -149,17 +149,34 @@ def add_xp(amount, reason=""):
         _state["xp"] += amount
 
         # Check for level up
+        leveled_up = False
+        new_level_info = None
         for level_num in sorted(LEVELS.keys(), reverse=True):
             if _state["xp"] >= LEVELS[level_num]["xp"]:
                 if level_num > _state["level"]:
                     old_level = _state["level"]
                     _state["level"] = level_num
+                    leveled_up = True
+                    new_level_info = {
+                        "old_level": old_level,
+                        "new_level": level_num,
+                        "name": LEVELS[level_num]["name"],
+                        "xp": _state["xp"],
+                    }
                     logger.info(
                         f"Level up! {old_level} -> {level_num} ({LEVELS[level_num]['name']})"
                     )
                 break
 
     save_state()
+
+    if leveled_up and new_level_info:
+        try:
+            from engines.events import emit, LEVEL_UP
+
+            emit(LEVEL_UP, new_level_info)
+        except Exception:
+            pass
 
 
 def learn(session_data, model="sonnet"):

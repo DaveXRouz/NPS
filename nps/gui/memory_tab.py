@@ -17,6 +17,7 @@ class MemoryTab:
         self.parent = parent
         self.app = app
         self._build_ui()
+        self._subscribe_events()
         self._refresh()
 
     def _build_ui(self):
@@ -275,6 +276,7 @@ class MemoryTab:
             font=FONTS["small"],
             padx=10,
             pady=4,
+            tooltip="Trigger AI learning from scan data",
         )
         self._learn_btn.pack(fill="x", pady=2)
 
@@ -287,17 +289,43 @@ class MemoryTab:
             font=FONTS["small"],
             padx=10,
             pady=4,
+            tooltip="Recalculate scoring factor weights from data",
         ).pack(fill="x", pady=2)
 
         StyledButton(
             frame,
-            text="Export CSV",
+            text="Export Memory CSV",
             command=self._export_csv,
             bg=COLORS["bg_button"],
             fg="white",
             font=FONTS["small"],
             padx=10,
             pady=4,
+            tooltip="Export scan memory sessions to CSV file",
+        ).pack(fill="x", pady=2)
+
+        StyledButton(
+            frame,
+            text="Export Vault CSV",
+            command=self._export_vault_csv,
+            bg=COLORS["bg_button"],
+            fg="white",
+            font=FONTS["small"],
+            padx=10,
+            pady=4,
+            tooltip="Export vault findings to CSV file",
+        ).pack(fill="x", pady=2)
+
+        StyledButton(
+            frame,
+            text="Export Vault JSON",
+            command=self._export_vault_json,
+            bg=COLORS["bg_button"],
+            fg="white",
+            font=FONTS["small"],
+            padx=10,
+            pady=4,
+            tooltip="Export vault findings to JSON file",
         ).pack(fill="x", pady=2)
 
         StyledButton(
@@ -309,6 +337,7 @@ class MemoryTab:
             font=FONTS["small"],
             padx=10,
             pady=4,
+            tooltip="Force write all memory data to disk",
         ).pack(fill="x", pady=2)
 
         StyledButton(
@@ -320,6 +349,7 @@ class MemoryTab:
             font=FONTS["small"],
             padx=10,
             pady=4,
+            tooltip="Refresh all stats and displays",
         ).pack(fill="x", pady=2)
 
     # ═══ Refresh ═══
@@ -567,6 +597,36 @@ class MemoryTab:
         except Exception:
             pass
 
+    def _export_vault_csv(self):
+        filepath = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialfile="nps_vault_export.csv",
+        )
+        if not filepath:
+            return
+        try:
+            from engines.vault import export_csv
+
+            export_csv(filepath)
+        except Exception:
+            pass
+
+    def _export_vault_json(self):
+        filepath = filedialog.asksaveasfilename(
+            defaultextension=".json",
+            filetypes=[("JSON files", "*.json")],
+            initialfile="nps_vault_export.json",
+        )
+        if not filepath:
+            return
+        try:
+            from engines.vault import export_json
+
+            export_json(filepath)
+        except Exception:
+            pass
+
     def _flush(self):
         try:
             from engines.memory import flush_to_disk
@@ -574,3 +634,23 @@ class MemoryTab:
             flush_to_disk()
         except Exception:
             pass
+
+    def _subscribe_events(self):
+        """Subscribe to events for live updates."""
+        try:
+            from engines import events
+
+            events.subscribe(events.LEVEL_UP, self._on_level_up, gui_root=self.parent)
+            events.subscribe(
+                events.FINDING_FOUND, self._on_finding, gui_root=self.parent
+            )
+        except Exception:
+            pass
+
+    def _on_level_up(self, data):
+        """Handle LEVEL_UP — refresh level display."""
+        self._refresh_level()
+
+    def _on_finding(self, data):
+        """Handle FINDING_FOUND — refresh stats."""
+        self._refresh_memory_stats()

@@ -5,6 +5,7 @@ Covers: Telegram config, security management, deployment,
 scanner defaults, notification toggles, and about info.
 """
 
+import threading
 import tkinter as tk
 from tkinter import ttk, filedialog
 import logging
@@ -146,6 +147,7 @@ class SettingsTab:
             font=F["small"],
             padx=8,
             pady=3,
+            tooltip="Send a test message to verify Telegram setup",
         ).pack(side="left", padx=4)
 
         StyledButton(
@@ -157,6 +159,7 @@ class SettingsTab:
             font=F["small"],
             padx=8,
             pady=3,
+            tooltip="Save Telegram bot token, chat ID, and notification settings",
         ).pack(side="left", padx=4)
 
         self.tg_status = tk.Label(
@@ -192,6 +195,7 @@ class SettingsTab:
             command=self._change_master_key,
             bg=C["bg_button"],
             fg=C["text_bright"],
+            tooltip="Change the encryption master key for vault data",
         ).pack(anchor="w", padx=8, pady=4)
 
         # ── Scanner Settings ──
@@ -340,6 +344,7 @@ class SettingsTab:
             font=F["small"],
             padx=8,
             pady=3,
+            tooltip="Reset all settings to factory defaults",
         ).pack(padx=8, pady=8)
 
         # ── About ──
@@ -383,6 +388,7 @@ class SettingsTab:
             font=F["small"],
             padx=8,
             pady=3,
+            tooltip="Export configuration to a JSON file",
         ).pack(side="left", padx=4)
 
         StyledButton(
@@ -394,6 +400,7 @@ class SettingsTab:
             font=F["small"],
             padx=8,
             pady=3,
+            tooltip="Import configuration from a JSON file",
         ).pack(side="left", padx=4)
 
         # Load current values
@@ -438,25 +445,44 @@ class SettingsTab:
             pass
 
     def _test_telegram(self):
-        """Test Telegram connection."""
+        """Test Telegram connection in a background thread."""
         C = self.COLORS
-        try:
-            from engines.notifier import send_message, is_configured
+        self.tg_status.config(text="Testing...", fg=C["text_dim"])
 
-            if is_configured():
-                result = send_message("NPS Settings Test — Connection OK")
-                if result:
-                    self.tg_status.config(
-                        text="Connection successful!", fg=C["success"]
-                    )
+        def _do_test():
+            try:
+                from engines.notifier import send_message, is_configured
+
+                if is_configured():
+                    result = send_message("NPS Settings Test — Connection OK")
+                    if result:
+                        self.parent.after(
+                            0,
+                            lambda: self.tg_status.config(
+                                text="Connection successful!", fg=C["success"]
+                            ),
+                        )
+                    else:
+                        self.parent.after(
+                            0,
+                            lambda: self.tg_status.config(
+                                text="Send failed", fg=C["error"]
+                            ),
+                        )
                 else:
-                    self.tg_status.config(text="Send failed", fg=C["error"])
-            else:
-                self.tg_status.config(
-                    text="Not configured (set chat_id)", fg=C["warning"]
+                    self.parent.after(
+                        0,
+                        lambda: self.tg_status.config(
+                            text="Not configured (set chat_id)", fg=C["warning"]
+                        ),
+                    )
+            except Exception as e:
+                self.parent.after(
+                    0,
+                    lambda: self.tg_status.config(text=f"Error: {e}", fg=C["error"]),
                 )
-        except Exception as e:
-            self.tg_status.config(text=f"Error: {e}", fg=C["error"])
+
+        threading.Thread(target=_do_test, daemon=True).start()
 
     def _save_telegram(self):
         """Save Telegram settings including notification toggles."""
@@ -475,6 +501,12 @@ class SettingsTab:
             }
             save_config_updates(updates)
             self.tg_status.config(text="Saved!", fg=self.COLORS["success"])
+            try:
+                from engines.events import emit, CONFIG_CHANGED
+
+                emit(CONFIG_CHANGED, {"section": "telegram"})
+            except Exception:
+                pass
         except Exception as e:
             self.tg_status.config(text=f"Save failed: {e}", fg=self.COLORS["error"])
 
@@ -519,6 +551,12 @@ class SettingsTab:
                 except ValueError:
                     updates["scanner"][field] = var.get()
             save_config_updates(updates)
+            try:
+                from engines.events import emit, CONFIG_CHANGED
+
+                emit(CONFIG_CHANGED, {"section": "scanner"})
+            except Exception:
+                pass
         except Exception as e:
             logger.error(f"Save scanner settings failed: {e}")
 

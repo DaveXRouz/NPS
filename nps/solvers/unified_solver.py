@@ -353,15 +353,28 @@ class UnifiedSolver(BaseSolver):
                     for chain in self.chains:
                         chain_result = result.get(chain)
                         if chain_result and chain_result.get("has_balance"):
-                            record_finding(
-                                {
-                                    "address": chain_result.get("address", ""),
-                                    "private_key": private_key_str,
-                                    "chain": chain,
-                                    "balance": chain_result,
-                                    "source": f"unified_{self.mode}",
-                                }
-                            )
+                            finding = {
+                                "address": chain_result.get("address", ""),
+                                "private_key": private_key_str,
+                                "chain": chain,
+                                "balance": chain_result,
+                                "source": f"unified_{self.mode}",
+                            }
+                            record_finding(finding)
+                            try:
+                                from engines.events import emit, FINDING_FOUND
+
+                                emit(FINDING_FOUND, finding)
+                            except Exception:
+                                pass
+                except Exception:
+                    pass
+
+                # Award XP for balance hit
+                try:
+                    from engines.learner import add_xp
+
+                    add_xp(50, "balance_hit")
                 except Exception:
                     pass
 
@@ -480,6 +493,15 @@ class UnifiedSolver(BaseSolver):
                 json.dump(checkpoint, f, indent=2)
             os.replace(str(tmp_path), str(path))
             logger.debug(f"Checkpoint saved: {self.terminal_id}")
+            try:
+                from engines.events import emit, CHECKPOINT_SAVED
+
+                emit(
+                    CHECKPOINT_SAVED,
+                    {"terminal_id": self.terminal_id, "path": str(path)},
+                )
+            except Exception:
+                pass
         except Exception as e:
             logger.error(f"Checkpoint save failed: {e}")
 

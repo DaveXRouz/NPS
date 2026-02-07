@@ -77,6 +77,12 @@ def start_terminal(terminal_id):
             _terminals[terminal_id]["status"] = "running"
 
         logger.info(f"Terminal started: {terminal_id}")
+        try:
+            from engines.events import emit, TERMINAL_STATUS_CHANGED
+
+            emit(TERMINAL_STATUS_CHANGED, {"id": terminal_id, "status": "running"})
+        except Exception:
+            pass
         return True
     except Exception as e:
         logger.error(f"Failed to start terminal {terminal_id}: {e}")
@@ -101,6 +107,12 @@ def stop_terminal(terminal_id):
             _terminals[terminal_id]["status"] = "stopped"
 
     logger.info(f"Terminal stopped: {terminal_id}")
+    try:
+        from engines.events import emit, TERMINAL_STATUS_CHANGED
+
+        emit(TERMINAL_STATUS_CHANGED, {"id": terminal_id, "status": "stopped"})
+    except Exception:
+        pass
     return True
 
 
@@ -116,6 +128,12 @@ def pause_terminal(terminal_id):
         solver.pause()
         with _lock:
             _terminals[terminal_id]["status"] = "paused"
+        try:
+            from engines.events import emit, TERMINAL_STATUS_CHANGED
+
+            emit(TERMINAL_STATUS_CHANGED, {"id": terminal_id, "status": "paused"})
+        except Exception:
+            pass
         return True
     return False
 
@@ -132,6 +150,12 @@ def resume_terminal(terminal_id):
         solver.resume()
         with _lock:
             _terminals[terminal_id]["status"] = "running"
+        try:
+            from engines.events import emit, TERMINAL_STATUS_CHANGED
+
+            emit(TERMINAL_STATUS_CHANGED, {"id": terminal_id, "status": "running"})
+        except Exception:
+            pass
         return True
     return False
 

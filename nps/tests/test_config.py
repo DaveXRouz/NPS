@@ -61,11 +61,13 @@ class TestConfig(unittest.TestCase):
 
     def test_deep_merge_preserves_custom_values(self):
         """Custom values in file are preserved, missing keys filled from defaults."""
-        custom = {"telegram": {"bot_token": "custom_token"}}
+        custom = {"telegram": {"bot_token": "123456789012345678901:ABCtoken"}}
         with open(self.config_path, "w") as f:
             json.dump(custom, f)
         config = self._cfg.load_config(path=self.config_path)
-        self.assertEqual(config["telegram"]["bot_token"], "custom_token")
+        self.assertEqual(
+            config["telegram"]["bot_token"], "123456789012345678901:ABCtoken"
+        )
         # scanner section should come from defaults
         self.assertIn("scanner", config)
         self.assertEqual(config["scanner"]["batch_size"], 1000)

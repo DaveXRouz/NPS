@@ -51,12 +51,28 @@ def _monitor_loop(interval):
             if not _running:
                 break
             healthy = _check_endpoint(name, url)
+            old_healthy = None
             with _lock:
+                old_info = _status.get(name)
+                if old_info is not None:
+                    old_healthy = old_info.get("healthy")
                 _status[name] = {
                     "healthy": healthy,
                     "last_check": time.time(),
                     "url": url,
                 }
+
+            # Emit event if health status changed
+            if old_healthy is not None and old_healthy != healthy:
+                try:
+                    from engines.events import emit, HEALTH_CHANGED
+
+                    emit(
+                        HEALTH_CHANGED,
+                        {"endpoint": name, "healthy": healthy, "url": url},
+                    )
+                except Exception:
+                    pass
 
         # Sleep in small increments so we can stop quickly
         for _ in range(int(interval)):

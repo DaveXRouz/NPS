@@ -1,18 +1,79 @@
 # NPS V3 — Implementation Progress
 
-| Phase | Description                      | Status   | Tests   | Timestamp  |
-| ----- | -------------------------------- | -------- | ------- | ---------- |
-| 0     | Cleanup, Migration & Preparation | Complete | 147/147 | 2026-02-07 |
-| 1     | Security Layer                   | Complete | 160/160 | 2026-02-07 |
-| 2     | Findings Vault                   | Complete | 173/173 | 2026-02-07 |
-| 3     | Unified Hunter                   | Complete | 188/188 | 2026-02-07 |
-| 4     | Oracle Upgrade                   | Complete | 195/195 | 2026-02-07 |
-| 5     | Memory Restructure               | Complete | 214/214 | 2026-02-07 |
-| 6     | Dashboard Upgrade                | Complete | 227/227 | 2026-02-07 |
-| 7     | Settings & Connections           | Complete | 238/238 | 2026-02-07 |
-| Final | Documentation & Verification     | Complete | 238/238 | 2026-02-07 |
-| Audit | V3 Full Audit                    | PASSED   | 238/238 | 2026-02-07 |
-| GUI   | Wire 19 GUI Integration Items    | Complete | 238/238 | 2026-02-07 |
+| Phase | Description                         | Status   | Tests   | Timestamp  |
+| ----- | ----------------------------------- | -------- | ------- | ---------- |
+| 0     | Cleanup, Migration & Preparation    | Complete | 147/147 | 2026-02-07 |
+| 1     | Security Layer                      | Complete | 160/160 | 2026-02-07 |
+| 2     | Findings Vault                      | Complete | 173/173 | 2026-02-07 |
+| 3     | Unified Hunter                      | Complete | 188/188 | 2026-02-07 |
+| 4     | Oracle Upgrade                      | Complete | 195/195 | 2026-02-07 |
+| 5     | Memory Restructure                  | Complete | 214/214 | 2026-02-07 |
+| 6     | Dashboard Upgrade                   | Complete | 227/227 | 2026-02-07 |
+| 7     | Settings & Connections              | Complete | 238/238 | 2026-02-07 |
+| Final | Documentation & Verification        | Complete | 238/238 | 2026-02-07 |
+| Audit | V3 Full Audit                       | PASSED   | 238/238 | 2026-02-07 |
+| GUI   | Wire 19 GUI Integration Items       | Complete | 238/238 | 2026-02-07 |
+| V3+   | Foundation (events, logger, errors) | Complete | 270/270 | 2026-02-07 |
+| V3+   | System Integration (Mission 1)      | Complete | 270/270 | 2026-02-07 |
+| V3+   | Logic Folder (Mission 3)            | Complete | 316/316 | 2026-02-07 |
+| V3+   | Telegram Bot (Mission 2)            | Complete | 351/351 | 2026-02-07 |
+| V3+   | Polish (Mission 4)                  | Complete | 361/361 | 2026-02-07 |
+| V3+   | Final Verification                  | Complete | 361/361 | 2026-02-07 |
+
+## V3+ Integration & Enhancement — COMPLETE (361 tests)
+
+### New Files Created (21)
+
+**Foundation Layer:**
+
+- `engines/events.py` — Thread-safe pub/sub event bus with GUI-safe callbacks
+- `engines/logger.py` — Centralized logging with RotatingFileHandler + Telegram error handler
+- `engines/errors.py` — Result class, @safe_callback decorator, safe_file_read
+
+**Logic Folder (6 modules):**
+
+- `logic/__init__.py` — Re-exports all logic components
+- `logic/strategy_engine.py` — Level-gated strategy brain with timing + range integration
+- `logic/pattern_tracker.py` — Pattern analysis: batch recording, finding analysis, coverage
+- `logic/key_scorer.py` — LRU-cached scoring (10K entries), top-N heap tracking
+- `logic/timing_advisor.py` — Cosmic timing: moon phase, FC60, numerology alignment
+- `logic/range_optimizer.py` — Smart range selection with coverage tracking
+- `logic/history_manager.py` — Throttled atomic persistence for logic data
+
+**Test Files (14):**
+
+- `tests/test_events.py` (8 tests), `tests/test_logger.py` (6 tests), `tests/test_errors.py` (8 tests)
+- `tests/test_strategy_engine.py` (10), `tests/test_pattern_tracker.py` (8), `tests/test_key_scorer.py` (8)
+- `tests/test_timing_advisor.py` (6), `tests/test_range_optimizer.py` (8), `tests/test_history_manager.py` (6)
+- `tests/test_config_validation.py` (11)
+
+### Modified Files (14)
+
+- `main.py` — Ordered shutdown chain, atexit emergency shutdown, checkpoint resume, tab emojis, status bar (health dot + terminal count + speed), unified Telegram dispatch
+- `gui/hunter_tab.py` — Uses terminal_manager + events instead of direct V2 solvers, emits SCAN_STARTED/STOPPED, learner XP on session end
+- `gui/dashboard_tab.py` — Event subscriptions (FINDING, HEALTH, LEVEL_UP, TERMINAL), 1s stats poll, daily insight
+- `gui/memory_tab.py` — Event subscriptions, vault export (CSV/JSON), learner-driven recommendations
+- `gui/settings_tab.py` — Full config load, threaded test connection, CONFIG_CHANGED events
+- `gui/widgets.py` — ToolTip class (500ms hover delay), tooltip param on StyledButton
+- `engines/notifier.py` — Command registry with 25+ commands, inline keyboards, message queue, rate limiting, bot health auto-disable
+- `engines/terminal_manager.py` — TERMINAL_STATUS_CHANGED event emission
+- `engines/learner.py` — LEVEL_UP event emission
+- `engines/health.py` — HEALTH_CHANGED event emission
+- `engines/config.py` — Expanded validation (bot_token, chat_id, batch_size, threads, chains, etc.)
+- `solvers/unified_solver.py` — FINDING_FOUND + CHECKPOINT_SAVED events, learner XP on hits
+- `tests/test_settings.py` — Updated /help assertion for new format
+- `tests/test_config.py` — Updated test for valid bot token format
+
+### Key Features Added
+
+- **Event Bus:** Thread-safe pub/sub with GUI-safe scheduling via `gui_root.after(0, ...)`
+- **Logic Layer:** 6-module intelligence system for smart scanning decisions
+- **25+ Telegram Commands:** Full command registry with inline keyboards and rate limiting
+- **Tooltips:** Hover tooltips on all buttons across 5 tabs
+- **Status Bar:** Health dot (green/orange/red), active terminal count, combined speed
+- **Checkpoint Resume:** Startup dialog to resume from saved checkpoints
+- **Emergency Shutdown:** atexit handler saves vault, learner, and config on crash
+- **Config Validation:** Auto-corrects invalid values with logged warnings
 
 ## V3 AUDIT: PASSED — 2026-02-07
 

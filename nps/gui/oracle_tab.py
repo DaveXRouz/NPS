@@ -184,6 +184,7 @@ class OracleTab:
             font=FONTS["small"],
             padx=12,
             pady=4,
+            tooltip="Perform a numerological reading of the sign",
         ).pack(side="left")
 
     # ─── Sign Display ───
@@ -305,6 +306,7 @@ class OracleTab:
             font=FONTS["small"],
             padx=12,
             pady=4,
+            tooltip="Analyze name using Pythagorean and Chaldean systems",
         ).pack(side="left")
 
     # ─── Name Display ───

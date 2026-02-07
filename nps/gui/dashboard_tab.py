@@ -14,7 +14,9 @@ class DashboardTab:
         self.parent = parent
         self.app = app
         self._build_ui()
+        self._subscribe_events()
         self._refresh_moment()
+        self._start_stats_poll()
 
     def _build_ui(self):
         main = tk.Frame(self.parent, bg=COLORS["bg"], padx=16, pady=12)
@@ -58,7 +60,7 @@ class DashboardTab:
         ).pack(anchor="w", pady=(4, 2))
         self.activity_log = LogPanel(main, height=8)
         self.activity_log.pack(fill="both", expand=True)
-        self.activity_log.log("NPS V2 started. Awaiting missions.", "info")
+        self.activity_log.log("NPS V3 started. Awaiting missions.", "info")
 
     # ─── Current Moment ───
     def _build_moment_panel(self, parent):
@@ -230,6 +232,7 @@ class DashboardTab:
             font=FONTS["small"],
             padx=8,
             pady=2,
+            tooltip="Create a new scanner terminal (max 10)",
         ).pack(side="left")
 
         self._terminal_count_label = tk.Label(
@@ -754,3 +757,77 @@ class DashboardTab:
                 dot_label.config(text=f"\u25cf {short}", fg=color)
         except Exception:
             pass
+
+    # ═══ Event Subscriptions ═══
+
+    def _subscribe_events(self):
+        """Subscribe to system events for live updates."""
+        try:
+            from engines import events
+
+            events.subscribe(
+                events.FINDING_FOUND, self._on_finding, gui_root=self.parent
+            )
+            events.subscribe(
+                events.HEALTH_CHANGED, self._on_health_changed, gui_root=self.parent
+            )
+            events.subscribe(events.LEVEL_UP, self._on_level_up, gui_root=self.parent)
+            events.subscribe(
+                events.TERMINAL_STATUS_CHANGED,
+                self._on_terminal_change,
+                gui_root=self.parent,
+            )
+        except Exception:
+            pass
+
+    def _on_finding(self, data):
+        """Handle FINDING_FOUND event."""
+        addr = data.get("address", "")[:24]
+        chain = data.get("chain", "?")
+        self.activity_log.log(f"FINDING: {chain.upper()} balance at {addr}", "success")
+
+    def _on_health_changed(self, data):
+        """Handle HEALTH_CHANGED event — update health dot color."""
+        endpoint = data.get("endpoint")
+        healthy = data.get("healthy")
+        if endpoint and endpoint in self._health_dots:
+            color = COLORS["success"] if healthy else COLORS["error"]
+            short = {
+                "blockstream": "BTC",
+                "eth_rpc": "ETH",
+                "bsc": "BSC",
+                "polygon": "POLY",
+            }.get(endpoint, endpoint)
+            self._health_dots[endpoint].config(text=f"\u25cf {short}", fg=color)
+
+    def _on_level_up(self, data):
+        """Handle LEVEL_UP event."""
+        name = data.get("name", "?")
+        new_level = data.get("new_level", "?")
+        self.activity_log.log(f"LEVEL UP! Now Level {new_level} — {name}", "gold")
+        # Update AI brain label
+        self._ai_label.config(text=f"AI Level {new_level}: {name}")
+
+    def _on_terminal_change(self, data):
+        """Handle TERMINAL_STATUS_CHANGED event — refresh terminal cards."""
+        self._refresh_terminals()
+
+    def _start_stats_poll(self):
+        """Poll terminal stats every 1 second for live dashboard updates."""
+        try:
+            from engines.terminal_manager import get_all_stats, get_active_count
+
+            all_stats = get_all_stats()
+            total_ops = 0
+            total_speed = 0
+            for tid, stats in all_stats.items():
+                if stats:
+                    total_ops += stats.get("keys_tested", 0)
+                    total_speed += stats.get("speed", 0)
+
+            self._stat_labels["total_ops"].config(text=f"{total_ops:,}")
+            self._stat_labels["total_speed"].config(text=f"{total_speed:,.0f}/s")
+        except Exception:
+            pass
+
+        self.parent.after(1000, self._start_stats_poll)

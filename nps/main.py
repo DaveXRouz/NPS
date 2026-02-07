@@ -10,6 +10,7 @@ Launch (headless): python main.py --headless
 """
 
 import argparse
+import atexit
 import signal
 import sys
 import os
@@ -17,33 +18,39 @@ import threading
 import time
 import logging
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
 def setup_logging():
-    """Configure application logging."""
-    from pathlib import Path
-
-    data_dir = Path(__file__).parent / "data"
-    data_dir.mkdir(exist_ok=True)
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
-        datefmt="%H:%M:%S",
-    )
+    """Configure application logging via centralized logger."""
     try:
-        file_handler = logging.FileHandler(str(data_dir / "nps.log"), mode="a")
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(
-            logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
-        )
-        logging.getLogger().addHandler(file_handler)
+        from engines.logger import setup
+
+        setup()
     except Exception:
-        pass
+        # Fallback to basic logging
+        from pathlib import Path
+
+        data_dir = Path(__file__).parent / "data"
+        data_dir.mkdir(exist_ok=True)
+
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+            datefmt="%H:%M:%S",
+        )
+        try:
+            file_handler = logging.FileHandler(str(data_dir / "nps.log"), mode="a")
+            file_handler.setLevel(logging.DEBUG)
+            file_handler.setFormatter(
+                logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
+            )
+            logging.getLogger().addHandler(file_handler)
+        except Exception:
+            pass
 
 
 class NPSApp:
@@ -58,6 +65,10 @@ class NPSApp:
         from gui.theme import COLORS, FONTS
 
         self.root.configure(bg=COLORS["bg"])
+
+        # Check for resumable checkpoints before loading data
+        self._resume_checkpoint_path = None
+        self._check_resume_checkpoint()
 
         # Security: prompt for master key before loading data
         self._init_security()
@@ -80,6 +91,9 @@ class NPSApp:
 
         self.active_solvers = []
         self.solver_registry = {}
+
+        # Emergency shutdown handler
+        atexit.register(self._emergency_shutdown)
 
         # Handle window close
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -134,6 +148,53 @@ class NPSApp:
         self._tg_running = False
         self._start_telegram_poller()
 
+    def _check_resume_checkpoint(self):
+        """Check data/checkpoints/ for saved state, offer resume dialog."""
+        try:
+            from pathlib import Path
+
+            cp_dir = Path(__file__).parent / "data" / "checkpoints"
+            if not cp_dir.exists():
+                return
+            checkpoints = sorted(cp_dir.glob("*.json"), key=lambda p: p.stat().st_mtime)
+            if not checkpoints:
+                return
+            latest = checkpoints[-1]
+            age_hours = (time.time() - latest.stat().st_mtime) / 3600
+            if age_hours > 168:  # older than a week, skip
+                return
+            resume = messagebox.askyesno(
+                "Resume Checkpoint",
+                f"Found checkpoint from {age_hours:.1f}h ago.\n"
+                f"File: {latest.name}\n\nResume from this checkpoint?",
+            )
+            if resume:
+                self._resume_checkpoint_path = str(latest)
+                logging.getLogger(__name__).info(f"Will resume from {latest.name}")
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Checkpoint check skipped: {e}")
+
+    def _emergency_shutdown(self):
+        """Crash recovery: save critical state on unexpected exit."""
+        try:
+            from engines.vault import shutdown as vault_shutdown
+
+            vault_shutdown()
+        except Exception:
+            pass
+        try:
+            from engines.learner import save_state
+
+            save_state()
+        except Exception:
+            pass
+        try:
+            from engines.config import save_config
+
+            save_config()
+        except Exception:
+            pass
+
     def _init_security(self):
         """Prompt for master password at startup (encryption at rest)."""
         try:
@@ -186,32 +247,44 @@ class NPSApp:
 
         # Tab 1: Dashboard (War Room)
         dash_frame = tk.Frame(self.notebook, bg=COLORS["bg"])
-        self.notebook.add(dash_frame, text="  Dashboard  ")
+        self.notebook.add(dash_frame, text=" \U0001f4ca Dashboard ")
         self.dashboard = DashboardTab(dash_frame, app=self)
 
         # Tab 2: Hunter (Puzzle + Scanner)
         hunter_frame = tk.Frame(self.notebook, bg=COLORS["bg"])
-        self.notebook.add(hunter_frame, text="  Hunter  ")
+        self.notebook.add(hunter_frame, text=" \U0001f3af Hunter ")
         self.hunter_tab = HunterTab(hunter_frame, app=self)
 
         # Tab 3: Oracle (Sign + Name)
         oracle_frame = tk.Frame(self.notebook, bg=COLORS["bg"])
-        self.notebook.add(oracle_frame, text="  Oracle  ")
+        self.notebook.add(oracle_frame, text=" \U0001f52e Oracle ")
         self.oracle_tab = OracleTab(oracle_frame, app=self)
 
         # Tab 4: Memory (Learning Dashboard)
         memory_frame = tk.Frame(self.notebook, bg=COLORS["bg"])
-        self.notebook.add(memory_frame, text="  Memory  ")
+        self.notebook.add(memory_frame, text=" \U0001f9e0 Memory ")
         self.memory_tab = MemoryTab(memory_frame, app=self)
 
         # Tab 5: Settings & Connections
         settings_frame = tk.Frame(self.notebook, bg=COLORS["bg"])
-        self.notebook.add(settings_frame, text="  Settings  ")
+        self.notebook.add(settings_frame, text=" \u2699\ufe0f Settings ")
         self.settings_tab = SettingsTab(settings_frame, app=self)
 
     def _create_status_bar(self, COLORS, FONTS):
         status = tk.Frame(self.root, bg=COLORS["bg_card"], bd=1, relief="solid")
         status.pack(fill="x", side="bottom")
+
+        # Health dot
+        self.health_dot = tk.Label(
+            status,
+            text="\u25cf",
+            font=FONTS["small"],
+            fg=COLORS["text_dim"],
+            bg=COLORS["bg_card"],
+            padx=4,
+            pady=4,
+        )
+        self.health_dot.pack(side="left")
 
         self.status_label = tk.Label(
             status,
@@ -219,10 +292,33 @@ class NPSApp:
             font=FONTS["small"],
             fg=COLORS["text_dim"],
             bg=COLORS["bg_card"],
-            padx=12,
+            padx=4,
             pady=4,
         )
         self.status_label.pack(side="left")
+
+        # Terminal count + speed
+        self.terminal_label = tk.Label(
+            status,
+            text="T:0",
+            font=FONTS["small"],
+            fg=COLORS["text_dim"],
+            bg=COLORS["bg_card"],
+            padx=8,
+            pady=4,
+        )
+        self.terminal_label.pack(side="left")
+
+        self.speed_label = tk.Label(
+            status,
+            text="0 ops/s",
+            font=FONTS["small"],
+            fg=COLORS["text_dim"],
+            bg=COLORS["bg_card"],
+            padx=8,
+            pady=4,
+        )
+        self.speed_label.pack(side="left")
 
         self.learning_label = tk.Label(
             status,
@@ -306,11 +402,45 @@ class NPSApp:
                 text=f"Learning: {stats['total_attempts']} solves"
             )
             dots = int(conf * 3)
-            dot_str = "◆" * dots + "●" * (3 - dots)
+            dot_str = "\u25c6" * dots + "\u25cf" * (3 - dots)
             self.conf_label.config(text=f"Confidence: {conf:.2f}  {dot_str}")
         except Exception:
             pass
-        self.root.after(10000, self._update_status_bar)
+
+        # Health dot color
+        try:
+            from engines.health import get_status
+
+            health = get_status()
+            if health:
+                all_healthy = all(v.get("healthy", False) for v in health.values())
+                any_healthy = any(v.get("healthy", False) for v in health.values())
+                if all_healthy:
+                    self.health_dot.config(fg="#00ff88")
+                elif any_healthy:
+                    self.health_dot.config(fg="#FFA500")
+                else:
+                    self.health_dot.config(fg="#FF4444")
+        except Exception:
+            pass
+
+        # Terminal count + combined speed
+        try:
+            from engines.terminal_manager import list_terminals, get_all_stats
+
+            terminals = list_terminals()
+            active = sum(1 for t in terminals if t.get("status") == "running")
+            self.terminal_label.config(text=f"T:{active}")
+            all_stats = get_all_stats()
+            total_speed = all_stats.get("total_speed", 0)
+            if total_speed > 0:
+                self.speed_label.config(text=f"{total_speed:,.0f} ops/s")
+            else:
+                self.speed_label.config(text="0 ops/s")
+        except Exception:
+            pass
+
+        self.root.after(5000, self._update_status_bar)
 
     def register_solver(self, solver):
         self.active_solvers.append(solver)
@@ -382,134 +512,42 @@ class NPSApp:
         threading.Thread(target=_poll_loop, daemon=True).start()
 
     def _handle_gui_telegram_cmd(self, cmd):
-        """Handle a Telegram command in GUI mode."""
-        parts = cmd.strip().split(maxsplit=1)
-        cmd = parts[0].lower()
-        arg = parts[1].strip() if len(parts) > 1 else ""
-
+        """Handle a Telegram command in GUI mode via unified dispatch."""
         try:
-            from engines.notifier import (
-                send_message_with_buttons,
-                send_message,
-                CONTROL_BUTTONS,
-            )
-        except Exception:
-            return
+            from engines.notifier import dispatch_command
 
-        if cmd == "/status":
-            stats = self.get_solver_stats()
-            solvers = stats.get("solvers", [])
-            lines = ["<b>NPS Status (GUI)</b>"]
-            for s in solvers:
-                lines.append(
-                    f"{s['type'].capitalize()}: {s['description']} — "
-                    f"{s['operations']:,} ops | {s['speed']:,.0f}/s"
-                )
-            if not solvers:
-                lines.append("No active solvers")
-            lines.append(
-                f"Combined: {stats['total_operations']:,} ops | "
-                f"{stats['total_speed']:,.0f}/s"
-            )
-            send_message_with_buttons("\n".join(lines), CONTROL_BUTTONS)
-        elif cmd == "/pause":
-            for solver in list(self.active_solvers):
-                if solver.running:
-                    solver.stop()
-            send_message_with_buttons("<b>All solvers paused.</b>", CONTROL_BUTTONS)
-        elif cmd == "/resume":
-            send_message_with_buttons(
-                "<b>Use the GUI to start solvers.</b>", CONTROL_BUTTONS
-            )
-        elif cmd == "/stop":
-            for solver in list(self.active_solvers):
-                if solver.running:
-                    solver.stop()
-            send_message_with_buttons("<b>All solvers stopped.</b>", CONTROL_BUTTONS)
-        elif cmd == "/sign":
-            if not arg:
-                send_message("Usage: /sign <sign text>")
-            else:
-                try:
-                    from engines.oracle import read_sign
-
-                    result = read_sign(arg)
-                    interp = result.get("interpretation", "No interpretation")
-                    send_message(f"<b>Oracle: {arg}</b>\n{interp}")
-                except Exception as e:
-                    send_message(f"Oracle error: {e}")
-        elif cmd == "/name":
-            if not arg:
-                send_message("Usage: /name <name>")
-            else:
-                try:
-                    from engines.oracle import read_name
-
-                    result = read_name(arg)
-                    expr = result.get("expression", "?")
-                    soul = result.get("soul_urge", "?")
-                    send_message(
-                        f"<b>Name: {arg}</b>\nExpression: {expr}\nSoul Urge: {soul}"
-                    )
-                except Exception as e:
-                    send_message(f"Name error: {e}")
-        elif cmd == "/memory":
-            try:
-                from engines.memory import get_summary
-
-                s = get_summary()
-                send_message(
-                    f"<b>Memory Stats</b>\n"
-                    f"Sessions: {s.get('total_sessions', 0)}\n"
-                    f"Keys: {s.get('total_keys', 0):,}\n"
-                    f"High Scores: {s.get('high_score_count', 0)}\n"
-                    f"Best: {s.get('top_score', 0):.3f}"
-                )
-            except Exception as e:
-                send_message(f"Memory error: {e}")
-        elif cmd == "/perf":
-            try:
-                from engines.perf import perf
-
-                summary = perf.summary()
-                if summary:
-                    lines = ["<b>Performance</b>"]
-                    for name, stats in summary.items():
-                        lines.append(
-                            f"{name}: avg={stats['avg']*1000:.1f}ms n={stats['count']}"
-                        )
-                    send_message("\n".join(lines))
-                else:
-                    send_message("No performance data yet.")
-            except Exception as e:
-                send_message(f"Perf error: {e}")
-        elif cmd == "/help":
-            from engines.notifier import COMMANDS
-
-            lines = ["<b>Available Commands</b>"]
-            for c, desc in COMMANDS.items():
-                lines.append(f"  {c} — {desc}")
-            send_message("\n".join(lines))
+            dispatch_command(cmd, app_controller=self)
+        except Exception as e:
+            logging.getLogger(__name__).debug(f"Telegram command error: {e}")
 
     def _on_close(self):
-        """Stop all running solvers and flush memory before closing."""
+        """Ordered shutdown chain: events → terminals → solvers → data → notify → destroy."""
         self._tg_running = False
 
-        # Stop health monitoring
+        # 1. Emit SHUTDOWN event
         try:
-            from engines.health import stop_monitoring
+            from engines.events import emit, SHUTDOWN
 
-            stop_monitoring()
+            emit(SHUTDOWN)
         except Exception:
             pass
 
-        # Stop hunter tab solvers
+        # 2. Stop all terminals (saves checkpoints via solver.stop())
+        try:
+            from engines.terminal_manager import stop_all
+
+            stop_all()
+        except Exception:
+            pass
+
+        # 3. Stop hunter tab solvers (legacy + terminal-based)
         if hasattr(self, "hunter_tab"):
             try:
                 self.hunter_tab.stop_all()
             except Exception:
                 pass
 
+        # 4. Stop any remaining registered solvers
         for solver in self.active_solvers:
             solver.stop()
 
@@ -519,7 +557,7 @@ class NPSApp:
                 remaining = max(0.1, deadline - time.time())
                 solver._thread.join(timeout=remaining)
 
-        # Flush vault
+        # 5. Flush vault
         try:
             from engines.vault import shutdown as vault_shutdown
 
@@ -527,7 +565,31 @@ class NPSApp:
         except Exception:
             pass
 
-        # Flush memory to disk
+        # 6. Save learner state
+        try:
+            from engines.learner import save_state
+
+            save_state()
+        except Exception:
+            pass
+
+        # 7. Save config
+        try:
+            from engines.config import save_config
+
+            save_config()
+        except Exception:
+            pass
+
+        # 8. Stop health monitoring
+        try:
+            from engines.health import stop_monitoring
+
+            stop_monitoring()
+        except Exception:
+            pass
+
+        # 9. Flush memory to disk
         try:
             from engines.memory import shutdown as memory_shutdown
 
@@ -535,6 +597,16 @@ class NPSApp:
         except Exception:
             pass
 
+        # 10. Telegram shutdown notification
+        try:
+            from engines.notifier import send_message, is_configured
+
+            if is_configured():
+                send_message("NPS shutting down")
+        except Exception:
+            pass
+
+        # 11. Destroy window
         self.root.destroy()
 
     def run(self):

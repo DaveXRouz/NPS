@@ -95,19 +95,46 @@ sudo apt install python3-tk
 
 ### Telegram Integration
 
-Remote control and notifications via Telegram bot:
+Remote control and notifications via Telegram bot with 25+ commands and inline keyboards:
 
-| Command              | Action                   |
-| -------------------- | ------------------------ |
-| `/status`            | Show active solver stats |
-| `/pause` / `/resume` | Pause or resume scanning |
-| `/stop`              | Stop all solvers         |
-| `/sign <text>`       | Oracle sign reading      |
-| `/name <name>`       | Name numerology          |
-| `/memory`            | Memory stats             |
-| `/perf`              | Performance profiling    |
-| `/daily`             | Daily insight            |
-| `/vault`             | Vault summary            |
+| Command              | Action                                 |
+| -------------------- | -------------------------------------- |
+| `/start`             | Welcome message with inline menu       |
+| `/menu`              | Main menu with inline keyboard         |
+| `/status`            | Show active solver stats               |
+| `/pause` / `/resume` | Pause or resume scanning               |
+| `/stop`              | Stop all solvers                       |
+| `/start_all`         | Start all terminals                    |
+| `/stop_all`          | Stop all terminals                     |
+| `/sign <text>`       | Oracle sign reading                    |
+| `/name <name>`       | Name numerology                        |
+| `/daily`             | Daily insight with cosmic alignment    |
+| `/memory`            | Memory stats                           |
+| `/vault`             | Vault summary                          |
+| `/terminals`         | List all terminals with status         |
+| `/checkpoint`        | Force checkpoint save                  |
+| `/health`            | Endpoint health status                 |
+| `/perf`              | Performance profiling                  |
+| `/set <key> <value>` | Change settings (mode, puzzle, chains) |
+| `/export vault csv`  | Export vault findings                  |
+| `/help`              | Full command reference                 |
+
+Rate-limited message queue with auto-retry and bot health auto-disable after 5 consecutive failures.
+
+### Intelligence Layer
+
+Six-module logic system for smart scanning decisions:
+
+- **Strategy Engine** — Level-gated brain (fixed at L1-2, suggestions at L3+, auto-adjust at L4+)
+- **Pattern Tracker** — Batch recording, finding analysis, coverage mapping
+- **Key Scorer** — LRU-cached scoring (10K entries) with top-N heap tracking
+- **Timing Advisor** — Cosmic timing: moon phase, FC60 moment, numerology alignment
+- **Range Optimizer** — Smart range selection using solved puzzle patterns
+- **History Manager** — Throttled atomic persistence for logic data
+
+### Event System
+
+Thread-safe pub/sub event bus for cross-component communication. GUI-safe callbacks scheduled via `after(0, ...)`. Events include finding discoveries, health changes, level-ups, terminal status, and config changes.
 
 ---
 
@@ -138,7 +165,7 @@ BTC/
 ├── nps/                      # The application
 │   ├── main.py               # Entry point (GUI + headless)
 │   ├── config.json           # Runtime configuration
-│   ├── engines/              # Core computation (23 modules)
+│   ├── engines/              # Core computation (26 modules)
 │   │   ├── fc60.py           # FrankenChron-60 encoding
 │   │   ├── numerology.py     # Pythagorean numerology
 │   │   ├── scoring.py        # Hybrid scoring engine
@@ -149,6 +176,9 @@ BTC/
 │   │   ├── session_manager.py # Session tracking
 │   │   ├── terminal_manager.py # Multi-terminal (max 10)
 │   │   ├── health.py         # Endpoint health monitoring
+│   │   ├── events.py         # Thread-safe pub/sub event bus
+│   │   ├── logger.py         # Centralized logging (rotating)
+│   │   ├── errors.py         # Result class + safe callbacks
 │   │   ├── memory.py         # Session caching
 │   │   ├── scanner_brain.py  # Adaptive strategy selection
 │   │   ├── ai_engine.py      # Claude CLI integration
@@ -156,11 +186,18 @@ BTC/
 │   │   ├── bip39.py          # BIP39 mnemonic generation
 │   │   ├── balance.py        # Multi-chain balance checking
 │   │   ├── oracle.py         # Sign reader + daily insight
-│   │   ├── notifier.py       # Telegram integration
+│   │   ├── notifier.py       # Telegram bot (25+ commands)
 │   │   ├── math_analysis.py  # Entropy, primes, digit patterns
 │   │   ├── keccak.py         # Keccak-256 (Ethereum)
-│   │   ├── config.py         # Config loader with env var support
+│   │   ├── config.py         # Config loader + validation
 │   │   └── perf.py           # Performance profiler
+│   ├── logic/                # Intelligence layer (6 modules)
+│   │   ├── strategy_engine.py # Level-gated strategy brain
+│   │   ├── pattern_tracker.py # Pattern analysis + coverage
+│   │   ├── key_scorer.py     # LRU-cached scoring + top-N
+│   │   ├── timing_advisor.py # Cosmic timing alignment
+│   │   ├── range_optimizer.py # Smart range selection
+│   │   └── history_manager.py # Throttled persistence
 │   ├── solvers/              # Puzzle solvers (7 modules)
 │   │   ├── base_solver.py    # Abstract base with threading
 │   │   ├── unified_solver.py # V3 unified hunter (3 modes)
@@ -175,9 +212,9 @@ BTC/
 │   │   ├── oracle_tab.py     # Question mode + name cipher
 │   │   ├── memory_tab.py     # AI learning center
 │   │   ├── settings_tab.py   # Settings & connections
-│   │   ├── widgets.py        # Custom components
+│   │   ├── widgets.py        # Custom components + ToolTip
 │   │   └── theme.py          # Dark theme
-│   ├── tests/                # Test suite (25 files, 238 tests)
+│   ├── tests/                # Test suite (33 files, 361 tests)
 │   └── data/                 # Runtime JSON data (gitignored)
 ├── scripts/
 │   └── setup.sh              # Environment verification
@@ -202,7 +239,13 @@ BTC/
 │  Engine Layer — Computation + services        │
 │  (FC60, Scoring, Learning, Crypto, BIP39,    │
 │   Balance, Oracle, AI, Notifier, Security,   │
-│   Vault, Learner, Health, Session Manager)   │
+│   Vault, Learner, Health, Events, Logger)    │
+├──────────────────┬───────────────────────────┘
+│                  │
+├──────────────────▼───────────────────────────┐
+│  Logic Layer — Intelligence + decisions       │
+│  (Strategy, Patterns, Scoring, Timing,       │
+│   Range Optimization, History)               │
 └──────────────────┬───────────────────────────┘
                    │
 ┌──────────────────▼───────────────────────────┐
@@ -233,7 +276,7 @@ cd nps && python3 -m unittest discover tests/ -v
 cd nps && python3 -m unittest tests/test_fc60.py -v
 ```
 
-25 test files, 238 tests covering all engines and solvers. Tests run without network access or API keys.
+33 test files, 361 tests covering all engines, solvers, and logic modules. Tests run without network access or API keys.
 
 ---
 
