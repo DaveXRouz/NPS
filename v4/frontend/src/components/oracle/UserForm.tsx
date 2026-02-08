@@ -8,6 +8,7 @@ interface UserFormProps {
   onCancel: () => void;
   onDelete?: () => void;
   isSubmitting?: boolean;
+  serverError?: string | null;
 }
 
 interface FormErrors {
@@ -41,6 +42,7 @@ export function UserForm({
   onCancel,
   onDelete,
   isSubmitting,
+  serverError,
 }: UserFormProps) {
   const { t } = useTranslation();
   const isEdit = !!user;
@@ -149,6 +151,16 @@ export function UserForm({
             value={form.city ?? ""}
             onChange={(v) => handleChange("city", v)}
           />
+
+          {/* Server error */}
+          {serverError && (
+            <p
+              className="text-nps-error text-sm bg-nps-error/10 border border-nps-error/30 rounded px-3 py-2"
+              role="alert"
+            >
+              {serverError}
+            </p>
+          )}
 
           {/* Buttons */}
           <div className="flex items-center gap-3 pt-2">

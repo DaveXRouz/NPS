@@ -31,6 +31,7 @@ export function Oracle() {
   const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
   const [consultationResult, setConsultationResult] =
     useState<ConsultationResult | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Restore persisted primary user on load
   useEffect(() => {
@@ -65,19 +66,29 @@ export function Oracle() {
   }, [users, selectedUsers]);
 
   function handleCreate(data: OracleUserCreate) {
+    setFormError(null);
     createUser.mutate(data, {
       onSuccess: (newUser) => {
         setSelectedUsers({ primary: newUser, secondary: [] });
         setFormMode(null);
+        setFormError(null);
       },
+      onError: (err) => setFormError(err.message),
     });
   }
 
   function handleUpdate(data: OracleUserCreate) {
     if (!selectedUsers) return;
+    setFormError(null);
     updateUser.mutate(
       { id: selectedUsers.primary.id, data },
-      { onSuccess: () => setFormMode(null) },
+      {
+        onSuccess: () => {
+          setFormMode(null);
+          setFormError(null);
+        },
+        onError: (err) => setFormError(err.message),
+      },
     );
   }
 
@@ -151,17 +162,25 @@ export function Oracle() {
       {formMode === "create" && (
         <UserForm
           onSubmit={handleCreate}
-          onCancel={() => setFormMode(null)}
+          onCancel={() => {
+            setFormMode(null);
+            setFormError(null);
+          }}
           isSubmitting={createUser.isPending}
+          serverError={formError}
         />
       )}
       {formMode === "edit" && primaryUser && (
         <UserForm
           user={primaryUser}
           onSubmit={handleUpdate}
-          onCancel={() => setFormMode(null)}
+          onCancel={() => {
+            setFormMode(null);
+            setFormError(null);
+          }}
           onDelete={handleDelete}
           isSubmitting={updateUser.isPending}
+          serverError={formError}
         />
       )}
     </div>
