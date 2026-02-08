@@ -21,6 +21,7 @@ RUN groupadd -r oracle && useradd -r -g oracle -u 1000 oracle && \
     chown -R oracle:oracle /app
 
 EXPOSE 50052
+EXPOSE 9090
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD python -c "import grpc; ch = grpc.insecure_channel('localhost:50052'); grpc.channel_ready_future(ch).result(timeout=2)"

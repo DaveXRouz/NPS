@@ -93,12 +93,14 @@ services:
     container_name: nps-oracle
     ports:
       - "50052:50052"
+      - "9090:9090"
     env_file: .env
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - oracle_logs:/app/logs
+      - ./devops:/app/devops:ro
     restart: unless-stopped
     deploy:
       resources:
@@ -168,6 +170,25 @@ services:
       timeout: 5s
       start_period: 10s
       retries: 5
+
+  # ─── Oracle Alerter (Telegram monitoring) ───
+  oracle-alerter:
+    build:
+      context: ./devops
+      dockerfile: alerts/Dockerfile
+    container_name: nps-oracle-alerter
+    env_file: .env
+    environment:
+      ORACLE_HTTP_URL: http://oracle-service:9090
+    depends_on:
+      oracle-service:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 64M
 
   # ─── Nginx Reverse Proxy ───
   nginx:

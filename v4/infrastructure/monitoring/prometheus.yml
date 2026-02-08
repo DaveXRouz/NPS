@@ -13,7 +13,8 @@ scrape_configs:
 
   - job_name: "oracle"
     static_configs:
-      - targets: ["oracle-service:50052"]
+      - targets: ["oracle-service:9090"]
+    metrics_path: "/metrics"
 
   - job_name: "scanner"
     static_configs:

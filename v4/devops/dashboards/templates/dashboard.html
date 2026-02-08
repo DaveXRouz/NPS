@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NPS Oracle Monitor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="header">
+        <h1>NPS Oracle Monitor</h1>
+        <div class="status-badge">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text">Loading...</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Metric cards -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="label">Readings / Hour</div>
+                <div class="value" id="readings-hr">--</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Avg Response Time</div>
+                <div class="value" id="avg-response">--<span class="unit">ms</span></div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Error Rate</div>
+                <div class="value" id="error-rate">--<span class="unit">%</span></div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Uptime</div>
+                <div class="value" id="uptime">--</div>
+            </div>
+        </div>
+
+        <!-- Engine health checks -->
+        <div class="rpc-section">
+            <h2>Engine Health</h2>
+            <div class="checks-grid" id="checks-grid">
+                <div class="check-item">
+                    <span class="check-icon">--</span>
+                    <span class="check-name">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- RPC performance table -->
+        <div class="rpc-section">
+            <h2>RPC Performance</h2>
+            <table class="rpc-table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Count</th>
+                        <th>P50</th>
+                        <th>P95</th>
+                        <th>P99</th>
+                        <th>Latency</th>
+                    </tr>
+                </thead>
+                <tbody id="rpc-tbody">
+                    <tr><td colspan="6" style="color:#666">No data yet</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+        NPS V4 Oracle Monitoring &mdash; Auto-refresh 5s
+    </div>
+
+    <script>
+    function formatUptime(seconds) {
+        if (!seconds && seconds !== 0) return '--';
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        if (h > 0) return h + 'h ' + m + 'm';
+        return m + 'm';
+    }
+
+    function latencyClass(ms) {
+        if (ms > 5000) return 'critical';
+        if (ms > 1000) return 'warn';
+        return '';
+    }
+
+    function latencyWidth(ms) {
+        // Scale: 0-10000ms maps to 0-100%
+        return Math.min(100, Math.max(2, ms / 100));
+    }
+
+    async function refresh() {
+        try {
+            const resp = await fetch('/api/status');
+            const data = await resp.json();
+            const health = data.health || {};
+            const metrics = data.metrics || {};
+
+            // Status dot
+            const dot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            const status = health.status || 'unreachable';
+            dot.className = 'status-dot ' + status;
+            statusText.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+
+            // Uptime
+            document.getElementById('uptime').textContent =
+                formatUptime(health.uptime_seconds || metrics.uptime_seconds);
+
+            // Readings/hr
+            const rph = metrics.readings_per_hour;
+            document.getElementById('readings-hr').textContent =
+                (rph !== undefined && rph !== null) ? rph.toFixed(1) : '--';
+
+            // Error rate
+            const errors = metrics.errors || {};
+            document.getElementById('error-rate').innerHTML =
+                (errors.rate_percent !== undefined ? errors.rate_percent.toFixed(1) : '--') +
+                '<span class="unit">%</span>';
+
+            // Avg response time (average across all RPCs)
+            const rpcs = metrics.rpcs || {};
+            const rpcNames = Object.keys(rpcs);
+            let totalAvg = 0, rpcCount = 0;
+            rpcNames.forEach(name => {
+                if (rpcs[name].avg_ms !== undefined) {
+                    totalAvg += rpcs[name].avg_ms;
+                    rpcCount++;
+                }
+            });
+            const avgMs = rpcCount > 0 ? (totalAvg / rpcCount).toFixed(1) : '--';
+            document.getElementById('avg-response').innerHTML =
+                avgMs + '<span class="unit">ms</span>';
+
+            // Engine checks
+            const checks = health.checks || {};
+            const checksGrid = document.getElementById('checks-grid');
+            const checkNames = Object.keys(checks);
+            if (checkNames.length > 0) {
+                checksGrid.innerHTML = checkNames.map(name => {
+                    const val = checks[name];
+                    const ok = !val.toString().includes('error');
+                    return `<div class="check-item">
+                        <span class="check-icon">${ok ? '\u2705' : '\u274c'}</span>
+                        <span class="check-name">${name}</span>
+                        <span class="check-status">${val}</span>
+                    </div>`;
+                }).join('');
+            }
+
+            // RPC table
+            const tbody = document.getElementById('rpc-tbody');
+            if (rpcNames.length > 0) {
+                tbody.innerHTML = rpcNames.map(name => {
+                    const r = rpcs[name];
+                    const p95 = r.p95_ms || 0;
+                    return `<tr>
+                        <td>${name}</td>
+                        <td>${r.count || 0}</td>
+                        <td>${(r.p50_ms || 0).toFixed(1)}ms</td>
+                        <td>${(r.p95_ms || 0).toFixed(1)}ms</td>
+                        <td>${(r.p99_ms || 0).toFixed(1)}ms</td>
+                        <td>
+                            <div class="latency-bar-container">
+                                <div class="latency-bar ${latencyClass(p95)}"
+                                     style="width:${latencyWidth(p95)}%"></div>
+                                <span>${(r.avg_ms || 0).toFixed(1)}ms</span>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+        } catch (e) {
+            document.getElementById('status-dot').className = 'status-dot unreachable';
+            document.getElementById('status-text').textContent = 'Dashboard Error';
+        }
+    }
+
+    // Initial load + auto-refresh
+    refresh();
+    setInterval(refresh, 5000);
+    </script>
+</body>
+</html>

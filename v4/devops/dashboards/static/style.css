@@ -1,0 +1,223 @@
+/* NPS Oracle Monitoring Dashboard — Dark Theme */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family:
+    "Segoe UI",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  background: #121212;
+  color: #e0e0e0;
+  min-height: 100vh;
+}
+
+.header {
+  background: #1e1e1e;
+  border-bottom: 1px solid #333;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header h1 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.header .status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.healthy {
+  background: #4caf50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+}
+
+.status-dot.degraded {
+  background: #ff9800;
+  box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
+}
+
+.status-dot.down,
+.status-dot.unreachable {
+  background: #f44336;
+  box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Metrics cards grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.metric-card {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.metric-card .label {
+  font-size: 0.8rem;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.metric-card .value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.metric-card .unit {
+  font-size: 0.85rem;
+  color: #999;
+  margin-left: 4px;
+}
+
+/* RPC table */
+.rpc-section {
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.rpc-section h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #fff;
+}
+
+.rpc-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rpc-table th {
+  text-align: left;
+  font-size: 0.75rem;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #333;
+}
+
+.rpc-table td {
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.rpc-table tr:hover {
+  background: #252525;
+}
+
+/* Latency bar */
+.latency-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.latency-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: #4caf50;
+  min-width: 4px;
+  transition: width 0.3s ease;
+}
+
+.latency-bar.warn {
+  background: #ff9800;
+}
+
+.latency-bar.critical {
+  background: #f44336;
+}
+
+/* Checks section */
+.checks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.check-item {
+  background: #252525;
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.check-item .check-icon {
+  font-size: 1.1rem;
+}
+
+.check-item .check-name {
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.check-item .check-status {
+  font-size: 0.75rem;
+  color: #999;
+  margin-left: auto;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 16px;
+  color: #666;
+  font-size: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .rpc-table {
+    font-size: 0.8rem;
+  }
+}
