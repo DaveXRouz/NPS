@@ -31,12 +31,56 @@ async def lifespan(app: FastAPI):
     # Initialize encryption service
     init_encryption(settings)
     logger.info("Encryption service initialized")
-    # TODO: Initialize database connection pool
-    # TODO: Connect to Redis
-    # TODO: Establish gRPC channels to scanner and oracle services
+
+    # Verify database connection
+    try:
+        from sqlalchemy import text
+        from app.database import engine
+
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        logger.info("Database connection verified")
+    except Exception as exc:
+        logger.error("Database connection failed: %s", exc)
+
+    # Connect to Redis (graceful fallback)
+    app.state.redis = None
+    try:
+        import redis.asyncio as aioredis
+
+        app.state.redis = aioredis.from_url(
+            settings.redis_url, decode_responses=True, socket_timeout=5
+        )
+        await app.state.redis.ping()
+        logger.info("Redis connection established")
+    except Exception as exc:
+        logger.warning("Redis unavailable (non-fatal): %s", exc)
+        app.state.redis = None
+
+    # Probe Oracle gRPC channel (graceful fallback)
+    app.state.oracle_channel = None
+    try:
+        import grpc
+
+        channel = grpc.insecure_channel(
+            f"{settings.oracle_grpc_host}:{settings.oracle_grpc_port}"
+        )
+        grpc.channel_ready_future(channel).result(timeout=3)
+        app.state.oracle_channel = channel
+        logger.info("Oracle gRPC channel established")
+    except Exception as exc:
+        logger.info("Oracle gRPC unavailable, using direct V3 imports: %s", exc)
+        app.state.oracle_channel = None
+
     yield
-    # TODO: Close database connections
-    # TODO: Close gRPC channels
+
+    # Cleanup
+    if app.state.redis:
+        await app.state.redis.close()
+        logger.info("Redis connection closed")
+    if app.state.oracle_channel:
+        app.state.oracle_channel.close()
+        logger.info("Oracle gRPC channel closed")
 
 
 app = FastAPI(

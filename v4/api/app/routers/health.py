@@ -1,6 +1,13 @@
 """Health check endpoints."""
 
-from fastapi import APIRouter
+import logging
+
+from fastapi import APIRouter, Request
+from sqlalchemy import text
+
+from app.database import engine
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -12,25 +19,41 @@ async def health_check():
 
 
 @router.get("/ready")
-async def readiness_check():
+async def readiness_check(request: Request):
     """Readiness probe — checks database and service connectivity."""
     checks = {}
 
-    # TODO: Check PostgreSQL connection
-    checks["database"] = "healthy"
+    # Check PostgreSQL connection
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        checks["database"] = "healthy"
+    except Exception as exc:
+        logger.warning("Database health check failed: %s", exc)
+        checks["database"] = "unhealthy"
 
-    # TODO: Check Redis connection
-    checks["redis"] = "healthy"
+    # Check Redis connection
+    redis = getattr(request.app.state, "redis", None)
+    if redis:
+        try:
+            await redis.ping()
+            checks["redis"] = "healthy"
+        except Exception as exc:
+            logger.warning("Redis health check failed: %s", exc)
+            checks["redis"] = "unhealthy"
+    else:
+        checks["redis"] = "not_connected"
 
-    # TODO: Check Scanner gRPC connection
-    checks["scanner_service"] = "unknown"
+    # Scanner service is not deployed (Rust stub)
+    checks["scanner_service"] = "not_deployed"
 
-    # TODO: Check Oracle gRPC connection
-    checks["oracle_service"] = "unknown"
+    # Oracle uses direct V3 engine imports (no gRPC needed)
+    checks["oracle_service"] = "direct_mode"
 
-    all_healthy = all(v == "healthy" for v in checks.values())
+    # Overall status: healthy if DB is up (core services only)
+    core_healthy = checks["database"] == "healthy"
     return {
-        "status": "healthy" if all_healthy else "degraded",
+        "status": "healthy" if core_healthy else "degraded",
         "checks": checks,
     }
 

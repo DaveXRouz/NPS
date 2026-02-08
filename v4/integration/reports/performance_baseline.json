@@ -1,0 +1,21 @@
+{
+  "measured_at": null,
+  "note": "Run test_e2e_flow.py to populate with real measurements",
+  "endpoints": {
+    "user_creation": { "p50_ms": null, "p95_ms": null, "target_ms": 500 },
+    "user_list": { "p50_ms": null, "p95_ms": null, "target_ms": 200 },
+    "reading": { "p50_ms": null, "p95_ms": null, "target_ms": 5000 },
+    "question": { "p50_ms": null, "p95_ms": null, "target_ms": 5000 },
+    "name_reading": { "p50_ms": null, "p95_ms": null, "target_ms": 5000 },
+    "daily_insight": { "p50_ms": null, "p95_ms": null, "target_ms": 2000 },
+    "reading_history": { "p50_ms": null, "p95_ms": null, "target_ms": 200 },
+    "single_reading": { "p50_ms": null, "p95_ms": null, "target_ms": 200 },
+    "user_update": { "p50_ms": null, "p95_ms": null, "target_ms": 500 },
+    "user_delete": { "p50_ms": null, "p95_ms": null, "target_ms": 500 }
+  },
+  "summary": {
+    "total_endpoints": 10,
+    "passed": null,
+    "failed": null
+  }
+}

@@ -11,9 +11,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     ...(options.headers as Record<string, string>),
   };
 
-  // TODO: Add JWT token from auth state
-  // const token = getAuthToken();
-  // if (token) headers["Authorization"] = `Bearer ${token}`;
+  // Auth token: JWT from localStorage or fallback to API key from env
+  const token =
+    localStorage.getItem("nps_token") || import.meta.env.VITE_API_KEY;
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const response = await fetch(url, { ...options, headers });
 
@@ -108,7 +109,15 @@ export const oracle = {
 // ─── Oracle Users ───
 
 export const oracleUsers = {
-  list: () => request<import("@/types").OracleUser[]>("/oracle/users"),
+  list: async (): Promise<import("@/types").OracleUser[]> => {
+    const resp = await request<{
+      users: import("@/types").OracleUser[];
+      total: number;
+      limit: number;
+      offset: number;
+    }>("/oracle/users");
+    return resp.users;
+  },
   get: (id: number) =>
     request<import("@/types").OracleUser>(`/oracle/users/${id}`),
   create: (data: import("@/types").OracleUserCreate) =>

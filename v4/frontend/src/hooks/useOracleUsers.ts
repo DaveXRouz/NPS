@@ -1,9 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { mockOracleUsers } from "@/services/mockOracleUsers";
+import { oracleUsers as api } from "@/services/api";
 import type { OracleUserCreate, OracleUserUpdate } from "@/types";
-
-// Switch to real API: import { oracleUsers as api } from "@/services/api";
-const api = mockOracleUsers;
 
 const QUERY_KEY = ["oracleUsers"] as const;
 
