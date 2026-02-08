@@ -16,6 +16,9 @@ cd /Users/hamzeh/Desktop/GitHub/BTC/v4/api
 cd /Users/hamzeh/Desktop/GitHub/BTC/v4/frontend/dist
 /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 -m http.server 4173 --bind 127.0.0.1 &
 
-# Wait a moment for servers to start, then open browser
-sleep 1
+# Wait for API to be ready, then open browser
+for i in 1 2 3 4 5 6 7 8 9 10; do
+  curl -s -o /dev/null http://127.0.0.1:8000/api/health && break
+  sleep 1
+done
 open http://127.0.0.1:4173
