@@ -98,7 +98,22 @@
     "error_sign_required": "Sign value is required",
     "error_time_format": "Invalid time format (HH:MM)",
     "error_number_format": "Must be a valid number",
-    "error_carplate_format": "Invalid car plate format"
+    "error_carplate_format": "Invalid car plate format",
+
+    "primary_user": "Primary User",
+    "add_secondary": "Add User",
+    "remove_user": "Remove user",
+    "max_users_error": "Maximum 5 users allowed",
+    "duplicate_user_error": "This user has already been added",
+    "secondary_users": "Secondary Users",
+
+    "translate": "Translate to Persian",
+    "translating": "Translating...",
+    "original": "Original",
+    "translation": "Translation",
+    "translate_error": "Translation failed. Please try again.",
+    "show_original": "Show original",
+    "show_translation": "Show translation"
   },
   "vault": {
     "title": "Vault",

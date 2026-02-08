@@ -37,11 +37,22 @@ vi.mock("react-i18next", () => ({
           "Mother's name must be at least 2 characters",
         "oracle.delete_profile": "Delete",
         "oracle.delete_confirm": "Confirm Delete",
+        "oracle.primary_user": "Primary User",
+        "oracle.secondary_users": "Secondary Users",
+        "oracle.add_secondary": "Add User",
+        "oracle.remove_user": "Remove user",
+        "oracle.max_users_error": "Maximum 5 users allowed",
+        "oracle.duplicate_user_error": "This user has already been added",
+        "oracle.translate": "Translate to Persian",
         "common.loading": "Loading...",
         "common.save": "Save",
         "common.cancel": "Cancel",
       };
       return map[key] ?? key;
+    },
+    i18n: {
+      language: "en",
+      changeLanguage: vi.fn(),
     },
   }),
 }));
@@ -97,5 +108,12 @@ describe("Oracle Page", () => {
     expect(
       screen.getByText("Past readings will appear here."),
     ).toBeInTheDocument();
+  });
+
+  it("shows primary user label", async () => {
+    renderWithProviders(<Oracle />);
+    await waitFor(() => {
+      expect(screen.getByText("Primary User")).toBeInTheDocument();
+    });
   });
 });

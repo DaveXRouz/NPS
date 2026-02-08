@@ -130,6 +130,24 @@ export const vault = {
     }),
 };
 
+// ─── Translation ───
+
+export const translation = {
+  translate: (text: string, sourceLang = "en", targetLang = "fa") =>
+    request<import("@/types").TranslateResponse>("/translation/translate", {
+      method: "POST",
+      body: JSON.stringify({
+        text,
+        source_lang: sourceLang,
+        target_lang: targetLang,
+      }),
+    }),
+  detect: (text: string) =>
+    request<import("@/types").DetectResponse>(
+      `/translation/detect?text=${encodeURIComponent(text)}`,
+    ),
+};
+
 // ─── Learning ───
 
 export const learning = {

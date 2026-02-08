@@ -1,19 +1,26 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import en from "./en.json";
+import LanguageDetector from "i18next-browser-languagedetector";
+import en from "../locales/en.json";
+import fa from "../locales/fa.json";
 
-i18n.use(initReactI18next).init({
-  resources: {
-    en: { translation: en },
-    // TODO: Add Spanish and French translations
-    // es: { translation: es },
-    // fr: { translation: fr },
-  },
-  lng: "en",
-  fallbackLng: "en",
-  interpolation: {
-    escapeValue: false,
-  },
-});
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources: {
+      en: { translation: en },
+      fa: { translation: fa },
+    },
+    fallbackLng: "en",
+    detection: {
+      order: ["localStorage", "navigator"],
+      lookupLocalStorage: "nps_language",
+      caches: ["localStorage"],
+    },
+    interpolation: {
+      escapeValue: false,
+    },
+  });
 
 export default i18n;

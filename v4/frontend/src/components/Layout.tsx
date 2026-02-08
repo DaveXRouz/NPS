@@ -1,22 +1,31 @@
 import { Outlet, NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { LanguageToggle } from "./LanguageToggle";
 
 const navItems = [
-  { path: "/dashboard", label: "Dashboard", icon: "grid" },
-  { path: "/scanner", label: "Scanner", icon: "search" },
-  { path: "/oracle", label: "Oracle", icon: "sparkles" },
-  { path: "/vault", label: "Vault", icon: "lock" },
-  { path: "/learning", label: "Learning", icon: "brain" },
-  { path: "/settings", label: "Settings", icon: "cog" },
+  { path: "/dashboard", labelKey: "nav.dashboard" },
+  { path: "/scanner", labelKey: "nav.scanner" },
+  { path: "/oracle", labelKey: "nav.oracle" },
+  { path: "/vault", labelKey: "nav.vault" },
+  { path: "/learning", labelKey: "nav.learning" },
+  { path: "/settings", labelKey: "nav.settings" },
 ];
 
 export function Layout() {
+  const { t } = useTranslation();
+
   return (
     <div className="flex min-h-screen bg-nps-bg">
       {/* Sidebar */}
-      <nav className="w-64 border-r border-nps-border bg-nps-bg-card flex flex-col">
-        <div className="p-4 border-b border-nps-border">
-          <h1 className="text-xl font-bold text-nps-gold">NPS V4</h1>
-          <p className="text-xs text-nps-text-dim">Numerology Puzzle Solver</p>
+      <nav className="w-64 border-r rtl:border-r-0 rtl:border-l border-nps-border bg-nps-bg-card flex flex-col">
+        <div className="p-4 border-b border-nps-border flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-nps-gold">NPS V4</h1>
+            <p className="text-xs text-nps-text-dim">
+              Numerology Puzzle Solver
+            </p>
+          </div>
+          <LanguageToggle />
         </div>
         <div className="flex-1 py-4">
           {navItems.map((item) => (
@@ -31,7 +40,7 @@ export function Layout() {
                 }`
               }
             >
-              {item.label}
+              {t(item.labelKey)}
             </NavLink>
           ))}
         </div>

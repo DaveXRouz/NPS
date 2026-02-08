@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { UserSelector } from "@/components/oracle/UserSelector";
+import { MultiUserSelector } from "@/components/oracle/MultiUserSelector";
 import { UserForm } from "@/components/oracle/UserForm";
 import {
   useOracleUsers,
@@ -9,7 +9,8 @@ import {
   useDeleteOracleUser,
 } from "@/hooks/useOracleUsers";
 import { OracleConsultationForm } from "@/components/oracle/OracleConsultationForm";
-import type { OracleUserCreate } from "@/types";
+import { TranslatedReading } from "@/components/oracle/TranslatedReading";
+import type { OracleUserCreate, SelectedUsers } from "@/types";
 
 const SELECTED_USER_KEY = "nps_selected_oracle_user";
 
@@ -20,60 +21,73 @@ export function Oracle() {
   const updateUser = useUpdateOracleUser();
   const deleteUser = useDeleteOracleUser();
 
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(() => {
-    const stored = localStorage.getItem(SELECTED_USER_KEY);
-    return stored ? Number(stored) : null;
-  });
+  const [selectedUsers, setSelectedUsers] = useState<SelectedUsers | null>(
+    null,
+  );
   const [formMode, setFormMode] = useState<"create" | "edit" | null>(null);
+  // Reading result state — setReadingResult wired in T1-S4 API integration
+  const [readingResult, _setReadingResult] = useState<string | null>(null);
 
-  // Persist selected user
+  // Restore persisted primary user on load
   useEffect(() => {
-    if (selectedUserId !== null) {
-      localStorage.setItem(SELECTED_USER_KEY, String(selectedUserId));
+    if (users.length === 0 || selectedUsers) return;
+    const stored = localStorage.getItem(SELECTED_USER_KEY);
+    if (stored) {
+      const user = users.find((u) => u.id === Number(stored));
+      if (user) {
+        setSelectedUsers({ primary: user, secondary: [] });
+      }
+    }
+  }, [users, selectedUsers]);
+
+  // Persist selected primary user
+  useEffect(() => {
+    if (selectedUsers) {
+      localStorage.setItem(SELECTED_USER_KEY, String(selectedUsers.primary.id));
     } else {
       localStorage.removeItem(SELECTED_USER_KEY);
     }
-  }, [selectedUserId]);
+  }, [selectedUsers]);
 
-  // Clear selection if user no longer exists
+  // Clear selection if primary user no longer exists
   useEffect(() => {
     if (
-      selectedUserId !== null &&
+      selectedUsers &&
       users.length > 0 &&
-      !users.find((u) => u.id === selectedUserId)
+      !users.find((u) => u.id === selectedUsers.primary.id)
     ) {
-      setSelectedUserId(null);
+      setSelectedUsers(null);
     }
-  }, [users, selectedUserId]);
-
-  const selectedUser = users.find((u) => u.id === selectedUserId) ?? null;
+  }, [users, selectedUsers]);
 
   function handleCreate(data: OracleUserCreate) {
     createUser.mutate(data, {
       onSuccess: (newUser) => {
-        setSelectedUserId(newUser.id);
+        setSelectedUsers({ primary: newUser, secondary: [] });
         setFormMode(null);
       },
     });
   }
 
   function handleUpdate(data: OracleUserCreate) {
-    if (selectedUserId === null) return;
+    if (!selectedUsers) return;
     updateUser.mutate(
-      { id: selectedUserId, data },
+      { id: selectedUsers.primary.id, data },
       { onSuccess: () => setFormMode(null) },
     );
   }
 
   function handleDelete() {
-    if (selectedUserId === null) return;
-    deleteUser.mutate(selectedUserId, {
+    if (!selectedUsers) return;
+    deleteUser.mutate(selectedUsers.primary.id, {
       onSuccess: () => {
-        setSelectedUserId(null);
+        setSelectedUsers(null);
         setFormMode(null);
       },
     });
   }
+
+  const primaryUser = selectedUsers?.primary ?? null;
 
   return (
     <div className="space-y-6">
@@ -86,19 +100,19 @@ export function Oracle() {
         <h3 className="text-sm font-semibold text-nps-oracle-accent mb-3">
           {t("oracle.user_profile")}
         </h3>
-        <UserSelector
+        <MultiUserSelector
           users={users}
-          selectedId={selectedUserId}
-          onSelect={setSelectedUserId}
+          selectedUsers={selectedUsers}
+          onChange={setSelectedUsers}
           onAddNew={() => setFormMode("create")}
           onEdit={() => setFormMode("edit")}
           isLoading={isLoading}
         />
-        {selectedUser && (
+        {primaryUser && (
           <div className="mt-3 text-sm text-nps-text-dim">
-            {t("oracle.field_birthday")}: {selectedUser.birthday}
-            {selectedUser.country && ` · ${selectedUser.country}`}
-            {selectedUser.city && `, ${selectedUser.city}`}
+            {t("oracle.field_birthday")}: {primaryUser.birthday}
+            {primaryUser.country && ` · ${primaryUser.country}`}
+            {primaryUser.city && `, ${primaryUser.city}`}
           </div>
         )}
       </section>
@@ -108,10 +122,10 @@ export function Oracle() {
         <h3 className="text-sm font-semibold text-nps-oracle-accent mb-3">
           {t("oracle.current_reading")}
         </h3>
-        {selectedUser ? (
+        {primaryUser ? (
           <OracleConsultationForm
-            userId={selectedUser.id}
-            userName={selectedUser.name}
+            userId={primaryUser.id}
+            userName={primaryUser.name}
           />
         ) : (
           <p className="text-nps-text-dim text-sm">
@@ -120,14 +134,18 @@ export function Oracle() {
         )}
       </section>
 
-      {/* Reading Results Placeholder */}
+      {/* Reading Results */}
       <section className="bg-nps-oracle-bg border border-nps-oracle-border rounded-lg p-4">
         <h3 className="text-sm font-semibold text-nps-oracle-accent mb-3">
           {t("oracle.reading_results")}
         </h3>
-        <p className="text-nps-text-dim text-sm">
-          {t("oracle.results_placeholder")}
-        </p>
+        {readingResult ? (
+          <TranslatedReading reading={readingResult} />
+        ) : (
+          <p className="text-nps-text-dim text-sm">
+            {t("oracle.results_placeholder")}
+          </p>
+        )}
       </section>
 
       {/* Reading History Placeholder */}
@@ -148,9 +166,9 @@ export function Oracle() {
           isSubmitting={createUser.isPending}
         />
       )}
-      {formMode === "edit" && selectedUser && (
+      {formMode === "edit" && primaryUser && (
         <UserForm
-          user={selectedUser}
+          user={primaryUser}
           onSubmit={handleUpdate}
           onCancel={() => setFormMode(null)}
           onDelete={handleDelete}

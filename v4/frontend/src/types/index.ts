@@ -139,6 +139,105 @@ export interface OracleConsultationData {
   location: LocationData | null;
 }
 
+// ─── Multi-User Oracle ───
+
+export interface SelectedUsers {
+  primary: OracleUser;
+  secondary: OracleUser[];
+}
+
+export interface MultiUserInput {
+  name: string;
+  birth_year: number;
+  birth_month: number;
+  birth_day: number;
+  user_id?: number;
+}
+
+export interface MultiUserReadingRequest {
+  users: MultiUserInput[];
+  primary_user_index: number;
+  include_interpretation: boolean;
+}
+
+export interface CompatibilityScore {
+  user1: string;
+  user2: string;
+  overall: number;
+  classification: string;
+  scores: Record<string, number>;
+  strengths: string[];
+  challenges: string[];
+}
+
+export interface GroupEnergy {
+  dominant_element: string;
+  dominant_animal: string;
+  joint_life_path: number;
+  archetype: string;
+  archetype_description: string;
+  element_distribution: Record<string, number>;
+  animal_distribution: Record<string, number>;
+  life_path_distribution: Record<string, number>;
+}
+
+export interface GroupDynamics {
+  avg_compatibility: number;
+  strongest_bond: Record<string, unknown>;
+  weakest_bond: Record<string, unknown>;
+  roles: Record<string, Record<string, unknown>>;
+  synergies: string[];
+  challenges: string[];
+  growth_areas: string[];
+}
+
+export interface UserProfile {
+  name: string;
+  element: string;
+  animal: string;
+  polarity: string;
+  life_path: number;
+  destiny_number: number;
+  stem: string;
+  branch: string;
+  birth_year: number;
+  birth_month: number;
+  birth_day: number;
+  fc60_sign: string;
+  name_energy: number;
+}
+
+export interface MultiUserReadingResponse {
+  user_count: number;
+  pair_count: number;
+  computation_ms: number;
+  profiles: UserProfile[];
+  pairwise_compatibility: CompatibilityScore[];
+  group_energy: GroupEnergy | null;
+  group_dynamics: GroupDynamics | null;
+  ai_interpretation: Record<string, unknown> | null;
+  reading_id: number | null;
+}
+
+// ─── Translation ───
+
+export interface TranslateResponse {
+  source_text: string;
+  translated_text: string;
+  source_lang: string;
+  target_lang: string;
+  preserved_terms: string[];
+  ai_generated: boolean;
+  elapsed_ms: number;
+  cached: boolean;
+}
+
+export interface DetectResponse {
+  text: string;
+  detected_lang: string;
+  confidence: number;
+}
+
 // ─── Vault ───
 
 export interface Finding {
