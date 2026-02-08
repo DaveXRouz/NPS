@@ -1,125 +1,388 @@
-# CLAUDE.md — Project Instructions for Claude Code
+# CLAUDE.md — NPS V4 Project Brain
 
-## Project Overview
+> **Read this file FIRST. Every session. No exceptions.**
+> **Last updated:** 2026-02-09
 
-NPS (Numerology Puzzle Solver) V4 is a distributed microservices architecture for FC60 numerology, oracle readings, and mathematical analysis. V4 transforms the V3 Python/tkinter desktop app into a web-accessible platform with FastAPI backend, React frontend, and specialized microservices.
+---
 
-## Repository Layout
+## BOOT SEQUENCE
 
-- `api/` — FastAPI REST + WebSocket gateway
-  - `app/routers/` — 6 routers: health, auth, scanner, oracle, vault, learning
-  - `app/models/` — Pydantic request/response schemas
-  - `app/middleware/` — Auth (JWT + API keys), rate limiting
-  - `app/orm/` — SQLAlchemy ORM models
-  - `app/services/` — Business logic (oracle_reading, security, audit)
-- `frontend/` — React + TypeScript + Tailwind (Vite build)
-  - `src/pages/` — 6 pages: Dashboard, Scanner, Oracle, Vault, Learning, Settings
-  - `src/components/` — Shared UI components (Layout, StatsCard, LogPanel)
-  - `src/services/` — API client (`api.ts`) and WebSocket client (`websocket.ts`)
-  - `src/types/` — TypeScript types mirroring API Pydantic models
-  - `src/i18n/` — Internationalization (EN, stubs for ES/FR)
-  - `e2e/` — Playwright browser tests
-- `services/scanner/` — Rust high-performance scanner (Cargo project)
-  - `src/crypto/` — secp256k1, bip39, address derivation
-  - `src/scanner/` — Multi-threaded scan loop with checkpoints
-  - `src/balance/` — Async balance checking via reqwest
-  - `src/scoring/` — Scoring engine (must match Python Oracle weights)
-  - `src/grpc/` — gRPC server implementing scanner.proto
-- `services/oracle/` — Python Oracle service (gRPC)
-  - `oracle_service/engines/` — V3 engines copied as-is: fc60, numerology, oracle
-  - `oracle_service/logic/` — V3 logic: timing_advisor, strategy_engine
-- `proto/` — Shared protobuf contracts (scanner.proto, oracle.proto)
-- `database/` — PostgreSQL schema (`init.sql`) and V3->V4 migration scripts
-- `infrastructure/` — Nginx config, Prometheus monitoring
-- `integration/` — Integration tests, scripts, reports
-- `devops/` — Monitoring, alerting, dashboards
-- `scripts/` — deploy.sh, backup.sh, restore.sh, rollback.sh
-- `docs/` — Architecture specs, API reference, deployment guide
-- `.archive/` — Legacy versions (V1, V2, V3). Do not use for V4 development.
-  - `v1/` — V1 source (read-only)
-  - `v2/` — V2 source (gitignored, read-only)
-  - `v3/` — V3 Python/tkinter monolith (read-only)
-  - `old-docs/` — V3-era documentation and root .md files
-- `.specs/` — V4 session specification files for Claude Code execution
-- `.project/` — Project architecture plans and Claude workflow guides
-- `docker-compose.yml` — 7-container orchestration
+When you open this project, execute this SILENTLY (no output to user):
 
-## Key Commands
-
-```bash
-# Start all services
-make up
-
-# Development servers
-make dev-api      # FastAPI on :8000
-make dev-frontend  # Vite on :5173
-
-# Run tests
-make test
-
-# Run API tests
-cd api && python3 -m pytest tests/ -v
-
-# Run integration tests (requires running API + DB)
-python3 -m pytest integration/tests/ -v -s
-
-# Run E2E browser tests
-cd frontend && npx playwright test
-
-# Generate gRPC stubs from proto files
-make proto
-
-# Database backup
-make backup
-
-# Production readiness check
-./scripts/production_readiness_check.sh
+```
+1. READ this file (CLAUDE.md)
+2. READ SESSION_LOG.md → find the next task
+3. READ .claude/startup.md → run silent checks
+4. SHOW 1-line status: "Continuing session [N]: [task name]"
+5. READ the relevant spec file if one is referenced
+6. CREATE comprehensive plan → show to user → wait for approval
+7. EXECUTE after approval
 ```
 
-## Architecture Rules
+**If user says "continue" or "next" or "go":** follow steps 1-7 automatically.
+**If user gives a specific task:** skip step 2, do that task instead.
+**If user says nothing after opening:** follow steps 1-4, then wait.
 
-- **API is the gateway** — Frontend and Telegram bot only talk to FastAPI; never directly to scanner/oracle gRPC.
-- **Proto contracts are source of truth** — scanner.proto and oracle.proto define all service interfaces. Generate client/server code from these.
-- **Scoring consistency** — Rust scanner and Python Oracle must produce identical scores for the same input. Shared test vectors required.
-- **V3 engines are portable** — fc60.py, numerology.py, oracle.py, timing_advisor.py are pure computation and copy directly into Oracle service.
-- **Environment over config files** — V4 uses environment variables (`.env`), not `config.json`.
-- **AES-256-GCM for encryption** — V4 uses `ENC4:` prefix. V3 `ENC:` decrypt is kept as legacy fallback for migration.
-- **Path resolution uses `__file__`** — Python code uses `Path(__file__).resolve().parents[N]` for relative paths. No hardcoded directory names.
+For detailed startup protocol → `.claude/startup.md`
+For workflow modes → `.claude/workflows.md`
 
-## Code Standards
+---
 
-- Python 3.11+ for API and Oracle service
-- TypeScript strict mode for frontend
-- Rust stable for scanner service
-- All new modules need corresponding test files
-- Use `pathlib.Path` for file paths in Python
-- Use environment variables for configuration (never config files)
+## PROJECT IDENTITY
 
-## Testing
+**Name:** NPS (Numerology Puzzle Solver) V4
+**Purpose:** Bitcoin wallet hunting via Scanner ↔ Oracle collaboration with AI learning
+**Repo:** https://github.com/DaveXRouz/BTC.git
+**Owner:** Dave (DaveXRouz)
 
-- **API tests:** `api/tests/` — pytest, runnable without external services (SQLite fallback)
-- **Integration tests:** `integration/tests/` — 56+ tests across 7 files (requires running API + DB)
-- **Browser E2E:** `frontend/e2e/` — Playwright (8 scenarios)
-- **DevOps tests:** `devops/tests/` — pytest (28+ tests)
-- **Performance audit:** `integration/scripts/perf_audit.py`
-- **Security audit:** `integration/scripts/security_audit.py`
+**Simple version:** Scanner generates Bitcoin keys fast. Oracle analyzes patterns using numerology + AI. They share a PostgreSQL database and make each other smarter over time.
 
-## Git Workflow
+**Design philosophy:** Swiss watch — simple surface, sophisticated internals.
 
-- `.gitignore` covers Python, Node.js, Rust, Docker, and runtime data
-- Key gitignored paths: `.env`, `api/data/`, `node_modules/`, `services/scanner/target/`, `.archive/v2/`
-- Remote: `https://github.com/DaveXRouz/BTC.git`
+---
 
-## Phase Status
+## CURRENT STATE
 
-| Phase | Description                                  | Status           |
-| ----- | -------------------------------------------- | ---------------- |
-| 0a    | Full scaffolding (93 files)                  | Done             |
-| 0b    | V3 file migration + documentation (45 files) | Done             |
-| 1     | Foundation (DB + API skeleton + encryption)  | Done             |
-| 2     | Python Oracle service                        | Done             |
-| 3     | API layer (all endpoints)                    | Partial (Oracle) |
-| 4     | Rust scanner                                 | Not started      |
-| 5     | React frontend                               | Partial (Oracle) |
-| 6     | Infrastructure + DevOps                      | Partial          |
-| 7     | Integration testing + polish                 | Partial          |
+**Active plan:** 45-session Oracle rebuild (hybrid approach)
+**Strategy:** Keep infrastructure, rewrite Oracle logic
+**Sessions completed:** Check SESSION_LOG.md for current count
+
+### What EXISTS (from earlier 16-session scaffolding):
+
+| Layer | Status | Keep/Rewrite |
+|-------|--------|-------------|
+| Frontend (React) | ~80% scaffolded | KEEP shells, REWRITE Oracle internals |
+| API (FastAPI) | ~70% scaffolded | KEEP skeleton, REWRITE Oracle handlers |
+| Backend/Oracle | ~60% scaffolded | REWRITE engines, reading logic, AI |
+| Database (PostgreSQL) | Done | KEEP |
+| Scanner (Rust) | Stub only | DO NOT TOUCH |
+| Infrastructure (Docker) | Partial | KEEP |
+| DevOps (Monitoring) | Partial | KEEP |
+| Integration Tests | 56+ tests | KEEP, extend |
+
+### 45-Session Blocks:
+
+| Block | Sessions | Focus |
+|-------|----------|-------|
+| Foundation | 1-5 | Database schema, auth, profiles |
+| Calculation Engines | 6-12 | FC60, numerology, zodiac |
+| AI & Reading Types | 13-18 | Wisdom AI, 5 reading flows |
+| Frontend Core | 19-25 | Layout, Oracle UI, results |
+| Frontend Advanced | 26-31 | RTL, responsive, accessibility |
+| Features & Integration | 32-37 | Export, share, Telegram |
+| Admin & DevOps | 38-40 | Admin UI, monitoring, backup |
+| Testing & Deployment | 41-45 | Tests, optimization, deploy |
+
+---
+
+## ARCHITECTURE
+
+```
+┌─────────────────────────────────────────────┐
+│  LAYER 1: FRONTEND                          │
+│  React + TypeScript + Tailwind + Vite       │
+│  Port: 5173 (dev) / 80 (prod nginx)        │
+│  i18n: English + Persian (RTL)              │
+└──────────────┬──────────────────────────────┘
+               │ HTTP / WebSocket
+┌──────────────▼──────────────────────────────┐
+│  LAYER 2: API GATEWAY                       │
+│  FastAPI + Python 3.11+                     │
+│  Port: 8000 │ Docs: /docs (Swagger)        │
+│  Auth: JWT + API Key + Legacy               │
+└──────┬───────────────────┬──────────────────┘
+       │ SQLAlchemy         │ gRPC
+┌──────▼──────┐    ┌───────▼──────────────────┐
+│  LAYER 4:   │    │  LAYER 3: BACKEND        │
+│  DATABASE   │    │  Oracle (Python :50052)   │
+│  PostgreSQL │◄───┤  Scanner (Rust :50051)    │
+│  Port: 5432 │    │  AI via Anthropic API     │
+└─────────────┘    └──────────────────────────┘
+
+LAYER 5: Docker Compose (7 containers)
+LAYER 6: AES-256-GCM + API keys (3-tier)
+LAYER 7: JSON logging + Prometheus + Telegram alerts
+```
+
+### Scanner ↔ Oracle Loop:
+```
+Scanner generates keys → checks balances → stores in PostgreSQL
+    ↓
+Oracle analyzes patterns → suggests lucky ranges → confidence scores
+    ↓
+Scanner prioritizes suggestions → finds more → AI learns → REPEAT
+```
+
+For detailed architecture → `logic/ARCHITECTURE_DECISIONS.md`
+For loop details → `logic/SCANNER_ORACLE_LOOP.md`
+
+---
+
+## REPOSITORY LAYOUT
+
+```
+BTC/
+├── CLAUDE.md              ← YOU ARE HERE
+├── README.md              ← Human overview
+├── SESSION_LOG.md         ← Session tracker (read at step 2)
+├── .claude/               ← Detailed Claude Code configs
+│   ├── startup.md             Boot protocol + silent checks
+│   ├── workflows.md           Single-terminal + multi-terminal modes
+│   └── templates.md           File templates (Python, TS, Rust)
+├── logic/                 ← Algorithm docs + recipes
+│   ├── FC60_ALGORITHM.md      FC60 math + formulas + test vectors
+│   ├── NUMEROLOGY_SYSTEMS.md  Pythagorean + Chaldean + Abjad
+│   ├── ARCHITECTURE_DECISIONS.md  10 key decisions with reasoning
+│   ├── SCANNER_ORACLE_LOOP.md     Collaboration pattern
+│   └── RECIPES.md             Step-by-step common task recipes
+├── api/                   ← FastAPI gateway
+├── frontend/              ← React + TypeScript + Tailwind
+├── services/oracle/       ← Python Oracle service
+├── services/scanner/      ← Rust scanner [STUB]
+├── database/              ← PostgreSQL schemas + migrations
+├── integration/           ← 56+ integration tests
+├── devops/                ← Monitoring + alerts
+├── infrastructure/        ← Nginx + Prometheus
+├── proto/                 ← gRPC definitions
+├── scripts/               ← Deploy, backup, restore
+├── docs/                  ← API reference, deployment guide
+├── .archive/              ← V1/V3 code (READ-ONLY)
+├── .specs/                ← 16-session specs (reference only)
+├── .project/              ← Project management playbooks
+└── docker-compose.yml
+```
+
+---
+
+## OPERATING RULES
+
+### Autonomy Level: MAXIMUM
+
+Make all decisions yourself. Only ask Dave for:
+- **Money** — paid services, API costs, infrastructure upgrades
+- **Security** — encryption changes, auth system changes, key management
+- **Architecture** — changes that affect multiple layers or the overall design
+
+Everything else: decide, do it, show results.
+
+### Communication: SILENT WORKER
+
+- Work silently. No progress narration.
+- Show results at the end only.
+- If creating a plan from a spec: show the plan, wait for approval, then execute silently.
+
+### Error Handling: 3-STRIKE RULE
+
+```
+Error encountered →
+  Attempt fix #1 (silently) →
+    Still broken → Attempt fix #2 (silently) →
+      Still broken → Attempt fix #3 (silently) →
+        Still broken → STOP. Tell Dave what's wrong. Ask for guidance.
+```
+
+### Quality Pipeline (Every File, Every Time):
+
+```
+Write code
+  → Auto-format (black/prettier/rustfmt)
+  → Auto-lint + fix (ruff/eslint/clippy)
+  → Write tests
+  → Run tests (must pass before "done")
+  → Auto-generate docs (public APIs + complex logic only)
+  → Git commit with descriptive message
+```
+
+### Git Behavior:
+
+- Auto-commit after each completed task
+- Commit message format: `[layer] description (#session)`
+  - Example: `[api] add oracle reading endpoint (#session-13)`
+- Auto `git stash` before risky changes (revert if broken)
+- Never commit broken code — tests must pass first
+
+### Dependency Management:
+
+- Auto-install known safe packages (from requirements.txt, package.json, Cargo.toml) silently
+- For NEW/unknown packages: ask Dave first
+- Run `pip-audit` / `npm audit` after installing — flag vulnerabilities
+
+### Context Limit:
+
+- Auto-compact at 70% context capacity
+- Keep working after compaction — don't stop or ask
+- If a task is too large for one context: split it, note split point in SESSION_LOG.md
+
+### Web Search:
+
+- Use ONLY for: package version verification, API documentation lookups
+- Do NOT search for: general coding questions, tutorials, Stack Overflow
+
+---
+
+## 10 FORBIDDEN PATTERNS
+
+1. **NEVER use Claude CLI** (`subprocess`, `os.system`, shell commands for AI). Only Anthropic HTTP API.
+2. **NEVER store secrets in code.** Always `.env` variables.
+3. **NEVER use bare `except:` in Python.** Catch specific exceptions.
+4. **NEVER use `.unwrap()` in Rust production code.** Use `Result<T,E>`.
+5. **NEVER use `any` type in TypeScript.** Define proper interfaces.
+6. **NEVER hardcode file paths.** Use `Path(__file__).resolve().parents[N]`.
+7. **NEVER skip tests.** Every change gets tested before commit.
+8. **NEVER modify `.archive/` folder.** Read-only reference.
+9. **NEVER commit `.env` files.** Only `.env.example`.
+10. **NEVER say "done" without proof.** Tests pass + verification output.
+
+---
+
+## ARCHITECTURE RULES (Non-Negotiable)
+
+1. **API is the gateway** — Frontend/Telegram only talk to FastAPI. Never directly to gRPC services.
+2. **AI uses API only** — Anthropic Python SDK, HTTP calls. Never CLI.
+3. **Proto contracts are source of truth** — `scanner.proto` and `oracle.proto` define interfaces.
+4. **Scoring consistency** — Rust and Python must produce identical outputs for same input.
+5. **V3 engines are reference** — `.archive/v3/engines/` is the math baseline. New code must match outputs.
+6. **Environment over config files** — `.env` only. Not `config.json`.
+7. **AES-256-GCM encryption** — `ENC4:` prefix (V4). `ENC:` fallback for V3 migration only.
+8. **Layer separation** — No shortcuts. Frontend→API→Service→Database.
+9. **Persian UTF-8** — All text supports Persian. RTL when locale is FA.
+10. **Graceful degradation** — Missing API key = fallback text, not crash. Missing Redis = in-memory.
+
+---
+
+## SECURITY RULES
+
+- AES-256-GCM, keys via `secrets.token_hex(32)`
+- API keys: SHA-256 hashed in DB, plaintext shown only at creation
+- Three-tier scopes: `admin` / `moderator` / `user`
+- Audit all security events to `oracle_audit_log` table
+- No plaintext private keys in database — ever
+- SSL/TLS in production (nginx terminates)
+- Security scan on every commit (check for leaked secrets, SQL injection, XSS)
+
+---
+
+## KEY COMMANDS
+
+```bash
+# Services
+make up                    # Start all (Docker)
+make dev-api               # FastAPI :8000
+make dev-frontend          # Vite :5173
+
+# Tests
+cd api && python3 -m pytest tests/ -v
+cd frontend && npm test
+cd services/oracle && python3 -m pytest tests/ -v
+python3 -m pytest integration/tests/ -v -s
+cd frontend && npx playwright test
+
+# Quality
+make lint && make format
+pip-audit                  # Python vulnerability check
+npm audit                  # Node vulnerability check
+
+# Database
+docker-compose exec postgres psql -U nps -d nps
+make backup
+```
+
+---
+
+## MCP SERVERS (Plugins)
+
+Use these when available:
+- **GitHub MCP** — auto PR, issue tracking, branch management
+- **PostgreSQL MCP** — direct DB queries, schema verification
+- **File System MCP** — advanced file operations, bulk search
+
+---
+
+## SMART TOOL USAGE
+
+### Extended Thinking (deep reasoning):
+- **AUTO-USE for:** architecture, security, complex algorithms, trade-offs, multi-file refactors
+- **SKIP for:** simple edits, standard CRUD, formatting, straightforward fixes
+
+### Subagents (parallel workers):
+- **AUTO-USE for:** 3+ file creation, independent modules, test+implementation simultaneously
+- **SKIP for:** sequential tasks, single-file changes, tightly coupled tasks
+
+---
+
+## EXISTING CODE POLICY
+
+When you touch any file that doesn't match project standards:
+- **Fix it proactively.** Don't just fix what you came for — upgrade the whole file.
+- Apply templates from `.claude/templates.md`
+- Add missing type hints, docstrings, error handling
+- Run linter + formatter on the file
+
+---
+
+## SESSION END PROTOCOL
+
+Every session MUST end with:
+1. ✅ Update SESSION_LOG.md (what done, files changed, test results)
+2. ✅ Git commit with descriptive message
+3. ✅ Define next session's task clearly in SESSION_LOG.md
+4. ✅ Show summary to Dave
+
+---
+
+## SPEC FILE PROTOCOL
+
+When a session references a spec from `.specs/`:
+1. Read the full spec
+2. Create a **comprehensive, detailed plan** that covers 100% of everything needed
+3. The plan must have **100% confidence** — no gaps, no "we'll figure this out later"
+4. Show the plan to Dave
+5. Wait for approval
+6. Execute silently after approval
+
+---
+
+## ENVIRONMENT VARIABLES
+
+All config in `.env` (copy from `.env.example`):
+
+| Variable | Purpose | Required |
+|----------|---------|----------|
+| `POSTGRES_PASSWORD` | Database password | Yes |
+| `API_SECRET_KEY` | JWT signing + legacy auth | Yes |
+| `NPS_ENCRYPTION_KEY` | AES-256-GCM key (hex) | For encryption |
+| `NPS_ENCRYPTION_SALT` | Encryption salt (hex) | For encryption |
+| `ANTHROPIC_API_KEY` | AI interpretations | Optional (graceful fallback) |
+| `NPS_BOT_TOKEN` | Telegram bot token | Optional |
+| `NPS_CHAT_ID` | Telegram chat ID | Optional |
+
+---
+
+## PERFORMANCE TARGETS
+
+| Operation | Target |
+|-----------|--------|
+| API response (simple) | < 50ms p95 |
+| API response (reading) | < 5 seconds |
+| Frontend initial load | < 2 seconds |
+| Frontend transitions | < 100ms |
+| Database query (indexed) | < 100ms |
+
+---
+
+## FILE REFERENCES
+
+| Need | Read |
+|------|------|
+| Boot protocol + silent checks | `.claude/startup.md` |
+| Single vs multi-terminal workflows | `.claude/workflows.md` |
+| File creation templates | `.claude/templates.md` |
+| FC60 math + formulas | `logic/FC60_ALGORITHM.md` |
+| Numerology systems | `logic/NUMEROLOGY_SYSTEMS.md` |
+| Architecture decisions | `logic/ARCHITECTURE_DECISIONS.md` |
+| Scanner↔Oracle loop | `logic/SCANNER_ORACLE_LOOP.md` |
+| Common task step-by-step | `logic/RECIPES.md` |
+| Session history | `SESSION_LOG.md` |
+| Spec files (reference) | `.specs/` folder |
+| V3 source (reference) | `.archive/v3/` |
+| Project playbooks | `.project/` folder |
