@@ -3,12 +3,13 @@
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, require_scope
+from app.models.audit import AuditLogEntry, AuditLogResponse
 from app.models.oracle import (
     DailyInsightResponse,
     NameReadingRequest,
@@ -27,56 +28,119 @@ from app.models.oracle_user import (
     OracleUserUpdate,
 )
 from app.orm.oracle_user import OracleUser
+from app.services.audit import AuditService, get_audit_service
+from app.services.security import EncryptionService, get_encryption_service
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
-@router.post("/reading", response_model=ReadingResponse)
+# ─── Helpers ─────────────────────────────────────────────────────────────────
+
+
+def _encrypt_user_fields(user: OracleUser, enc: EncryptionService | None) -> None:
+    """Encrypt sensitive fields on an ORM user object before DB write."""
+    if not enc:
+        return
+    if user.mother_name:
+        user.mother_name = enc.encrypt(user.mother_name)
+    if user.mother_name_persian:
+        user.mother_name_persian = enc.encrypt(user.mother_name_persian)
+
+
+def _decrypt_user(
+    user: OracleUser, enc: EncryptionService | None
+) -> OracleUserResponse:
+    """Decrypt user fields and convert to response model."""
+    mother_name = user.mother_name
+    mother_name_persian = user.mother_name_persian
+    if enc:
+        mother_name = enc.decrypt_field(mother_name)
+        mother_name_persian = (
+            enc.decrypt_field(mother_name_persian) if mother_name_persian else None
+        )
+
+    return OracleUserResponse(
+        id=user.id,
+        name=user.name,
+        name_persian=user.name_persian,
+        birthday=user.birthday,
+        mother_name=mother_name,
+        mother_name_persian=mother_name_persian,
+        country=user.country,
+        city=user.city,
+        created_at=user.created_at,
+        updated_at=user.updated_at,
+    )
+
+
+def _get_client_ip(request: Request) -> str | None:
+    return request.client.host if request.client else None
+
+
+# ─── Oracle Reading Endpoints (gRPC proxies) ────────────────────────────────
+
+
+@router.post(
+    "/reading",
+    response_model=ReadingResponse,
+    dependencies=[Depends(require_scope("oracle:write"))],
+)
 async def get_reading(request: ReadingRequest):
     """Get a full oracle reading for a date/time."""
-    # TODO: Call oracle gRPC GetReading
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
         detail="Oracle service not connected",
     )
 
 
-@router.post("/question", response_model=QuestionResponse)
+@router.post(
+    "/question",
+    response_model=QuestionResponse,
+    dependencies=[Depends(require_scope("oracle:write"))],
+)
 async def get_question_sign(request: QuestionRequest):
     """Ask a yes/no question with numerological context."""
-    # TODO: Call oracle gRPC GetQuestionSign
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
         detail="Oracle service not connected",
     )
 
 
-@router.post("/name", response_model=NameReadingResponse)
+@router.post(
+    "/name",
+    response_model=NameReadingResponse,
+    dependencies=[Depends(require_scope("oracle:write"))],
+)
 async def get_name_reading(request: NameReadingRequest):
     """Get a name cipher reading."""
-    # TODO: Call oracle gRPC GetNameReading
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
         detail="Oracle service not connected",
     )
 
 
-@router.get("/daily", response_model=DailyInsightResponse)
+@router.get(
+    "/daily",
+    response_model=DailyInsightResponse,
+    dependencies=[Depends(require_scope("oracle:read"))],
+)
 async def get_daily_insight(date: str = None):
     """Get daily insight for today or a specific date."""
-    # TODO: Call oracle gRPC GetDailyInsight
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
         detail="Oracle service not connected",
     )
 
 
-@router.post("/suggest-range", response_model=RangeResponse)
+@router.post(
+    "/suggest-range",
+    response_model=RangeResponse,
+    dependencies=[Depends(require_scope("oracle:write"))],
+)
 async def suggest_range(request: RangeRequest):
     """Get AI-suggested scan range based on timing + coverage."""
-    # TODO: Call oracle gRPC SuggestRange
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
         detail="Oracle service not connected",
@@ -87,12 +151,18 @@ async def suggest_range(request: RangeRequest):
 
 
 @router.post(
-    "/users", response_model=OracleUserResponse, status_code=status.HTTP_201_CREATED
+    "/users",
+    response_model=OracleUserResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_scope("oracle:write"))],
 )
 def create_user(
     body: OracleUserCreate,
+    request: Request,
     db: Session = Depends(get_db),
     _user: dict = Depends(get_current_user),
+    enc: EncryptionService | None = Depends(get_encryption_service),
+    audit: AuditService = Depends(get_audit_service),
 ):
     """Create a new Oracle user profile."""
     existing = (
@@ -111,20 +181,35 @@ def create_user(
         )
 
     user = OracleUser(**body.model_dump())
+    _encrypt_user_fields(user, enc)
     db.add(user)
+    db.flush()  # Get the ID before commit
+
+    audit.log_user_created(
+        user.id,
+        ip=_get_client_ip(request),
+        key_hash=_user.get("api_key_hash"),
+    )
     db.commit()
     db.refresh(user)
-    logger.info("Created oracle user id=%d name=%s", user.id, user.name)
-    return user
+    logger.info("Created oracle user id=%d name=%s", user.id, body.name)
+    return _decrypt_user(user, enc)
 
 
-@router.get("/users", response_model=OracleUserListResponse)
+@router.get(
+    "/users",
+    response_model=OracleUserListResponse,
+    dependencies=[Depends(require_scope("oracle:read"))],
+)
 def list_users(
+    request: Request,
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     search: str | None = Query(None),
     db: Session = Depends(get_db),
     _user: dict = Depends(get_current_user),
+    enc: EncryptionService | None = Depends(get_encryption_service),
+    audit: AuditService = Depends(get_audit_service),
 ):
     """List Oracle user profiles with optional search."""
     query = db.query(OracleUser).filter(OracleUser.deleted_at.is_(None))
@@ -140,14 +225,31 @@ def list_users(
     users = (
         query.order_by(OracleUser.created_at.desc()).offset(offset).limit(limit).all()
     )
-    return OracleUserListResponse(users=users, total=total, limit=limit, offset=offset)
+
+    audit.log_user_listed(
+        ip=_get_client_ip(request),
+        key_hash=_user.get("api_key_hash"),
+    )
+    db.commit()
+
+    decrypted = [_decrypt_user(u, enc) for u in users]
+    return OracleUserListResponse(
+        users=decrypted, total=total, limit=limit, offset=offset
+    )
 
 
-@router.get("/users/{user_id}", response_model=OracleUserResponse)
+@router.get(
+    "/users/{user_id}",
+    response_model=OracleUserResponse,
+    dependencies=[Depends(require_scope("oracle:read"))],
+)
 def get_user(
     user_id: int,
+    request: Request,
     db: Session = Depends(get_db),
     _user: dict = Depends(get_current_user),
+    enc: EncryptionService | None = Depends(get_encryption_service),
+    audit: AuditService = Depends(get_audit_service),
 ):
     """Get a single Oracle user profile."""
     user = (
@@ -159,15 +261,30 @@ def get_user(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    return user
+
+    audit.log_user_read(
+        user.id,
+        ip=_get_client_ip(request),
+        key_hash=_user.get("api_key_hash"),
+    )
+    db.commit()
+
+    return _decrypt_user(user, enc)
 
 
-@router.put("/users/{user_id}", response_model=OracleUserResponse)
+@router.put(
+    "/users/{user_id}",
+    response_model=OracleUserResponse,
+    dependencies=[Depends(require_scope("oracle:write"))],
+)
 def update_user(
     user_id: int,
     body: OracleUserUpdate,
+    request: Request,
     db: Session = Depends(get_db),
     _user: dict = Depends(get_current_user),
+    enc: EncryptionService | None = Depends(get_encryption_service),
+    audit: AuditService = Depends(get_audit_service),
 ):
     """Update an Oracle user profile (partial update)."""
     updates = body.model_dump(exclude_unset=True)
@@ -207,19 +324,35 @@ def update_user(
             )
 
     for field, value in updates.items():
+        # Encrypt sensitive fields
+        if enc and field in ("mother_name", "mother_name_persian") and value:
+            value = enc.encrypt(value)
         setattr(user, field, value)
 
+    audit.log_user_updated(
+        user.id,
+        list(updates.keys()),
+        ip=_get_client_ip(request),
+        key_hash=_user.get("api_key_hash"),
+    )
     db.commit()
     db.refresh(user)
     logger.info("Updated oracle user id=%d fields=%s", user.id, list(updates.keys()))
-    return user
+    return _decrypt_user(user, enc)
 
 
-@router.delete("/users/{user_id}", response_model=OracleUserResponse)
+@router.delete(
+    "/users/{user_id}",
+    response_model=OracleUserResponse,
+    dependencies=[Depends(require_scope("oracle:admin"))],
+)
 def delete_user(
     user_id: int,
+    request: Request,
     db: Session = Depends(get_db),
     _user: dict = Depends(get_current_user),
+    enc: EncryptionService | None = Depends(get_encryption_service),
+    audit: AuditService = Depends(get_audit_service),
 ):
     """Soft-delete an Oracle user profile."""
     user = (
@@ -233,7 +366,44 @@ def delete_user(
         )
 
     user.deleted_at = datetime.now(timezone.utc)
+    audit.log_user_deleted(
+        user.id,
+        ip=_get_client_ip(request),
+        key_hash=_user.get("api_key_hash"),
+    )
     db.commit()
     db.refresh(user)
     logger.info("Soft-deleted oracle user id=%d", user.id)
-    return user
+    return _decrypt_user(user, enc)
+
+
+# ─── Audit Log Endpoint ─────────────────────────────────────────────────────
+
+
+@router.get(
+    "/audit",
+    response_model=AuditLogResponse,
+    dependencies=[Depends(require_scope("oracle:admin"))],
+)
+def get_audit_log(
+    action: str | None = Query(None),
+    resource_id: int | None = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    _user: dict = Depends(get_current_user),
+    audit: AuditService = Depends(get_audit_service),
+):
+    """Query Oracle audit log (admin-only)."""
+    entries, total = audit.query_logs(
+        action=action,
+        resource_type="oracle_user" if resource_id else None,
+        resource_id=resource_id,
+        limit=limit,
+        offset=offset,
+    )
+    return AuditLogResponse(
+        entries=[AuditLogEntry.model_validate(e) for e in entries],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )

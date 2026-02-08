@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     oracle_grpc_host: str = "localhost"
     oracle_grpc_port: int = 50052
 
+    # Encryption
+    nps_encryption_key: str = ""
+    nps_encryption_salt: str = ""
+
     # Telegram
     nps_bot_token: str = ""
     nps_chat_id: str = ""

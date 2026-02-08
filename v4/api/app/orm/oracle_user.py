@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 
-from sqlalchemy import CheckConstraint, Date, String, func
+from sqlalchemy import CheckConstraint, Date, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -15,8 +15,8 @@ class OracleUser(Base):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     name_persian: Mapped[str | None] = mapped_column(String(200))
     birthday: Mapped[date] = mapped_column(Date, nullable=False)
-    mother_name: Mapped[str] = mapped_column(String(200), nullable=False)
-    mother_name_persian: Mapped[str | None] = mapped_column(String(200))
+    mother_name: Mapped[str] = mapped_column(Text, nullable=False)
+    mother_name_persian: Mapped[str | None] = mapped_column(Text)
     country: Mapped[str | None] = mapped_column(String(100))
     city: Mapped[str | None] = mapped_column(String(100))
     created_at: Mapped[datetime] = mapped_column(

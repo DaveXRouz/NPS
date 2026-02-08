@@ -1,18 +1,27 @@
 """NPS V4 API — FastAPI application entry point."""
 
+import logging
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.middleware.rate_limit import RateLimitMiddleware
 from app.routers import auth, health, learning, oracle, scanner, vault
+from app.services.security import init_encryption
 from app.services.websocket_manager import websocket_endpoint
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown logic."""
+    # Initialize encryption service
+    init_encryption(settings)
+    logger.info("Encryption service initialized")
     # TODO: Initialize database connection pool
     # TODO: Connect to Redis
     # TODO: Establish gRPC channels to scanner and oracle services
@@ -37,8 +46,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# TODO: Add rate limiting middleware
-# TODO: Add request logging middleware
+# Rate limiting
+app.add_middleware(RateLimitMiddleware)
 
 # Routers
 app.include_router(health.router, prefix="/api/health", tags=["health"])

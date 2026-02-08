@@ -5,18 +5,31 @@ Keeps PBKDF2-HMAC-SHA256 for key derivation (same as V3).
 Provides V3 decrypt() fallback for data migration.
 """
 
+import base64
 import hashlib
 import hmac
 import os
+from typing import Any
 
-# TODO: Replace with cryptography library
-# from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 # Shared with V3
 SENSITIVE_KEYS = ["private_key", "seed_phrase", "wif", "extended_private_key"]
+
+# Oracle fields that contain personal data
+ORACLE_SENSITIVE_KEYS = [
+    "mother_name",
+    "mother_name_persian",
+    "question",
+    "question_persian",
+    "ai_interpretation",
+    "ai_interpretation_persian",
+]
+
 _PBKDF2_ITERATIONS = 600_000
 _SALT_LENGTH = 32
 _KEY_LENGTH = 32
+_NONCE_LENGTH = 12  # 96-bit nonce for AES-GCM
 
 
 def derive_key(password: str, salt: bytes) -> bytes:
@@ -34,24 +47,26 @@ def derive_key(password: str, salt: bytes) -> bytes:
 
 
 def encrypt_aes256gcm(plaintext: str, key: bytes) -> str:
-    """Encrypt with AES-256-GCM. Returns 'ENC4:<base64>' prefixed string.
-
-    TODO: Implement with cryptography.hazmat.primitives.ciphers.aead.AESGCM
-    """
-    # nonce = os.urandom(12)  # 96-bit nonce for AES-GCM
-    # aesgcm = AESGCM(key)
-    # ciphertext = aesgcm.encrypt(nonce, plaintext.encode("utf-8"), None)
-    # payload = nonce + ciphertext  # nonce (12) + ciphertext + tag (16)
-    # return f"ENC4:{base64.b64encode(payload).decode()}"
-    raise NotImplementedError("AES-256-GCM encryption not yet implemented")
+    """Encrypt with AES-256-GCM. Returns 'ENC4:<base64>' prefixed string."""
+    nonce = os.urandom(_NONCE_LENGTH)
+    aesgcm = AESGCM(key)
+    ciphertext = aesgcm.encrypt(nonce, plaintext.encode("utf-8"), None)
+    payload = nonce + ciphertext  # nonce (12) + ciphertext + tag (16)
+    return f"ENC4:{base64.b64encode(payload).decode()}"
 
 
 def decrypt_aes256gcm(encoded: str, key: bytes) -> str:
-    """Decrypt AES-256-GCM 'ENC4:' prefixed string.
-
-    TODO: Implement with cryptography library
-    """
-    raise NotImplementedError("AES-256-GCM decryption not yet implemented")
+    """Decrypt AES-256-GCM 'ENC4:' prefixed string."""
+    if not encoded.startswith("ENC4:"):
+        raise ValueError("Not an ENC4-prefixed string")
+    payload = base64.b64decode(encoded[5:])
+    if len(payload) < _NONCE_LENGTH + 16:  # nonce + minimum tag
+        raise ValueError("Encrypted data too short")
+    nonce = payload[:_NONCE_LENGTH]
+    ciphertext = payload[_NONCE_LENGTH:]
+    aesgcm = AESGCM(key)
+    plaintext = aesgcm.decrypt(nonce, ciphertext, None)
+    return plaintext.decode("utf-8")
 
 
 def decrypt_v3_legacy(encoded: str, master_key: bytes) -> str:
@@ -127,3 +142,69 @@ def decrypt_dict(data: dict, key: bytes, sensitive_keys: list = None) -> dict:
         else:
             result[k] = v
     return result
+
+
+class EncryptionService:
+    """High-level encryption service for Oracle field-level encryption."""
+
+    def __init__(self, key: bytes):
+        self._key = key
+
+    def encrypt(self, plaintext: str) -> str:
+        """Encrypt a string. Returns ENC4: prefixed ciphertext."""
+        return encrypt_aes256gcm(plaintext, self._key)
+
+    def decrypt(self, ciphertext: str) -> str:
+        """Decrypt ENC4: or ENC: prefixed string."""
+        if ciphertext.startswith("ENC4:"):
+            return decrypt_aes256gcm(ciphertext, self._key)
+        if ciphertext.startswith("ENC:") or ciphertext.startswith("PLAIN:"):
+            return decrypt_v3_legacy(ciphertext, self._key)
+        return ciphertext
+
+    def encrypt_field(self, value: Any) -> Any:
+        """Encrypt a field value if it's a non-empty string."""
+        if isinstance(value, str) and value:
+            return self.encrypt(value)
+        return value
+
+    def decrypt_field(self, value: Any) -> Any:
+        """Decrypt a field value if it's an encrypted string."""
+        if isinstance(value, str) and (
+            value.startswith("ENC4:") or value.startswith("ENC:")
+        ):
+            return self.decrypt(value)
+        return value
+
+    def encrypt_oracle_fields(self, data: dict) -> dict:
+        """Encrypt Oracle-specific sensitive fields in a dict."""
+        return encrypt_dict(data, self._key, ORACLE_SENSITIVE_KEYS)
+
+    def decrypt_oracle_fields(self, data: dict) -> dict:
+        """Decrypt Oracle-specific sensitive fields in a dict."""
+        return decrypt_dict(data, self._key, ORACLE_SENSITIVE_KEYS)
+
+
+# Module-level singleton
+_encryption_service: EncryptionService | None = None
+
+
+def init_encryption(settings) -> None:
+    """Initialize the encryption service from app settings."""
+    global _encryption_service
+    if not settings.nps_encryption_key:
+        _encryption_service = None
+        return
+    salt = (settings.nps_encryption_salt or "nps-v4-default-salt").encode("utf-8")
+    # Pad or hash salt to 32 bytes
+    if len(salt) < _SALT_LENGTH:
+        salt = salt.ljust(_SALT_LENGTH, b"\x00")
+    else:
+        salt = salt[:_SALT_LENGTH]
+    key = derive_key(settings.nps_encryption_key, salt)
+    _encryption_service = EncryptionService(key)
+
+
+def get_encryption_service() -> EncryptionService | None:
+    """FastAPI dependency — returns the encryption service or None if not configured."""
+    return _encryption_service
