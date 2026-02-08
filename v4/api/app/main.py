@@ -1,11 +1,13 @@
 """NPS V4 API — FastAPI application entry point."""
 
 import logging
+from pathlib import Path
 
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.middleware.rate_limit import RateLimitMiddleware
@@ -22,6 +24,13 @@ from app.routers import (
 from app.services.security import init_encryption
 from app.services.websocket_manager import websocket_endpoint
 
+# Import ORM models so Base.metadata knows all tables
+import app.orm.oracle_user  # noqa: F401
+import app.orm.oracle_reading  # noqa: F401
+import app.orm.audit_log  # noqa: F401
+import app.orm.user  # noqa: F401
+import app.orm.api_key  # noqa: F401
+
 logger = logging.getLogger(__name__)
 
 
@@ -32,16 +41,11 @@ async def lifespan(app: FastAPI):
     init_encryption(settings)
     logger.info("Encryption service initialized")
 
-    # Verify database connection
-    try:
-        from sqlalchemy import text
-        from app.database import engine
+    # Create database tables (no-op if they already exist)
+    from app.database import create_tables
 
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        logger.info("Database connection verified")
-    except Exception as exc:
-        logger.error("Database connection failed: %s", exc)
+    create_tables()
+    logger.info("Database tables verified")
 
     # Connect to Redis (graceful fallback)
     app.state.redis = None
@@ -49,7 +53,7 @@ async def lifespan(app: FastAPI):
         import redis.asyncio as aioredis
 
         app.state.redis = aioredis.from_url(
-            settings.redis_url, decode_responses=True, socket_timeout=5
+            settings.redis_url, decode_responses=True, socket_timeout=1
         )
         await app.state.redis.ping()
         logger.info("Redis connection established")
@@ -65,7 +69,7 @@ async def lifespan(app: FastAPI):
         channel = grpc.insecure_channel(
             f"{settings.oracle_grpc_host}:{settings.oracle_grpc_port}"
         )
-        grpc.channel_ready_future(channel).result(timeout=3)
+        grpc.channel_ready_future(channel).result(timeout=1)
         app.state.oracle_channel = channel
         logger.info("Oracle gRPC channel established")
     except Exception as exc:
@@ -114,3 +118,10 @@ app.include_router(location.router, prefix="/api/location", tags=["location"])
 
 # WebSocket
 app.add_api_websocket_route("/ws", websocket_endpoint)
+
+# Serve V4 frontend build (must be LAST — catches all unmatched routes)
+frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+if frontend_dist.is_dir():
+    app.mount(
+        "/", StaticFiles(directory=str(frontend_dist), html=True), name="frontend"
+    )

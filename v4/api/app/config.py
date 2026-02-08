@@ -1,6 +1,11 @@
 """API service configuration — loads from environment variables."""
 
+from pathlib import Path
+
 from pydantic_settings import BaseSettings
+
+# Locate the v4/.env file (one level above v4/api/)
+_v4_env = Path(__file__).resolve().parent.parent.parent / ".env"
 
 
 class Settings(BaseSettings):
@@ -44,8 +49,13 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_format: str = "json"
 
+    # Optional override — set DATABASE_URL to skip PostgreSQL entirely
+    database_url_override: str = ""
+
     @property
     def database_url(self) -> str:
+        if self.database_url_override:
+            return self.database_url_override
         return (
             f"postgresql://{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
@@ -60,7 +70,8 @@ class Settings(BaseSettings):
         return [o.strip() for o in self.api_cors_origins.split(",")]
 
     class Config:
-        env_file = ".env"
+        env_file = str(_v4_env) if _v4_env.is_file() else ".env"
+        extra = "ignore"
 
 
 settings = Settings()
