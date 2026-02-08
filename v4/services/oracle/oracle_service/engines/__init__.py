@@ -25,3 +25,11 @@ from engines.scoring import hybrid_score, score_batch
 
 # Oracle readings (function-based, not class-based)
 from engines.oracle import read_sign, read_name, question_sign, daily_insight
+
+# AI interpretation (T3-S3)
+from engines.ai_interpreter import (
+    interpret_reading,
+    interpret_all_formats,
+    interpret_group,
+)
+from engines.translation_service import translate, batch_translate, detect_language
