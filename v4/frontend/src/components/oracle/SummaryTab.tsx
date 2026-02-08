@@ -71,7 +71,7 @@ export function SummaryTab({ result }: SummaryTabProps) {
 
       {/* Quick stats for reading type */}
       {result.type === "reading" && result.data.fc60 && (
-        <div className="flex gap-4 text-xs">
+        <div className="flex gap-4 text-xs flex-wrap">
           <span className="text-nps-text-dim">
             {t("oracle.element")}:{" "}
             <span className="text-nps-text">{result.data.fc60.element}</span>
@@ -90,6 +90,23 @@ export function SummaryTab({ result }: SummaryTabProps) {
               </span>
             </span>
           )}
+          {result.data.moon && (
+            <span className="text-nps-text-dim">
+              Moon:{" "}
+              <span className="text-nps-text">
+                {result.data.moon.emoji} {result.data.moon.phase_name}
+              </span>
+            </span>
+          )}
+          {result.data.synchronicities &&
+            result.data.synchronicities.length > 0 && (
+              <span className="text-nps-text-dim">
+                Syncs:{" "}
+                <span className="text-nps-text">
+                  {result.data.synchronicities.length}
+                </span>
+              </span>
+            )}
         </div>
       )}
 
@@ -106,6 +123,16 @@ export function SummaryTab({ result }: SummaryTabProps) {
               {Math.round(result.data.confidence * 100)}%
             </span>
           </span>
+        </div>
+      )}
+
+      {/* AI Interpretation (with translation support) */}
+      {result.type === "reading" && result.data.ai_interpretation && (
+        <div className="border border-nps-oracle-border rounded p-3 bg-nps-oracle-accent/5">
+          <h4 className="text-xs font-medium text-nps-oracle-accent mb-2">
+            AI Interpretation
+          </h4>
+          <TranslatedReading reading={result.data.ai_interpretation} />
         </div>
       )}
 

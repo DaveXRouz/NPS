@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     nps_encryption_key: str = ""
     nps_encryption_salt: str = ""
 
+    # AI / Oracle
+    anthropic_api_key: str = ""
+
     # Telegram
     nps_bot_token: str = ""
     nps_chat_id: str = ""

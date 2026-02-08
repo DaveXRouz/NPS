@@ -64,7 +64,7 @@ from logic.timing_advisor import (
     get_optimal_hours_today,
 )  # noqa: E402
 from engines.multi_user_service import MultiUserFC60Service  # noqa: E402
-from engines.ai_interpreter import interpret_group  # noqa: E402
+from engines.ai_interpreter import interpret_group, interpret_reading  # noqa: E402
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -159,17 +159,98 @@ class OracleReadingService:
             "yin_yang": STEM_POLARITY[stem_idx],
         }
 
-        # Summary via oracle.read_sign
+        # Full multi-system reading via oracle.read_sign
         date_str = f"{y:04d}-{m:02d}-{d:02d}"
         time_str = f"{h:02d}:{mi:02d}"
         sign_result = read_sign(time_str, date=date_str, time_str=time_str)
         summary = sign_result.get("interpretation", "")
+        systems = sign_result.get("systems", {})
+
+        # Moon phase data
+        moon_sys = systems.get("moon", {})
+        moon_data = None
+        if moon_sys and moon_sys.get("phase_name"):
+            moon_data = {
+                "phase_name": moon_sys.get("phase_name", ""),
+                "illumination": moon_sys.get("illumination", 0),
+                "age_days": moon_sys.get("age_days", 0),
+                "meaning": moon_sys.get("meaning", ""),
+                "emoji": moon_sys.get("emoji", ""),
+            }
+
+        # Angel numbers
+        angel_sys = systems.get("angel", {})
+        angel_data = None
+        if angel_sys and angel_sys.get("matches"):
+            angel_data = {
+                "matches": [
+                    {"number": m["number"], "meaning": m["meaning"]}
+                    for m in angel_sys["matches"]
+                ]
+            }
+
+        # Chaldean numerology
+        chaldean_sys = systems.get("chaldean", {})
+        chaldean_data = None
+        if chaldean_sys and chaldean_sys.get("value"):
+            chaldean_data = {
+                "value": chaldean_sys.get("value", 0),
+                "meaning": chaldean_sys.get("meaning", ""),
+                "letter_values": chaldean_sys.get("letter_values", ""),
+            }
+
+        # Ganzhi (Chinese cosmology) — richer than the basic chinese dict
+        ganzhi_sys = systems.get("ganzhi", {})
+        ganzhi_data = None
+        if ganzhi_sys and ganzhi_sys.get("year_name"):
+            ganzhi_data = {
+                "year_name": ganzhi_sys.get("year_name", ""),
+                "year_animal": ganzhi_sys.get("year_animal", ""),
+                "stem_element": ganzhi_sys.get("stem_element", ""),
+                "stem_polarity": ganzhi_sys.get("stem_polarity", ""),
+                "hour_animal": ganzhi_sys.get("hour_animal", ""),
+                "hour_branch": ganzhi_sys.get("hour_branch", ""),
+            }
+
+        # FC60 extended stamp data
+        fc60_sys = systems.get("fc60", {})
+        fc60_extended = None
+        if fc60_sys and fc60_sys.get("stamp"):
+            fc60_extended = {
+                "stamp": fc60_sys.get("stamp", ""),
+                "weekday_name": fc60_sys.get("weekday_name", ""),
+                "weekday_planet": fc60_sys.get("weekday_planet", ""),
+                "weekday_domain": fc60_sys.get("weekday_domain", ""),
+            }
+
+        # Zodiac quality (currently dropped from zodiac dict)
+        zodiac_sys = systems.get("zodiac", {})
+        if zodiac_sys.get("quality"):
+            zodiac["quality"] = zodiac_sys["quality"]
+
+        # Synchronicities
+        synchronicities = sign_result.get("synchronicities", [])
+
+        # AI interpretation
+        ai_interpretation = None
+        try:
+            interp_result = interpret_reading(sign_result, format_type="advice")
+            ai_interpretation = interp_result.text
+        except Exception:
+            logger.warning("AI interpretation unavailable for reading", exc_info=True)
 
         return {
             "fc60": fc60_data,
             "numerology": numerology_data,
             "zodiac": zodiac,
             "chinese": chinese,
+            "moon": moon_data,
+            "angel": angel_data,
+            "chaldean": chaldean_data,
+            "ganzhi": ganzhi_data,
+            "fc60_extended": fc60_extended,
+            "synchronicities": synchronicities,
+            "ai_interpretation": ai_interpretation,
             "summary": summary,
             "generated_at": dt.isoformat(),
         }

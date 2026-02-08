@@ -48,7 +48,18 @@ function ReadingDetails({
   result: Extract<ConsultationResult, { type: "reading" }>;
 }) {
   const { t } = useTranslation();
-  const { fc60, numerology, zodiac, chinese } = result.data;
+  const {
+    fc60,
+    numerology,
+    zodiac,
+    chinese,
+    moon,
+    angel,
+    chaldean,
+    ganzhi,
+    fc60_extended,
+    synchronicities,
+  } = result.data;
 
   return (
     <div className="space-y-3">
@@ -75,6 +86,15 @@ function ReadingDetails({
         </DetailSection>
       )}
 
+      {fc60_extended && (
+        <DetailSection title="FC60 Stamp">
+          <DataRow label="Stamp" value={fc60_extended.stamp} />
+          <DataRow label="Weekday" value={fc60_extended.weekday_name} />
+          <DataRow label="Planet" value={fc60_extended.weekday_planet} />
+          <DataRow label="Domain" value={fc60_extended.weekday_domain} />
+        </DetailSection>
+      )}
+
       {numerology && (
         <DetailSection title={t("oracle.details_numerology")}>
           <DataRow label={t("oracle.life_path")} value={numerology.life_path} />
@@ -97,6 +117,15 @@ function ReadingDetails({
         </DetailSection>
       )}
 
+      {moon && (
+        <DetailSection title="Moon Phase">
+          <DataRow label="Phase" value={`${moon.emoji} ${moon.phase_name}`} />
+          <DataRow label="Illumination" value={`${moon.illumination}%`} />
+          <DataRow label="Age" value={`${moon.age_days} days`} />
+          <DataRow label="Energy" value={moon.meaning} />
+        </DetailSection>
+      )}
+
       {zodiac && Object.keys(zodiac).length > 0 && (
         <DetailSection title={t("oracle.details_zodiac")}>
           {Object.entries(zodiac).map(([key, val]) => (
@@ -105,10 +134,51 @@ function ReadingDetails({
         </DetailSection>
       )}
 
-      {chinese && Object.keys(chinese).length > 0 && (
+      {ganzhi && (
+        <DetailSection title="Chinese Cosmology">
+          <DataRow label="Year" value={ganzhi.year_name} />
+          <DataRow label="Year Animal" value={ganzhi.year_animal} />
+          <DataRow label="Element" value={ganzhi.stem_element} />
+          <DataRow label="Polarity" value={ganzhi.stem_polarity} />
+          {ganzhi.hour_animal && (
+            <DataRow label="Hour Animal" value={ganzhi.hour_animal} />
+          )}
+          {ganzhi.hour_branch && (
+            <DataRow label="Hour Branch" value={ganzhi.hour_branch} />
+          )}
+        </DetailSection>
+      )}
+
+      {chinese && Object.keys(chinese).length > 0 && !ganzhi && (
         <DetailSection title={t("oracle.details_chinese")}>
           {Object.entries(chinese).map(([key, val]) => (
             <DataRow key={key} label={key} value={val} />
+          ))}
+        </DetailSection>
+      )}
+
+      {angel && angel.matches.length > 0 && (
+        <DetailSection title="Angel Numbers">
+          {angel.matches.map((m, i) => (
+            <DataRow key={i} label={String(m.number)} value={m.meaning} />
+          ))}
+        </DetailSection>
+      )}
+
+      {chaldean && (
+        <DetailSection title="Chaldean Numerology">
+          <DataRow label="Value" value={chaldean.value} />
+          <DataRow label="Meaning" value={chaldean.meaning} />
+          <DataRow label="Letters" value={chaldean.letter_values} />
+        </DetailSection>
+      )}
+
+      {synchronicities && synchronicities.length > 0 && (
+        <DetailSection title="Synchronicities">
+          {synchronicities.map((s, i) => (
+            <div key={i} className="py-1 text-xs text-nps-text">
+              {s}
+            </div>
           ))}
         </DetailSection>
       )}

@@ -1,6 +1,7 @@
 """NPS V4 API — FastAPI application entry point."""
 
 import logging
+import os
 from pathlib import Path
 
 from contextlib import asynccontextmanager
@@ -37,6 +38,11 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown logic."""
+    # Export ANTHROPIC_API_KEY to os.environ so ai_client.py can find it
+    if settings.anthropic_api_key:
+        os.environ["ANTHROPIC_API_KEY"] = settings.anthropic_api_key
+        logger.info("ANTHROPIC_API_KEY exported, AI features enabled")
+
     # Initialize encryption service
     init_encryption(settings)
     logger.info("Encryption service initialized")

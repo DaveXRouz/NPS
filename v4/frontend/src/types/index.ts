@@ -63,11 +63,57 @@ export interface NumerologyData {
   interpretation: string;
 }
 
+export interface MoonData {
+  phase_name: string;
+  illumination: number;
+  age_days: number;
+  meaning: string;
+  emoji: string;
+}
+
+export interface AngelMatch {
+  number: number;
+  meaning: string;
+}
+
+export interface AngelData {
+  matches: AngelMatch[];
+}
+
+export interface ChaldeanData {
+  value: number;
+  meaning: string;
+  letter_values: string;
+}
+
+export interface GanzhiData {
+  year_name: string;
+  year_animal: string;
+  stem_element: string;
+  stem_polarity: string;
+  hour_animal: string;
+  hour_branch: string;
+}
+
+export interface FC60Extended {
+  stamp: string;
+  weekday_name: string;
+  weekday_planet: string;
+  weekday_domain: string;
+}
+
 export interface OracleReading {
   fc60: FC60Data | null;
   numerology: NumerologyData | null;
   zodiac: Record<string, string> | null;
   chinese: Record<string, string> | null;
+  moon: MoonData | null;
+  angel: AngelData | null;
+  chaldean: ChaldeanData | null;
+  ganzhi: GanzhiData | null;
+  fc60_extended: FC60Extended | null;
+  synchronicities: string[];
+  ai_interpretation: string | null;
   summary: string;
   generated_at: string;
 }

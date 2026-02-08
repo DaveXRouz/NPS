@@ -30,11 +30,57 @@ class NumerologyData(BaseModel):
     interpretation: str = ""
 
 
+class MoonData(BaseModel):
+    phase_name: str = ""
+    illumination: float = 0
+    age_days: float = 0
+    meaning: str = ""
+    emoji: str = ""
+
+
+class AngelMatch(BaseModel):
+    number: int
+    meaning: str
+
+
+class AngelData(BaseModel):
+    matches: list[AngelMatch] = []
+
+
+class ChaldeanData(BaseModel):
+    value: int = 0
+    meaning: str = ""
+    letter_values: str = ""
+
+
+class GanzhiData(BaseModel):
+    year_name: str = ""
+    year_animal: str = ""
+    stem_element: str = ""
+    stem_polarity: str = ""
+    hour_animal: str = ""
+    hour_branch: str = ""
+
+
+class FC60Extended(BaseModel):
+    stamp: str = ""
+    weekday_name: str = ""
+    weekday_planet: str = ""
+    weekday_domain: str = ""
+
+
 class ReadingResponse(BaseModel):
     fc60: FC60Data | None = None
     numerology: NumerologyData | None = None
     zodiac: dict | None = None
     chinese: dict | None = None
+    moon: MoonData | None = None
+    angel: AngelData | None = None
+    chaldean: ChaldeanData | None = None
+    ganzhi: GanzhiData | None = None
+    fc60_extended: FC60Extended | None = None
+    synchronicities: list[str] = []
+    ai_interpretation: str | None = None
     summary: str = ""
     generated_at: str = ""
 
