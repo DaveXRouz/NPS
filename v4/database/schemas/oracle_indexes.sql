@@ -5,6 +5,7 @@
 CREATE INDEX IF NOT EXISTS idx_oracle_users_created_at ON oracle_users(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_oracle_users_name ON oracle_users(name);
 CREATE INDEX IF NOT EXISTS idx_oracle_users_coordinates ON oracle_users USING GIST(coordinates);
+CREATE INDEX IF NOT EXISTS idx_oracle_users_active ON oracle_users(id) WHERE deleted_at IS NULL;
 
 -- ─── Oracle Readings ───
 

@@ -25,13 +25,13 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # TODO: Decode JWT token
-    # TODO: Look up user in database
-    # TODO: Check token expiration
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Auth not yet implemented",
-    )
+    if credentials.credentials != settings.api_secret_key:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid API key",
+        )
+
+    return {"api_key": credentials.credentials}
 
 
 def require_scope(scope: str):
