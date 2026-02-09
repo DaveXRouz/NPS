@@ -9,8 +9,8 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 2 of 45
-**Last session:** Session 2 — Fix Gaps & Validate Reading Flow (2026-02-09)
+**Sessions completed:** 3 of 45
+**Last session:** Session 3 — Auth Router Tests & Profile Completeness (2026-02-09)
 **Current block:** Foundation (Sessions 1-5)
 
 ---
@@ -201,6 +201,77 @@ TEMPLATE — copy this for each new session:
 **Decisions:** Confirmed admin scope design is correct — domain-specific scopes (oracle:admin etc.) are the enforcement mechanism, bare `admin` is just a role marker.
 
 **Next:** Session 3 — Validate Oracle user profile management (birthday validation, coordinates/location, Persian UTF-8 field handling) and remaining Foundation auth endpoints (login, API key creation/listing/revocation).
+
+## Session 3 — 2026-02-09
+
+**Terminal:** SINGLE
+**Block:** Foundation
+**Task:** Add auth router HTTP tests, complete profile assessment, Foundation block evaluation
+**Spec:** `.session-specs/SESSION_3_SPEC.md`
+
+**New Tests Added (12):**
+
+| Test                                    | Endpoint                       | Verifies                                       |
+| --------------------------------------- | ------------------------------ | ---------------------------------------------- |
+| test_login_valid_credentials            | POST /api/auth/login           | bcrypt password check, JWT with correct claims |
+| test_login_invalid_password             | POST /api/auth/login           | 401 on wrong password                          |
+| test_login_nonexistent_user             | POST /api/auth/login           | 401 on unknown user                            |
+| test_login_disabled_user                | POST /api/auth/login           | 403 on inactive account                        |
+| test_create_api_key                     | POST /api/auth/api-keys        | Key creation with scopes, plaintext returned   |
+| test_create_api_key_with_expiry         | POST /api/auth/api-keys        | Expiry date set correctly                      |
+| test_api_key_stored_as_hash             | POST /api/auth/api-keys        | SHA-256 hash in DB, not plaintext              |
+| test_list_api_keys                      | GET /api/auth/api-keys         | Lists user's active keys, no plaintext         |
+| test_revoke_api_key                     | DELETE /api/auth/api-keys/{id} | Sets is_active=False                           |
+| test_revoke_nonexistent_key             | DELETE /api/auth/api-keys/{id} | 404 on missing key                             |
+| test_revoke_other_users_key             | DELETE /api/auth/api-keys/{id} | Admin CAN revoke others' keys                  |
+| test_non_admin_cannot_revoke_others_key | DELETE /api/auth/api-keys/{id} | Non-admin gets 403                             |
+
+**Design Decisions:**
+
+- **Coordinates field**: Intentionally NOT in user profile CRUD. The `coordinates POINT` column exists in PostgreSQL for spatial queries, but coordinate lookups are handled by the separate location service (`GET /api/location/coordinates`). Adding it to Pydantic models would require PostgreSQL POINT ↔ SQLite compatibility shim — unnecessary complexity.
+- **Persian UTF-8**: Already fully covered by existing tests (`test_create_user_all_fields` creates with `علی کریمی` / `مریم`, verifies through encrypt→store→decrypt→response roundtrip).
+
+**Foundation Block Assessment:**
+
+| Requirement                                      | Status   | Verified In               |
+| ------------------------------------------------ | -------- | ------------------------- |
+| Database schema (all Oracle tables + indexes)    | COMPLETE | Session 1 (SQL review)    |
+| API boots cleanly (46 endpoints, 8 routers)      | COMPLETE | Session 1                 |
+| Auth: JWT login flow                             | COMPLETE | Session 3 (12 HTTP tests) |
+| Auth: API key create/list/revoke                 | COMPLETE | Session 3 (12 HTTP tests) |
+| Auth: Scope hierarchy (admin > write > read)     | COMPLETE | Session 1 (20 tests)      |
+| Oracle user CRUD (create/list/get/update/delete) | COMPLETE | Session 1 (22 tests)      |
+| Soft-delete (deleted_at, excluded from list)     | COMPLETE | Session 1                 |
+| Encryption (AES-256-GCM, ENC4: prefix)           | COMPLETE | Session 1 (20 tests)      |
+| Persian UTF-8 through encryption                 | COMPLETE | Session 1                 |
+| Audit logging (all CRUD events)                  | COMPLETE | Session 1 (11 tests)      |
+| Oracle reading flow (5 types + history)          | COMPLETE | Session 2 (42 tests)      |
+| Schema consistency (init.sql ↔ standalone)       | COMPLETE | Session 2 (fix applied)   |
+| Rate limiting                                    | COMPLETE | Session 1 (5 tests)       |
+| Translation (EN↔FA)                              | COMPLETE | Session 1 (14 tests)      |
+| Location (coordinates, IP detection)             | COMPLETE | Session 1 (11 tests)      |
+| Permissions (owner/admin access control)         | COMPLETE | Session 1 (14 tests)      |
+
+**Conclusion: Foundation block is COMPLETE.** Sessions 4-5 can be repurposed for Calculation Engines block (originally Sessions 6-12), effectively starting the engine work 2 sessions early.
+
+**Test Results:**
+
+| Suite                | Pass    | Fail  | New               |
+| -------------------- | ------- | ----- | ----------------- |
+| API Unit Tests       | 178     | 0     | +12 (auth router) |
+| Oracle Service Tests | 156     | 0     | 0                 |
+| **Total**            | **334** | **0** | **+12**           |
+
+**Files changed:**
+
+- `api/tests/test_auth_router.py` — NEW: 12 HTTP-level auth endpoint tests
+
+**Tests:** 334 pass / 0 fail / 0 warnings
+**Commit:** pending
+**Issues:** None
+**Decisions:** Foundation block complete after 3 sessions (budgeted 5). Coordinates field kept as DB-only. Sessions 4-5 repurposed to start Calculation Engines early.
+
+**Next:** Session 4 — Begin Calculation Engines block. Read `logic/FC60_ALGORITHM.md` and `logic/NUMEROLOGY_SYSTEMS.md`. Verify existing V3 engine code in `services/oracle/oracle_service/engines/` produces correct test vectors. Establish engine baseline.
 
 ---
 
