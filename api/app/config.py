@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 # Locate the .env file (project root, above api/)
 _v4_env = Path(__file__).resolve().parent.parent.parent / ".env"
@@ -72,10 +72,9 @@ class Settings(BaseSettings):
     def cors_origins(self) -> list[str]:
         return [o.strip() for o in self.api_cors_origins.split(",")]
 
-    model_config = SettingsConfigDict(
-        env_file=str(_v4_env) if _v4_env.is_file() else ".env",
-        extra="ignore",
-    )
+    class Config:
+        env_file = str(_v4_env) if _v4_env.is_file() else ".env"
+        extra = "ignore"
 
 
 settings = Settings()

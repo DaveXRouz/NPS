@@ -29,9 +29,7 @@ _SCOPE_HIERARCHY = {
     "vault:admin": {"vault:admin", "vault:write", "vault:read"},
     "vault:write": {"vault:write", "vault:read"},
     "vault:read": {"vault:read"},
-    # "admin" is a role-level marker, not a domain scope. It grants nothing
-    # by itself — the admin role gets all domain-specific scopes via _ROLE_SCOPES.
-    "admin": set(),
+    "admin": set(),  # expanded in _expand_scopes
 }
 
 # Role to default scopes mapping
