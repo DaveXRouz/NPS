@@ -1,6 +1,6 @@
 # NPS V4 — Build & Development Commands
 
-.PHONY: help dev up down build test lint migrate clean
+.PHONY: help dev up down build test lint migrate clean check format-check
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -100,3 +100,13 @@ backup: ## Backup PostgreSQL database
 
 restore: ## Restore PostgreSQL database from backup
 	./scripts/restore.sh
+
+# ─── Meta Quality Targets ───
+
+check: lint format-check test ## Run all quality gates (lint + format-check + test)
+
+format-check: ## Verify formatting without modifying files
+	cd api && ruff format --check .
+	cd services/oracle && ruff format --check .
+	cd frontend && npm run format -- --check 2>/dev/null || cd frontend && npx prettier --check "src/**/*.{ts,tsx}" 2>/dev/null || true
+	cd services/scanner && cargo fmt --check

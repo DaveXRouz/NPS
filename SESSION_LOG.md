@@ -34,10 +34,13 @@ The 16-session scaffolding process produced 45,903 lines of code:
 
 ## Session-to-Spec Mapping
 
-The .specs/ folder contains specs from the 16-session scaffolding. They are REFERENCE ONLY — not execution targets. For the 45-session rebuild, sessions do NOT have pre-written specs. Instead:
+The .specs/ folder contains specs from the 16-session scaffolding. They are REFERENCE ONLY — not execution targets. For the 45-session rebuild, session specs are created in `.session-specs/` using the naming convention `SESSION_[N]_SPEC.md`. Workflow:
 
-- If a spec exists in .specs/ that covers similar ground → read it for context, then build your own plan
-- If no spec exists → build plan from CLAUDE.md block descriptions + logic/ docs
+- Claude creates the spec BEFORE starting the session
+- Dave reviews and approves
+- Claude executes the approved spec
+- If a reference spec exists in .specs/ that covers similar ground → read it for context
+- If no reference exists → build spec from CLAUDE.md block descriptions + logic/ docs
 
 | Block                  | Sessions | Focus                           | Relevant .specs/ (reference only)                    |
 | ---------------------- | -------- | ------------------------------- | ---------------------------------------------------- |

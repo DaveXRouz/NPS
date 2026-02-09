@@ -152,6 +152,7 @@ BTC/
 ├── docs/                  ← API reference, deployment guide
 ├── .archive/              ← V1/V3 code (READ-ONLY)
 ├── .specs/                ← 16-session specs (reference only)
+├── .session-specs/        ← 45-session specs (active)
 ├── .project/              ← Project management playbooks
 └── docker-compose.yml
 ```
@@ -324,6 +325,75 @@ Use these when available:
 - **AUTO-USE for:** 3+ file creation, independent modules, test+implementation simultaneously
 - **SKIP for:** sequential tasks, single-file changes, tightly coupled tasks
 
+### Thinking Depth: USE YOUR BRAIN
+
+Use deep/extended thinking for:
+
+- **Architecture decisions** — anything touching 2+ layers or choosing between approaches
+- **Security** — encryption, auth, key management, vulnerability analysis
+- **Complex algorithms** — FC60, numerology engines, AI scoring, pattern matching
+- **Trade-off analysis** — when choosing between options with real consequences
+- **Multi-file refactors** — understanding ripple effects before making changes
+- **Bug diagnosis** — when root cause isn't obvious from surface symptoms
+
+Skip deep thinking for:
+
+- Simple edits, standard CRUD, formatting fixes
+- Following established patterns (e.g., "add another endpoint like the existing ones")
+- Direct instructions with no ambiguity
+
+**Rule:** When in doubt, think deeper. The cost of over-thinking is low. The cost of under-thinking is rework.
+
+### Model Strategy: Right Model for the Job
+
+| Task Type                                   | Model      | Why                                |
+| ------------------------------------------- | ---------- | ---------------------------------- |
+| Architecture, security, complex logic       | **Opus**   | Deep reasoning, nuance, trade-offs |
+| Standard implementation, features, tests    | **Sonnet** | Fast, capable, cost-effective      |
+| Quick lookups, simple searches, boilerplate | **Haiku**  | Fastest, cheapest, good enough     |
+
+**Subagent model selection:**
+
+- `Explore` agents → **Haiku** (file counting, pattern finding, codebase navigation)
+- `Plan` agents → **Sonnet** (design work, implementation planning)
+- Code review agents → **Sonnet** (quality analysis needs good judgment)
+- Complex research → **Opus** (only when reasoning depth matters)
+
+**Default:** Sonnet for most work. Upgrade to Opus for decisions that affect architecture. Downgrade to Haiku for mechanical tasks.
+
+### Session Spec Workflow: How Sessions Get Built
+
+Sessions follow a two-phase workflow:
+
+**Phase 1 — Spec Creation (before session starts):**
+
+```
+1. Read SESSION_LOG.md → identify next session number and block
+2. Read relevant .specs/ files for reference context
+3. Read logic/ docs for algorithm/architecture guidance
+4. Create .session-specs/SESSION_[N]_SPEC.md with:
+   - Objectives (what gets built)
+   - Files to create/modify (exact paths)
+   - Acceptance criteria (how to verify)
+   - Test requirements
+   - Dependencies on previous sessions
+5. Show spec to Dave → wait for approval
+```
+
+**Phase 2 — Execution (after spec approval):**
+
+```
+1. Read approved .session-specs/SESSION_[N]_SPEC.md
+2. Execute silently per CLAUDE.md rules
+3. Run quality pipeline on every file
+4. Update SESSION_LOG.md at end
+5. Git commit with session tag
+```
+
+**Spec storage:** `.session-specs/` folder (tracked in git).
+**Naming:** `SESSION_[N]_SPEC.md` (e.g., `SESSION_1_SPEC.md`).
+**Old specs:** `.specs/` folder is REFERENCE ONLY from the 16-session scaffolding.
+
 ---
 
 ## EXISTING CODE POLICY
@@ -350,7 +420,7 @@ Every session MUST end with:
 
 ## SPEC FILE PROTOCOL
 
-When a session references a spec from `.specs/`:
+When a session references a spec from `.specs/` or `.session-specs/`:
 
 1. Read the full spec
 2. Create a **comprehensive, detailed plan** that covers 100% of everything needed
@@ -403,5 +473,6 @@ All config in `.env` (copy from `.env.example`):
 | Common task step-by-step           | `logic/RECIPES.md`                |
 | Session history                    | `SESSION_LOG.md`                  |
 | Spec files (reference)             | `.specs/` folder                  |
+| Session specs (active)             | `.session-specs/` folder          |
 | V3 source (reference)              | `.archive/v3/`                    |
 | Project playbooks                  | `.project/` folder                |
