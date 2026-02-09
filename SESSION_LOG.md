@@ -18,6 +18,7 @@
 ## Pre-Build State (Before Session 1)
 
 The 16-session scaffolding process produced 45,903 lines of code:
+
 - Working database schema (PostgreSQL init.sql + migrations)
 - API skeleton with 13 Oracle endpoints (FastAPI)
 - Frontend with 20+ React components (Oracle UI, Persian keyboard, calendar)
@@ -31,9 +32,29 @@ The 16-session scaffolding process produced 45,903 lines of code:
 
 ---
 
+## Session-to-Spec Mapping
+
+The .specs/ folder contains specs from the 16-session scaffolding. They are REFERENCE ONLY — not execution targets. For the 45-session rebuild, sessions do NOT have pre-written specs. Instead:
+
+- If a spec exists in .specs/ that covers similar ground → read it for context, then build your own plan
+- If no spec exists → build plan from CLAUDE.md block descriptions + logic/ docs
+
+| Block                  | Sessions | Focus                           | Relevant .specs/ (reference only)                    |
+| ---------------------- | -------- | ------------------------------- | ---------------------------------------------------- |
+| Foundation             | 1-5      | Database schema, auth, profiles | SPEC_T4_S1, SPEC_T2_S1, SPEC_T6_S1                   |
+| Calculation Engines    | 6-12     | FC60, numerology, zodiac        | logic/FC60_ALGORITHM.md, logic/NUMEROLOGY_SYSTEMS.md |
+| AI & Reading Types     | 13-18    | Wisdom AI, 5 reading flows      | SPEC_T3_S3                                           |
+| Frontend Core          | 19-25    | Layout, Oracle UI, results      | SPEC_T1_S1 through S4                                |
+| Frontend Advanced      | 26-31    | RTL, responsive, accessibility  | SPEC_T1_S3                                           |
+| Features & Integration | 32-37    | Export, share, Telegram         | SPEC_INTEGRATION_S1                                  |
+| Admin & DevOps         | 38-40    | Admin UI, monitoring, backup    | SPEC_T7_S1                                           |
+| Testing & Deployment   | 41-45    | Tests, optimization, deploy     | SPEC_INTEGRATION_S2                                  |
+
+---
+
 ## Session Log
 
-<!-- 
+<!--
 TEMPLATE — copy this for each new session:
 
 ## Session [N] — [YYYY-MM-DD]
@@ -62,9 +83,9 @@ TEMPLATE — copy this for each new session:
 
 > Only used in multi-terminal mode. Track what each terminal needs from others.
 
-| Source | Depends On | Status | Notes |
-|--------|-----------|--------|-------|
-| — | — | — | No multi-terminal sessions yet |
+| Source | Depends On | Status | Notes                          |
+| ------ | ---------- | ------ | ------------------------------ |
+| —      | —          | —      | No multi-terminal sessions yet |
 
 ---
 
@@ -72,6 +93,6 @@ TEMPLATE — copy this for each new session:
 
 > Track anything that needs fixing when layers connect.
 
-| # | Issue | Layers | Status | Fix |
-|---|-------|--------|--------|-----|
-| — | — | — | — | No issues yet |
+| #   | Issue | Layers | Status | Fix           |
+| --- | ----- | ------ | ------ | ------------- |
+| —   | —     | —      | —      | No issues yet |

@@ -59,7 +59,7 @@ After silent checks, determine session mode:
 
 ### Mode A: User says "continue" / "next" / "go" / says nothing
 ```
-1. Read SESSION_LOG.md
+1. SESSION_LOG.md already read at CLAUDE.md step 2 — use that context
 2. Find last completed session entry
 3. Find "Next:" field from last entry
 4. Show 1-line: "Continuing session [N]: [task from Next field]"

@@ -23,6 +23,9 @@ When you open this project, execute this SILENTLY (no output to user):
 **If user gives a specific task:** skip step 2, do that task instead.
 **If user says nothing after opening:** follow steps 1-4, then wait.
 
+**First session (no prior entries in SESSION_LOG.md):**
+If SESSION_LOG.md has zero session entries, start Session 1 of the current block. Read the session-to-spec mapping table in SESSION_LOG.md to find relevant reference specs.
+
 For detailed startup protocol → `.claude/startup.md`
 For workflow modes → `.claude/workflows.md`
 
@@ -49,29 +52,29 @@ For workflow modes → `.claude/workflows.md`
 
 ### What EXISTS (from earlier 16-session scaffolding):
 
-| Layer | Status | Keep/Rewrite |
-|-------|--------|-------------|
-| Frontend (React) | ~80% scaffolded | KEEP shells, REWRITE Oracle internals |
-| API (FastAPI) | ~70% scaffolded | KEEP skeleton, REWRITE Oracle handlers |
-| Backend/Oracle | ~60% scaffolded | REWRITE engines, reading logic, AI |
-| Database (PostgreSQL) | Done | KEEP |
-| Scanner (Rust) | Stub only | DO NOT TOUCH |
-| Infrastructure (Docker) | Partial | KEEP |
-| DevOps (Monitoring) | Partial | KEEP |
-| Integration Tests | 56+ tests | KEEP, extend |
+| Layer                   | Status          | Keep/Rewrite                           |
+| ----------------------- | --------------- | -------------------------------------- |
+| Frontend (React)        | ~80% scaffolded | KEEP shells, REWRITE Oracle internals  |
+| API (FastAPI)           | ~70% scaffolded | KEEP skeleton, REWRITE Oracle handlers |
+| Backend/Oracle          | ~60% scaffolded | REWRITE engines, reading logic, AI     |
+| Database (PostgreSQL)   | Done            | KEEP                                   |
+| Scanner (Rust)          | Stub only       | DO NOT TOUCH                           |
+| Infrastructure (Docker) | Partial         | KEEP                                   |
+| DevOps (Monitoring)     | Partial         | KEEP                                   |
+| Integration Tests       | 56+ tests       | KEEP, extend                           |
 
 ### 45-Session Blocks:
 
-| Block | Sessions | Focus |
-|-------|----------|-------|
-| Foundation | 1-5 | Database schema, auth, profiles |
-| Calculation Engines | 6-12 | FC60, numerology, zodiac |
-| AI & Reading Types | 13-18 | Wisdom AI, 5 reading flows |
-| Frontend Core | 19-25 | Layout, Oracle UI, results |
-| Frontend Advanced | 26-31 | RTL, responsive, accessibility |
-| Features & Integration | 32-37 | Export, share, Telegram |
-| Admin & DevOps | 38-40 | Admin UI, monitoring, backup |
-| Testing & Deployment | 41-45 | Tests, optimization, deploy |
+| Block                  | Sessions | Focus                           |
+| ---------------------- | -------- | ------------------------------- |
+| Foundation             | 1-5      | Database schema, auth, profiles |
+| Calculation Engines    | 6-12     | FC60, numerology, zodiac        |
+| AI & Reading Types     | 13-18    | Wisdom AI, 5 reading flows      |
+| Frontend Core          | 19-25    | Layout, Oracle UI, results      |
+| Frontend Advanced      | 26-31    | RTL, responsive, accessibility  |
+| Features & Integration | 32-37    | Export, share, Telegram         |
+| Admin & DevOps         | 38-40    | Admin UI, monitoring, backup    |
+| Testing & Deployment   | 41-45    | Tests, optimization, deploy     |
 
 ---
 
@@ -105,6 +108,7 @@ LAYER 7: JSON logging + Prometheus + Telegram alerts
 ```
 
 ### Scanner ↔ Oracle Loop:
+
 ```
 Scanner generates keys → checks balances → stores in PostgreSQL
     ↓
@@ -159,6 +163,7 @@ BTC/
 ### Autonomy Level: MAXIMUM
 
 Make all decisions yourself. Only ask Dave for:
+
 - **Money** — paid services, API costs, infrastructure upgrades
 - **Security** — encryption changes, auth system changes, key management
 - **Architecture** — changes that affect multiple layers or the overall design
@@ -167,9 +172,17 @@ Everything else: decide, do it, show results.
 
 ### Communication: SILENT WORKER
 
+**During planning (before work starts):**
+
+- Complex tasks (new features, multi-file changes, new sessions): show plan → wait for approval
+- Simple tasks (bug fix, typo, single-file edit, direct instruction): execute directly, no plan needed
+
+**During execution (after plan is approved or task is simple):**
+
 - Work silently. No progress narration.
 - Show results at the end only.
-- If creating a plan from a spec: show the plan, wait for approval, then execute silently.
+
+**Rule of thumb:** If a task takes more than 5 minutes or touches more than 2 files, show a plan first.
 
 ### Error Handling: 3-STRIKE RULE
 
@@ -292,6 +305,7 @@ make backup
 ## MCP SERVERS (Plugins)
 
 Use these when available:
+
 - **GitHub MCP** — auto PR, issue tracking, branch management
 - **PostgreSQL MCP** — direct DB queries, schema verification
 - **File System MCP** — advanced file operations, bulk search
@@ -301,10 +315,12 @@ Use these when available:
 ## SMART TOOL USAGE
 
 ### Extended Thinking (deep reasoning):
+
 - **AUTO-USE for:** architecture, security, complex algorithms, trade-offs, multi-file refactors
 - **SKIP for:** simple edits, standard CRUD, formatting, straightforward fixes
 
 ### Subagents (parallel workers):
+
 - **AUTO-USE for:** 3+ file creation, independent modules, test+implementation simultaneously
 - **SKIP for:** sequential tasks, single-file changes, tightly coupled tasks
 
@@ -313,6 +329,7 @@ Use these when available:
 ## EXISTING CODE POLICY
 
 When you touch any file that doesn't match project standards:
+
 - **Fix it proactively.** Don't just fix what you came for — upgrade the whole file.
 - Apply templates from `.claude/templates.md`
 - Add missing type hints, docstrings, error handling
@@ -323,6 +340,7 @@ When you touch any file that doesn't match project standards:
 ## SESSION END PROTOCOL
 
 Every session MUST end with:
+
 1. ✅ Update SESSION_LOG.md (what done, files changed, test results)
 2. ✅ Git commit with descriptive message
 3. ✅ Define next session's task clearly in SESSION_LOG.md
@@ -333,6 +351,7 @@ Every session MUST end with:
 ## SPEC FILE PROTOCOL
 
 When a session references a spec from `.specs/`:
+
 1. Read the full spec
 2. Create a **comprehensive, detailed plan** that covers 100% of everything needed
 3. The plan must have **100% confidence** — no gaps, no "we'll figure this out later"
@@ -346,43 +365,43 @@ When a session references a spec from `.specs/`:
 
 All config in `.env` (copy from `.env.example`):
 
-| Variable | Purpose | Required |
-|----------|---------|----------|
-| `POSTGRES_PASSWORD` | Database password | Yes |
-| `API_SECRET_KEY` | JWT signing + legacy auth | Yes |
-| `NPS_ENCRYPTION_KEY` | AES-256-GCM key (hex) | For encryption |
-| `NPS_ENCRYPTION_SALT` | Encryption salt (hex) | For encryption |
-| `ANTHROPIC_API_KEY` | AI interpretations | Optional (graceful fallback) |
-| `NPS_BOT_TOKEN` | Telegram bot token | Optional |
-| `NPS_CHAT_ID` | Telegram chat ID | Optional |
+| Variable              | Purpose                   | Required                     |
+| --------------------- | ------------------------- | ---------------------------- |
+| `POSTGRES_PASSWORD`   | Database password         | Yes                          |
+| `API_SECRET_KEY`      | JWT signing + legacy auth | Yes                          |
+| `NPS_ENCRYPTION_KEY`  | AES-256-GCM key (hex)     | For encryption               |
+| `NPS_ENCRYPTION_SALT` | Encryption salt (hex)     | For encryption               |
+| `ANTHROPIC_API_KEY`   | AI interpretations        | Optional (graceful fallback) |
+| `NPS_BOT_TOKEN`       | Telegram bot token        | Optional                     |
+| `NPS_CHAT_ID`         | Telegram chat ID          | Optional                     |
 
 ---
 
 ## PERFORMANCE TARGETS
 
-| Operation | Target |
-|-----------|--------|
-| API response (simple) | < 50ms p95 |
-| API response (reading) | < 5 seconds |
-| Frontend initial load | < 2 seconds |
-| Frontend transitions | < 100ms |
-| Database query (indexed) | < 100ms |
+| Operation                | Target      |
+| ------------------------ | ----------- |
+| API response (simple)    | < 50ms p95  |
+| API response (reading)   | < 5 seconds |
+| Frontend initial load    | < 2 seconds |
+| Frontend transitions     | < 100ms     |
+| Database query (indexed) | < 100ms     |
 
 ---
 
 ## FILE REFERENCES
 
-| Need | Read |
-|------|------|
-| Boot protocol + silent checks | `.claude/startup.md` |
-| Single vs multi-terminal workflows | `.claude/workflows.md` |
-| File creation templates | `.claude/templates.md` |
-| FC60 math + formulas | `logic/FC60_ALGORITHM.md` |
-| Numerology systems | `logic/NUMEROLOGY_SYSTEMS.md` |
-| Architecture decisions | `logic/ARCHITECTURE_DECISIONS.md` |
-| Scanner↔Oracle loop | `logic/SCANNER_ORACLE_LOOP.md` |
-| Common task step-by-step | `logic/RECIPES.md` |
-| Session history | `SESSION_LOG.md` |
-| Spec files (reference) | `.specs/` folder |
-| V3 source (reference) | `.archive/v3/` |
-| Project playbooks | `.project/` folder |
+| Need                               | Read                              |
+| ---------------------------------- | --------------------------------- |
+| Boot protocol + silent checks      | `.claude/startup.md`              |
+| Single vs multi-terminal workflows | `.claude/workflows.md`            |
+| File creation templates            | `.claude/templates.md`            |
+| FC60 math + formulas               | `logic/FC60_ALGORITHM.md`         |
+| Numerology systems                 | `logic/NUMEROLOGY_SYSTEMS.md`     |
+| Architecture decisions             | `logic/ARCHITECTURE_DECISIONS.md` |
+| Scanner↔Oracle loop                | `logic/SCANNER_ORACLE_LOOP.md`    |
+| Common task step-by-step           | `logic/RECIPES.md`                |
+| Session history                    | `SESSION_LOG.md`                  |
+| Spec files (reference)             | `.specs/` folder                  |
+| V3 source (reference)              | `.archive/v3/`                    |
+| Project playbooks                  | `.project/` folder                |

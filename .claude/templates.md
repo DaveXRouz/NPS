@@ -446,3 +446,54 @@ COMMIT;
 - Always create a matching rollback file: `[NNN]_[description]_rollback.sql`
 - Add indexes for all foreign keys and common query patterns
 - Include verification comment showing how to check it worked
+
+---
+
+## Session Plan Template
+
+Use this template when creating plans for approval:
+
+```markdown
+# Session [N] Plan — [Task Name]
+
+## Scope
+[1-2 sentences: what this session will accomplish]
+
+## Prerequisites
+- [ ] [What must exist/work before starting]
+
+## Steps
+### Step 1: [Name]
+- **What:** [exactly what will be done]
+- **Files:** [which files created/modified]
+- **Acceptance:** [how to verify this step worked]
+
+### Step 2: [Name]
+[Same structure — continue for all steps]
+
+## Files to Create/Modify
+| File | Action | Purpose |
+|------|--------|---------|
+| `path/to/file` | Create/Modify | What it does |
+
+## Tests to Write
+| Test File | What It Verifies |
+|-----------|-----------------|
+| `test_x.py` | [description] |
+
+## Verification (2-min check)
+```bash
+# Copy-paste command
+expected output
+```
+
+## Definition of Done
+- [ ] [Measurable criterion 1]
+- [ ] [Measurable criterion 2]
+- [ ] All tests pass
+- [ ] Linted + formatted
+- [ ] Committed to git
+
+## Commit Message
+`[layer] description (#session-N)`
+```
