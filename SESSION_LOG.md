@@ -9,8 +9,8 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 0 of 45
-**Last session:** None — ready to begin
+**Sessions completed:** 1 of 45
+**Last session:** Session 1 — Foundation Verification & Baseline (2026-02-09)
 **Current block:** Foundation (Sessions 1-5)
 
 ---
@@ -79,6 +79,75 @@ TEMPLATE — copy this for each new session:
 -->
 
 <!-- Sessions logged below this line -->
+
+## Session 1 — 2026-02-09
+
+**Terminal:** SINGLE
+**Block:** Foundation
+**Task:** Foundation Verification & Baseline — verify database schema, auth, encryption, Oracle CRUD, audit logging, and establish test baseline
+**Spec:** `.session-specs/SESSION_1_SPEC.md`
+
+**Verification Results:**
+
+| Component                | Status | Details                                                              |
+| ------------------------ | ------ | -------------------------------------------------------------------- |
+| FastAPI Boot             | PASS   | 46 endpoints, 49 routes (inc. docs/websocket), SQLite fallback works |
+| Auth (JWT)               | PASS   | Create/decode/expire JWT, 20 auth tests pass                         |
+| Auth (API Key)           | PASS   | Valid/invalid/revoked/expired checks, last_used tracking             |
+| Auth (Scopes)            | PASS   | 3-tier hierarchy: oracle/scanner/vault × admin/write/read            |
+| Oracle User CRUD         | PASS   | Create/list/get/update/soft-delete, pagination, search, 15 tests     |
+| Encryption (AES-256-GCM) | PASS   | ENC4: prefix, Persian UTF-8 roundtrip, oracle field encrypt/decrypt  |
+| Audit Logging            | PASS   | CRUD events logged, filter by action/resource_id, admin-only access  |
+| Multi-user FC60          | PASS   | 2-10 users, compatibility matrices, group dynamics                   |
+| Translation              | PASS   | EN↔FA, cache, language detection                                     |
+| Location                 | PASS   | Coordinates, IP detection, caching                                   |
+| Rate Limiting            | PASS   | Per-key limits, independent tracking, headers                        |
+| Permissions              | PASS   | Owner/participant/admin access, reading isolation                    |
+
+**Test Baseline:**
+
+| Suite                                           | Pass    | Fail           | Notes                                                     |
+| ----------------------------------------------- | ------- | -------------- | --------------------------------------------------------- |
+| API Unit Tests (`api/tests/`)                   | 166     | 0              | 1 deprecation warning (Pydantic Config class)             |
+| Oracle Service Tests (`services/oracle/tests/`) | 156     | 0              | Clean                                                     |
+| Integration Tests (`integration/tests/`)        | 0       | 61 + 15 errors | All failures = PostgreSQL not available (requires Docker) |
+| **Total (unit)**                                | **322** | **0**          | **Solid baseline**                                        |
+
+**Files reviewed (no changes needed):**
+
+- `api/app/main.py` — 8 routers, lifespan with graceful Redis/gRPC fallback
+- `api/app/config.py` — Pydantic Settings, .env loading
+- `api/app/database.py` — PostgreSQL with SQLite fallback
+- `api/app/middleware/auth.py` — JWT + API key + legacy, scope hierarchy
+- `api/app/services/security.py` — AES-256-GCM, PBKDF2 600k iterations, V3 legacy decrypt
+- `api/app/services/audit.py` — Full CRUD audit logging
+- `api/app/routers/oracle.py` — 627 lines, all Oracle endpoints
+- `api/app/orm/oracle_user.py` — SQLAlchemy 2.0 ORM
+- `api/app/orm/oracle_reading.py` — Readings + junction table ORM
+- `database/init.sql` — Master schema (341 lines, all tables + indexes + triggers)
+- `database/schemas/*.sql` — Individual schema files
+- `docker-compose.yml` — 8 services configuration
+
+**Gaps Found (for Sessions 2-5):**
+
+1. **Schema discrepancy**: `init.sql` has 6 sign_types (`time, name, question, reading, multi_user, daily`) but standalone `database/schemas/oracle_readings.sql` has only 3 (`time, name, question`). The `init.sql` is authoritative (used by Docker). Standalone files should be synchronized.
+2. **No Docker/PostgreSQL locally**: Integration tests (76 tests) cannot run without Docker stack. Consider adding SQLite-compatible integration tests or documenting Docker requirement clearly.
+3. **Pydantic deprecation**: `api/app/config.py` uses class-based `Config` (deprecated in Pydantic V2). Should migrate to `ConfigDict`.
+4. **`admin` scope is empty**: `_SCOPE_HIERARCHY["admin"]` maps to `[]` (empty set) — this means the generic `admin` scope grants nothing. Only domain-specific admin scopes (oracle:admin, scanner:admin, vault:admin) work. Verify this is intentional.
+5. **No virtual environment**: System Python 3.12 used directly. Recommend venv for isolation.
+
+**Dependencies Verified:**
+
+- Python API: FastAPI 0.128.0, SQLAlchemy 2.0.46, Pydantic 2.12.5, cryptography 46.0.3, pytest 8.4.2
+- Oracle Service: grpcio 1.78.0, anthropic 0.76.0
+- Frontend: React ^18.3.0, TypeScript 5.9.3, Vite ^5.1.0
+
+**Tests:** 322 pass / 0 fail / 0 new (unit tests only — integration tests require PostgreSQL)
+**Commit:** pending
+**Issues:** No Docker available locally — integration tests skipped
+**Decisions:** Verified using SQLite fallback for unit tests. Integration tests deferred to when Docker is available.
+
+**Next:** Session 2 — Fix schema discrepancy between init.sql and standalone SQL files. Begin validating Oracle reading flow (create reading, store results, retrieve history). Address Pydantic deprecation warning. Verify admin scope design.
 
 ---
 
