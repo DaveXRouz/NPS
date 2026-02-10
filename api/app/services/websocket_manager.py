@@ -21,15 +21,11 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
-        logger.info(
-            f"WebSocket client connected ({len(self.active_connections)} total)"
-        )
+        logger.info(f"WebSocket client connected ({len(self.active_connections)} total)")
 
     def disconnect(self, websocket: WebSocket):
         self.active_connections.remove(websocket)
-        logger.info(
-            f"WebSocket client disconnected ({len(self.active_connections)} total)"
-        )
+        logger.info(f"WebSocket client disconnected ({len(self.active_connections)} total)")
 
     async def broadcast(self, event: str, data: dict):
         """Broadcast an event to all connected clients."""
@@ -55,7 +51,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             # Listen for client messages (e.g., subscription filters)
-            data = await websocket.receive_text()
+            await websocket.receive_text()
             # TODO: Handle client subscription messages
             # e.g., {"subscribe": ["finding", "stats_update", "high_score"]}
     except WebSocketDisconnect:

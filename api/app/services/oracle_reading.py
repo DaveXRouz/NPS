@@ -3,13 +3,10 @@
 import json
 import logging
 import sys
-import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 from fastapi import Depends, WebSocket
-from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -37,7 +34,6 @@ import oracle_service  # noqa: E402, F401 — triggers shim for absolute imports
 
 from engines.fc60 import (  # noqa: E402
     ANIMAL_NAMES,
-    ELEMENT_NAMES,
     STEM_ELEMENTS,
     STEM_NAMES,
     STEM_POLARITY,
@@ -48,7 +44,6 @@ from engines.numerology import (  # noqa: E402
     LETTER_VALUES,
     LIFE_PATH_MEANINGS,
     life_path,
-    name_to_number,
     numerology_reduce,
     personal_year,
 )
@@ -59,10 +54,9 @@ from engines.oracle import (  # noqa: E402
     read_name,
     read_sign,
 )
-from logic.timing_advisor import (
+from logic.timing_advisor import (  # noqa: E402
     get_current_quality,
-    get_optimal_hours_today,
-)  # noqa: E402
+)
 from engines.multi_user_service import MultiUserFC60Service  # noqa: E402
 from engines.ai_interpreter import interpret_group, interpret_reading  # noqa: E402
 
@@ -184,8 +178,7 @@ class OracleReadingService:
         if angel_sys and angel_sys.get("matches"):
             angel_data = {
                 "matches": [
-                    {"number": m["number"], "meaning": m["meaning"]}
-                    for m in angel_sys["matches"]
+                    {"number": m["number"], "meaning": m["meaning"]} for m in angel_sys["matches"]
                 ]
             }
 
@@ -421,9 +414,7 @@ class OracleReadingService:
             sign_value=f"{result_dict.get('user_count', 0)}-user analysis",
             reading_result=json.dumps(result_dict),
             individual_results=json.dumps(result_dict.get("profiles", [])),
-            compatibility_matrix=json.dumps(
-                result_dict.get("pairwise_compatibility", [])
-            ),
+            compatibility_matrix=json.dumps(result_dict.get("pairwise_compatibility", [])),
             combined_energy=json.dumps(result_dict.get("group_energy", {})),
             ai_interpretation=enc_ai,
         )
@@ -474,9 +465,7 @@ class OracleReadingService:
 
     def get_reading_by_id(self, reading_id: int) -> dict | None:
         """Fetch a reading by ID, decrypt, and return as dict."""
-        row = (
-            self.db.query(OracleReading).filter(OracleReading.id == reading_id).first()
-        )
+        row = self.db.query(OracleReading).filter(OracleReading.id == reading_id).first()
         if not row:
             return None
         return self._decrypt_reading(row)
@@ -496,12 +485,7 @@ class OracleReadingService:
             query = query.filter(OracleReading.sign_type == sign_type)
 
         total = query.count()
-        rows = (
-            query.order_by(OracleReading.created_at.desc())
-            .offset(offset)
-            .limit(limit)
-            .all()
-        )
+        rows = query.order_by(OracleReading.created_at.desc()).offset(offset).limit(limit).all()
         return [self._decrypt_reading(r) for r in rows], total
 
     def _decrypt_reading(self, row: OracleReading) -> dict:

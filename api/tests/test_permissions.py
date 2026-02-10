@@ -89,12 +89,8 @@ def multi_reading(db, user_alice, user_bob):
     db.commit()
     db.refresh(reading)
     # Add participants
-    db.add(
-        OracleReadingUser(reading_id=reading.id, user_id=user_alice.id, is_primary=True)
-    )
-    db.add(
-        OracleReadingUser(reading_id=reading.id, user_id=user_bob.id, is_primary=False)
-    )
+    db.add(OracleReadingUser(reading_id=reading.id, user_id=user_alice.id, is_primary=True))
+    db.add(OracleReadingUser(reading_id=reading.id, user_id=user_bob.id, is_primary=False))
     db.commit()
     return reading
 
@@ -137,9 +133,7 @@ def test_non_participant_cannot_access_multi_reading(perms, db, multi_reading):
 
 
 def test_admin_can_access_any_single_reading(perms, user_bob, single_reading):
-    assert (
-        perms.can_access_reading(user_bob.id, single_reading.id, is_admin=True) is True
-    )
+    assert perms.can_access_reading(user_bob.id, single_reading.id, is_admin=True) is True
 
 
 def test_admin_can_access_any_multi_reading(perms, db, multi_reading):
@@ -151,9 +145,7 @@ def test_admin_can_access_any_multi_reading(perms, db, multi_reading):
     db.add(outsider)
     db.commit()
     db.refresh(outsider)
-    assert (
-        perms.can_access_reading(outsider.id, multi_reading.id, is_admin=True) is True
-    )
+    assert perms.can_access_reading(outsider.id, multi_reading.id, is_admin=True) is True
 
 
 # ─── Rule 4: Nonexistent reading ───────────────────────────────────────────
@@ -183,9 +175,7 @@ def test_get_user_readings_includes_multi(perms, user_bob, multi_reading):
     assert readings[0].id == multi_reading.id
 
 
-def test_get_user_readings_admin_sees_all(
-    perms, user_bob, single_reading, multi_reading
-):
+def test_get_user_readings_admin_sees_all(perms, user_bob, single_reading, multi_reading):
     readings = perms.get_user_readings(user_bob.id, is_admin=True)
     assert len(readings) >= 2
 

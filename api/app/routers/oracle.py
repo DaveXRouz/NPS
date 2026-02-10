@@ -13,7 +13,7 @@ from fastapi import (
     WebSocketDisconnect,
     status,
 )
-from sqlalchemy import func
+from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -68,7 +68,9 @@ def _encrypt_user_fields(user: OracleUser, enc: EncryptionService | None) -> Non
 
 
 def _decrypt_user(
-    user: OracleUser, enc: EncryptionService | None
+    user: OracleUser,
+    enc: EncryptionService | None,
+    db: Session | None = None,
 ) -> OracleUserResponse:
     """Decrypt user fields and convert to response model."""
     mother_name = user.mother_name
@@ -79,6 +81,11 @@ def _decrypt_user(
             enc.decrypt_field(mother_name_persian) if mother_name_persian else None
         )
 
+    # Get coordinates via raw SQL if db session provided
+    latitude, longitude = None, None
+    if db and user.id:
+        latitude, longitude = _get_coordinates(db, user.id)
+
     return OracleUserResponse(
         id=user.id,
         name=user.name,
@@ -88,6 +95,13 @@ def _decrypt_user(
         mother_name_persian=mother_name_persian,
         country=user.country,
         city=user.city,
+        gender=user.gender,
+        heart_rate_bpm=user.heart_rate_bpm,
+        timezone_hours=user.timezone_hours,
+        timezone_minutes=user.timezone_minutes,
+        latitude=latitude,
+        longitude=longitude,
+        created_by=user.created_by,
         created_at=user.created_at,
         updated_at=user.updated_at,
     )
@@ -95,6 +109,37 @@ def _decrypt_user(
 
 def _get_client_ip(request: Request) -> str | None:
     return request.client.host if request.client else None
+
+
+def _set_coordinates(db: Session, user_id: int, lat: float | None, lng: float | None) -> None:
+    """Set coordinates POINT column using raw SQL (PostgreSQL only)."""
+    if lat is not None and lng is not None:
+        try:
+            db.execute(
+                text("UPDATE oracle_users SET coordinates = POINT(:lng, :lat) WHERE id = :id"),
+                {"lng": lng, "lat": lat, "id": user_id},
+            )
+        except Exception:
+            # SQLite doesn't support POINT type — silently skip in test/dev
+            pass
+
+
+def _get_coordinates(db: Session, user_id: int) -> tuple[float | None, float | None]:
+    """Read coordinates POINT column, return (latitude, longitude)."""
+    try:
+        row = db.execute(
+            text(
+                "SELECT coordinates[0] AS lng, coordinates[1] AS lat "
+                "FROM oracle_users WHERE id = :id"
+            ),
+            {"id": user_id},
+        ).first()
+        if row and row.lat is not None:
+            return (row.lat, row.lng)
+    except Exception:
+        # SQLite doesn't support POINT type — return None in test/dev
+        pass
+    return (None, None)
 
 
 # ─── Oracle Reading Endpoints ─────────────────────────────────────────────────
@@ -257,9 +302,7 @@ def create_multi_user_reading(
     try:
         result = svc.get_multi_user_reading(users, body.include_interpretation)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)
-        )
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
 
     # Collect user_ids for junction table (may be None)
     user_ids = [u.user_id for u in body.users]
@@ -338,9 +381,7 @@ def get_stored_reading(
     """Get a single stored oracle reading by ID."""
     data = svc.get_reading_by_id(reading_id)
     if not data:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Reading not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reading not found")
     audit.log_reading_read(
         reading_id,
         ip=_get_client_ip(request),
@@ -397,10 +438,16 @@ def create_user(
             detail="User with this name and birthday already exists",
         )
 
-    user = OracleUser(**body.model_dump())
+    # Exclude latitude/longitude (not ORM columns — handled separately via raw SQL)
+    user_data = body.model_dump(exclude={"latitude", "longitude"})
+    user = OracleUser(**user_data)
+    user.created_by = _user.get("user_id")
     _encrypt_user_fields(user, enc)
     db.add(user)
     db.flush()  # Get the ID before commit
+
+    # Set coordinates if provided
+    _set_coordinates(db, user.id, body.latitude, body.longitude)
 
     audit.log_user_created(
         user.id,
@@ -410,7 +457,7 @@ def create_user(
     db.commit()
     db.refresh(user)
     logger.info("Created oracle user id=%d name=%s", user.id, body.name)
-    return _decrypt_user(user, enc)
+    return _decrypt_user(user, enc, db)
 
 
 @router.get(
@@ -431,6 +478,10 @@ def list_users(
     """List Oracle user profiles with optional search."""
     query = db.query(OracleUser).filter(OracleUser.deleted_at.is_(None))
 
+    # Ownership: non-admin/moderator users see only their own profiles
+    if _user["role"] not in ("admin", "moderator"):
+        query = query.filter(OracleUser.created_by == _user["user_id"])
+
     if search:
         pattern = f"%{search}%"
         query = query.filter(
@@ -439,9 +490,7 @@ def list_users(
         )
 
     total = query.count()
-    users = (
-        query.order_by(OracleUser.created_at.desc()).offset(offset).limit(limit).all()
-    )
+    users = query.order_by(OracleUser.created_at.desc()).offset(offset).limit(limit).all()
 
     audit.log_user_listed(
         ip=_get_client_ip(request),
@@ -449,10 +498,8 @@ def list_users(
     )
     db.commit()
 
-    decrypted = [_decrypt_user(u, enc) for u in users]
-    return OracleUserListResponse(
-        users=decrypted, total=total, limit=limit, offset=offset
-    )
+    decrypted = [_decrypt_user(u, enc, db) for u in users]
+    return OracleUserListResponse(users=decrypted, total=total, limit=limit, offset=offset)
 
 
 @router.get(
@@ -475,9 +522,12 @@ def get_user(
         .first()
     )
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    # Ownership check: non-admin/moderator can only see own profiles
+    if _user["role"] not in ("admin", "moderator"):
+        if user.created_by != _user["user_id"]:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     audit.log_user_read(
         user.id,
@@ -486,7 +536,7 @@ def get_user(
     )
     db.commit()
 
-    return _decrypt_user(user, enc)
+    return _decrypt_user(user, enc, db)
 
 
 @router.put(
@@ -506,9 +556,7 @@ def update_user(
     """Update an Oracle user profile (partial update)."""
     updates = body.model_dump(exclude_unset=True)
     if not updates:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
 
     user = (
         db.query(OracleUser)
@@ -516,9 +564,12 @@ def update_user(
         .first()
     )
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    # Ownership check: non-admin/moderator can only update own profiles
+    if _user["role"] not in ("admin", "moderator"):
+        if user.created_by != _user["user_id"]:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     # Check uniqueness if name or birthday is changing
     new_name = updates.get("name", user.name)
@@ -540,6 +591,12 @@ def update_user(
                 detail="User with this name and birthday already exists",
             )
 
+    # Handle coordinates separately (not ORM columns)
+    lat = updates.pop("latitude", None)
+    lng = updates.pop("longitude", None)
+    if lat is not None or lng is not None:
+        _set_coordinates(db, user_id, lat, lng)
+
     for field, value in updates.items():
         # Encrypt sensitive fields
         if enc and field in ("mother_name", "mother_name_persian") and value:
@@ -555,7 +612,7 @@ def update_user(
     db.commit()
     db.refresh(user)
     logger.info("Updated oracle user id=%d fields=%s", user.id, list(updates.keys()))
-    return _decrypt_user(user, enc)
+    return _decrypt_user(user, enc, db)
 
 
 @router.delete(
@@ -578,9 +635,7 @@ def delete_user(
         .first()
     )
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     user.deleted_at = datetime.now(timezone.utc)
     audit.log_user_deleted(
@@ -591,7 +646,7 @@ def delete_user(
     db.commit()
     db.refresh(user)
     logger.info("Soft-deleted oracle user id=%d", user.id)
-    return _decrypt_user(user, enc)
+    return _decrypt_user(user, enc, db)
 
 
 # ─── Audit Log Endpoint ─────────────────────────────────────────────────────

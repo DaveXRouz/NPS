@@ -9,8 +9,8 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 2 of 45
-**Last session:** Session 2 — Authentication System Hardening
+**Sessions completed:** 3 of 45
+**Last session:** Session 3 — User Profile Management
 **Current block:** Foundation (Sessions 1-5)
 
 ---
@@ -141,6 +141,42 @@ TEMPLATE — copy this for each new session:
 - Lockout: 5 failures → 15min auto-lock. Lock resets on expiry or successful login.
 
 **Next:** Session 3 — User Profile Management (CRUD for user profiles with auth-protected endpoints, profile settings, Session 1 oracle_settings table integration)
+
+---
+
+## Session 3 — 2026-02-11
+
+**Terminal:** SINGLE
+**Block:** Foundation
+**Task:** User Profile Management — system user CRUD (6 endpoints), oracle user ownership + new fields, migration 014, comprehensive tests
+**Spec:** .session-specs/SESSION_3_SPEC.md
+
+**Files changed:**
+
+- `api/app/models/user.py` — NEW: 5 Pydantic models (SystemUserResponse, SystemUserListResponse, SystemUserUpdate, PasswordResetRequest, RoleChangeRequest) with field validators
+- `api/app/routers/users.py` — NEW: 6 system user endpoints (list, get, update, deactivate, reset-password, change-role) with role-based access control + audit logging
+- `api/app/orm/oracle_user.py` — Added 5 columns: gender, heart_rate_bpm, timezone_hours, timezone_minutes, created_by (FK → users.id)
+- `api/app/models/oracle_user.py` — Added new fields to Create/Update/Response models; added name_no_digits and birthday_range validators; gender/heart_rate/coordinate validation
+- `api/app/routers/oracle.py` — Added ownership filtering (created_by), coordinate helpers (\_set_coordinates, \_get_coordinates), updated \_decrypt_user with db param; non-owner access returns 404 (security: don't reveal existence)
+- `api/app/services/audit.py` — Added 6 system user audit methods: log_system_user_listed, \_read, \_updated, \_deactivated, \_password_reset, \_role_changed
+- `api/app/main.py` — Registered users router at /api/users
+- `database/migrations/014_user_management.sql` — NEW: adds created_by FK column to oracle_users + index + moderator seed user
+- `database/migrations/014_user_management_rollback.sql` — NEW: clean rollback for migration 014
+- `api/tests/test_users.py` — NEW: 16 tests for system user endpoints (admin/moderator/user roles, CRUD operations, password reset, role change)
+- `api/tests/test_oracle_users.py` — REWRITTEN: expanded from 25 to 34 tests; added ownership tests, new field validation, coordinate updates, Persian name roundtrip; uses mutable user context pattern for multi-user test scenarios
+
+**Tests:** 231 pass / 0 fail / 50 new (16 system user + 34 oracle user)
+**Commit:** pending
+**Issues:** None
+**Decisions:**
+
+- Used migration 014 (not 013 as spec stated) since Session 2 already claimed 013_auth_hardening
+- Used String(36) for created_by FK instead of UUID(as_uuid=False) for SQLite test compatibility
+- PostgreSQL POINT type handled via raw SQL helpers with graceful SQLite fallback (try/except)
+- Ownership security: non-owner access returns 404 instead of 403 to avoid revealing resource existence
+- Mutable \_active_user dict pattern for test fixtures avoids FastAPI dependency override collision when testing multiple user identities
+
+**Next:** Session 4 — Oracle Settings & Preferences (CRUD for oracle_settings table, user preference management, defaults handling)
 
 ---
 

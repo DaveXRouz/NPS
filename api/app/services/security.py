@@ -90,9 +90,7 @@ def decrypt_v3_legacy(encoded: str, master_key: bytes) -> str:
     ciphertext = payload[16:-16]
 
     # Verify authentication tag
-    expected_tag = hmac.new(master_key, nonce + ciphertext, hashlib.sha256).digest()[
-        :16
-    ]
+    expected_tag = hmac.new(master_key, nonce + ciphertext, hashlib.sha256).digest()[:16]
     if not hmac.compare_digest(auth_tag, expected_tag):
         raise ValueError("Decryption failed — wrong password or tampered data")
 
@@ -170,9 +168,7 @@ class EncryptionService:
 
     def decrypt_field(self, value: Any) -> Any:
         """Decrypt a field value if it's an encrypted string."""
-        if isinstance(value, str) and (
-            value.startswith("ENC4:") or value.startswith("ENC:")
-        ):
+        if isinstance(value, str) and (value.startswith("ENC4:") or value.startswith("ENC:")):
             return self.decrypt(value)
         return value
 

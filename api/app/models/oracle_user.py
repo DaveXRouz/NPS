@@ -13,11 +13,26 @@ class OracleUserCreate(BaseModel):
     mother_name_persian: str | None = Field(None, max_length=200)
     country: str | None = Field(None, max_length=100)
     city: str | None = Field(None, max_length=100)
+    gender: str | None = Field(None, pattern=r"^(male|female)$")
+    heart_rate_bpm: int | None = Field(None, ge=30, le=220)
+    timezone_hours: int | None = Field(None, ge=-12, le=14)
+    timezone_minutes: int | None = Field(None, ge=0, le=59)
+    latitude: float | None = Field(None, ge=-90.0, le=90.0)
+    longitude: float | None = Field(None, ge=-180.0, le=180.0)
+
+    @field_validator("name")
+    @classmethod
+    def name_no_digits(cls, v: str) -> str:
+        if v and any(c.isdigit() for c in v):
+            raise ValueError("Name must not contain digits")
+        return v
 
     @field_validator("birthday")
     @classmethod
-    def birthday_not_future(cls, v: date) -> date:
-        if v > date.today():
+    def birthday_range(cls, v: date) -> date:
+        if v and v.year < 1900:
+            raise ValueError("Birthday must be after 1900")
+        if v and v > date.today():
             raise ValueError("Birthday cannot be in the future")
         return v
 
@@ -30,10 +45,25 @@ class OracleUserUpdate(BaseModel):
     mother_name_persian: str | None = Field(None, max_length=200)
     country: str | None = Field(None, max_length=100)
     city: str | None = Field(None, max_length=100)
+    gender: str | None = Field(None, pattern=r"^(male|female)$")
+    heart_rate_bpm: int | None = Field(None, ge=30, le=220)
+    timezone_hours: int | None = Field(None, ge=-12, le=14)
+    timezone_minutes: int | None = Field(None, ge=0, le=59)
+    latitude: float | None = Field(None, ge=-90.0, le=90.0)
+    longitude: float | None = Field(None, ge=-180.0, le=180.0)
+
+    @field_validator("name")
+    @classmethod
+    def name_no_digits(cls, v: str | None) -> str | None:
+        if v is not None and any(c.isdigit() for c in v):
+            raise ValueError("Name must not contain digits")
+        return v
 
     @field_validator("birthday")
     @classmethod
-    def birthday_not_future(cls, v: date | None) -> date | None:
+    def birthday_range(cls, v: date | None) -> date | None:
+        if v is not None and v.year < 1900:
+            raise ValueError("Birthday must be after 1900")
         if v is not None and v > date.today():
             raise ValueError("Birthday cannot be in the future")
         return v
@@ -50,6 +80,13 @@ class OracleUserResponse(BaseModel):
     mother_name_persian: str | None = None
     country: str | None = None
     city: str | None = None
+    gender: str | None = None
+    heart_rate_bpm: int | None = None
+    timezone_hours: int | None = None
+    timezone_minutes: int | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    created_by: str | None = None
     created_at: datetime
     updated_at: datetime
 

@@ -16,9 +16,7 @@ class OraclePermissions:
     def __init__(self, db: Session):
         self.db = db
 
-    def can_access_reading(
-        self, user_id: int, reading_id: int, is_admin: bool = False
-    ) -> bool:
+    def can_access_reading(self, user_id: int, reading_id: int, is_admin: bool = False) -> bool:
         """Check if a user can access a specific reading.
 
         Rules:
@@ -33,9 +31,7 @@ class OraclePermissions:
         # Import here to avoid circular dependency
         from app.orm.oracle_reading import OracleReading, OracleReadingUser
 
-        reading = (
-            self.db.query(OracleReading).filter(OracleReading.id == reading_id).first()
-        )
+        reading = self.db.query(OracleReading).filter(OracleReading.id == reading_id).first()
         if not reading:
             return False
 
@@ -58,9 +54,7 @@ class OraclePermissions:
 
         return False
 
-    def get_user_readings(
-        self, user_id: int, is_admin: bool = False, limit: int = 50
-    ) -> list:
+    def get_user_readings(self, user_id: int, is_admin: bool = False, limit: int = 50) -> list:
         """Get readings accessible to a user, respecting permissions."""
         from app.orm.oracle_reading import OracleReading, OracleReadingUser
 
@@ -76,7 +70,7 @@ class OraclePermissions:
         own_readings = (
             self.db.query(OracleReading)
             .filter(
-                OracleReading.is_multi_user == False,
+                OracleReading.is_multi_user.is_(False),
                 OracleReading.user_id == user_id,
             )
             .all()
@@ -92,9 +86,7 @@ class OraclePermissions:
         multi_readings = []
         if multi_ids:
             multi_readings = (
-                self.db.query(OracleReading)
-                .filter(OracleReading.id.in_(multi_ids))
-                .all()
+                self.db.query(OracleReading).filter(OracleReading.id.in_(multi_ids)).all()
             )
 
         combined = own_readings + multi_readings

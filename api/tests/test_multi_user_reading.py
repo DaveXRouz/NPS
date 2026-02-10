@@ -68,9 +68,7 @@ async def test_max_ten_users(client):
         }
         for i in range(10)
     ]
-    resp = await client.post(
-        MULTI_USER_URL, json={"users": users, "primary_user_index": 0}
-    )
+    resp = await client.post(MULTI_USER_URL, json={"users": users, "primary_user_index": 0})
     assert resp.status_code == 200
     data = resp.json()
     assert data["user_count"] == 10
@@ -143,11 +141,7 @@ async def test_group_dynamics_fields(client):
 
 @pytest.mark.asyncio
 async def test_too_few_users_422(client):
-    body = {
-        "users": [
-            {"name": "Solo", "birth_year": 1990, "birth_month": 1, "birth_day": 1}
-        ]
-    }
+    body = {"users": [{"name": "Solo", "birth_year": 1990, "birth_month": 1, "birth_day": 1}]}
     resp = await client.post(MULTI_USER_URL, json=body)
     assert resp.status_code == 422
 
@@ -155,8 +149,7 @@ async def test_too_few_users_422(client):
 @pytest.mark.asyncio
 async def test_too_many_users_422(client):
     users = [
-        {"name": f"U{i}", "birth_year": 1990, "birth_month": 1, "birth_day": 1}
-        for i in range(11)
+        {"name": f"U{i}", "birth_year": 1990, "birth_month": 1, "birth_day": 1} for i in range(11)
     ]
     resp = await client.post(MULTI_USER_URL, json={"users": users})
     assert resp.status_code == 422

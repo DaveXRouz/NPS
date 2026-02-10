@@ -98,9 +98,7 @@ async def client():
     app.dependency_overrides[get_encryption_service] = override_get_encryption_service
     # NOTE: get_audit_service is NOT overridden — it uses get_db naturally,
     # which is already overridden to use the test DB.
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
 
@@ -110,12 +108,8 @@ async def client_no_enc():
     """Authenticated admin test client without encryption."""
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
-    app.dependency_overrides[get_encryption_service] = (
-        override_get_encryption_service_none
-    )
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    app.dependency_overrides[get_encryption_service] = override_get_encryption_service_none
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
 
@@ -126,9 +120,7 @@ async def readonly_client():
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user_readonly
     app.dependency_overrides[get_encryption_service] = override_get_encryption_service
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
 
@@ -138,8 +130,6 @@ async def unauth_client():
     """Unauthenticated test client (no auth override)."""
     app.dependency_overrides[get_db] = override_get_db
     # Deliberately do NOT override get_current_user
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()

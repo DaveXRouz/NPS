@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.services.location_service import LocationService, reset_caches
+from app.services.location_service import reset_caches
 
 COORDINATES_URL = "/api/location/coordinates"
 DETECT_URL = "/api/location/detect"
@@ -91,9 +91,7 @@ async def test_coordinates_with_country(client):
         mock_client_instance.__exit__ = MagicMock(return_value=False)
         MockClient.return_value = mock_client_instance
 
-        resp = await client.get(
-            COORDINATES_URL, params={"city": "Tehran", "country": "Iran"}
-        )
+        resp = await client.get(COORDINATES_URL, params={"city": "Tehran", "country": "Iran"})
         assert resp.status_code == 200
         assert resp.json()["country"] == "Iran"
 

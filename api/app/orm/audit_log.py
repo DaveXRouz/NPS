@@ -12,9 +12,7 @@ class OracleAuditLog(Base):
     __tablename__ = "oracle_audit_log"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    timestamp: Mapped[datetime] = mapped_column(
-        server_default=func.now(), nullable=False
-    )
+    timestamp: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
     user_id: Mapped[int | None] = mapped_column(Integer)
     action: Mapped[str] = mapped_column(String(100), nullable=False)
     resource_type: Mapped[str | None] = mapped_column(String(50))

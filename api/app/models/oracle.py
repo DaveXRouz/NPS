@@ -200,9 +200,7 @@ class MultiUserReadingRequest(BaseModel):
         if len(self.users) > 10:
             raise ValueError("Maximum 10 users allowed")
         if self.primary_user_index < 0 or self.primary_user_index >= len(self.users):
-            raise ValueError(
-                f"primary_user_index must be between 0 and {len(self.users) - 1}"
-            )
+            raise ValueError(f"primary_user_index must be between 0 and {len(self.users) - 1}")
 
 
 class CompatibilityScore(BaseModel):

@@ -2,7 +2,7 @@
 
 from datetime import date, datetime
 
-from sqlalchemy import CheckConstraint, Date, String, Text, func
+from sqlalchemy import CheckConstraint, Date, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -19,9 +19,21 @@ class OracleUser(Base):
     mother_name_persian: Mapped[str | None] = mapped_column(Text)
     country: Mapped[str | None] = mapped_column(String(100))
     city: Mapped[str | None] = mapped_column(String(100))
-    created_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), nullable=False
+
+    # Session 1 columns (framework alignment)
+    gender: Mapped[str | None] = mapped_column(String(20))
+    heart_rate_bpm: Mapped[int | None] = mapped_column(Integer)
+    timezone_hours: Mapped[int | None] = mapped_column(Integer, server_default="0")
+    timezone_minutes: Mapped[int | None] = mapped_column(Integer, server_default="0")
+    # Note: coordinates is a PostgreSQL POINT type — not mapped in ORM.
+    # Latitude/longitude are handled at the router layer via raw SQL helpers.
+
+    # Session 3 column (ownership)
+    created_by: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("users.id", ondelete="SET NULL")
     )
+
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         server_default=func.now(), onupdate=func.now(), nullable=False
     )

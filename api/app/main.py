@@ -20,6 +20,7 @@ from app.routers import (
     oracle,
     scanner,
     translation,
+    users,
     vault,
 )
 from app.services.security import init_encryption
@@ -72,9 +73,7 @@ async def lifespan(app: FastAPI):
     try:
         import grpc
 
-        channel = grpc.insecure_channel(
-            f"{settings.oracle_grpc_host}:{settings.oracle_grpc_port}"
-        )
+        channel = grpc.insecure_channel(f"{settings.oracle_grpc_host}:{settings.oracle_grpc_port}")
         grpc.channel_ready_future(channel).result(timeout=1)
         app.state.oracle_channel = channel
         logger.info("Oracle gRPC channel established")
@@ -115,6 +114,7 @@ app.add_middleware(RateLimitMiddleware)
 # Routers
 app.include_router(health.router, prefix="/api/health", tags=["health"])
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(scanner.router, prefix="/api/scanner", tags=["scanner"])
 app.include_router(oracle.router, prefix="/api/oracle", tags=["oracle"])
 app.include_router(vault.router, prefix="/api/vault", tags=["vault"])
@@ -128,6 +128,4 @@ app.add_api_websocket_route("/ws", websocket_endpoint)
 # Serve frontend build (must be LAST — catches all unmatched routes)
 frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
 if frontend_dist.is_dir():
-    app.mount(
-        "/", StaticFiles(directory=str(frontend_dist), html=True), name="frontend"
-    )
+    app.mount("/", StaticFiles(directory=str(frontend_dist), html=True), name="frontend")

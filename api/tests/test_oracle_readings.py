@@ -15,9 +15,7 @@ READINGS_URL = "/api/oracle/readings"
 
 @pytest.mark.asyncio
 async def test_reading_with_datetime(client):
-    resp = await client.post(
-        READING_URL, json={"datetime": "2026-02-08T12:00:00+00:00"}
-    )
+    resp = await client.post(READING_URL, json={"datetime": "2026-02-08T12:00:00+00:00"})
     assert resp.status_code == 200
     data = resp.json()
     assert "fc60" in data
@@ -149,9 +147,7 @@ async def test_suggest_range(client):
 
 @pytest.mark.asyncio
 async def test_suggest_range_readonly_403(readonly_client):
-    resp = await readonly_client.post(
-        RANGE_URL, json={"puzzle_number": 66, "ai_level": 1}
-    )
+    resp = await readonly_client.post(RANGE_URL, json={"puzzle_number": 66, "ai_level": 1})
     assert resp.status_code == 403
 
 

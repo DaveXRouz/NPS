@@ -69,9 +69,7 @@ def reset_cache() -> None:
 class TranslationService:
     """Wraps T3-S3 translation with API-level LRU caching."""
 
-    def translate(
-        self, text: str, source_lang: str = "en", target_lang: str = "fa"
-    ) -> dict:
+    def translate(self, text: str, source_lang: str = "en", target_lang: str = "fa") -> dict:
         """Translate text between English and Persian.
 
         Returns dict with keys: source_text, translated_text, source_lang,

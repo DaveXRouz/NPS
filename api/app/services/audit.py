@@ -260,6 +260,100 @@ class AuditService:
             details={"key_id": key_id},
         )
 
+    # ─── System User audit methods ────────────────────────────────────────────
+
+    def log_system_user_listed(
+        self, *, ip: str | None = None, key_hash: str | None = None
+    ) -> OracleAuditLog:
+        return self.log(
+            "system_user.list",
+            resource_type="system_user",
+            ip_address=ip,
+            api_key_hash=key_hash,
+        )
+
+    def log_system_user_read(
+        self,
+        user_id: str,
+        *,
+        ip: str | None = None,
+        key_hash: str | None = None,
+    ) -> OracleAuditLog:
+        return self.log(
+            "system_user.read",
+            resource_type="system_user",
+            ip_address=ip,
+            api_key_hash=key_hash,
+            details={"target_user_id": user_id},
+        )
+
+    def log_system_user_updated(
+        self,
+        user_id: str,
+        fields: list[str],
+        *,
+        ip: str | None = None,
+        key_hash: str | None = None,
+    ) -> OracleAuditLog:
+        return self.log(
+            "system_user.update",
+            resource_type="system_user",
+            ip_address=ip,
+            api_key_hash=key_hash,
+            details={"target_user_id": user_id, "updated_fields": fields},
+        )
+
+    def log_system_user_deactivated(
+        self,
+        user_id: str,
+        *,
+        ip: str | None = None,
+        key_hash: str | None = None,
+    ) -> OracleAuditLog:
+        return self.log(
+            "system_user.deactivate",
+            resource_type="system_user",
+            ip_address=ip,
+            api_key_hash=key_hash,
+            details={"target_user_id": user_id},
+        )
+
+    def log_system_user_password_reset(
+        self,
+        user_id: str,
+        *,
+        ip: str | None = None,
+        key_hash: str | None = None,
+    ) -> OracleAuditLog:
+        return self.log(
+            "system_user.password_reset",
+            resource_type="system_user",
+            ip_address=ip,
+            api_key_hash=key_hash,
+            details={"target_user_id": user_id},
+        )
+
+    def log_system_user_role_changed(
+        self,
+        user_id: str,
+        old_role: str,
+        new_role: str,
+        *,
+        ip: str | None = None,
+        key_hash: str | None = None,
+    ) -> OracleAuditLog:
+        return self.log(
+            "system_user.role_change",
+            resource_type="system_user",
+            ip_address=ip,
+            api_key_hash=key_hash,
+            details={
+                "target_user_id": user_id,
+                "old_role": old_role,
+                "new_role": new_role,
+            },
+        )
+
     # ─── Query methods ────────────────────────────────────────────────────────
 
     def get_user_activity(self, oracle_user_id: int, limit: int = 50) -> list[OracleAuditLog]:

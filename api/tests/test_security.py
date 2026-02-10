@@ -1,6 +1,5 @@
 """Tests for AES-256-GCM encryption service."""
 
-import os
 import time
 
 import pytest
@@ -198,7 +197,7 @@ def test_encrypt_performance(key):
     for _ in range(100):
         encrypt_aes256gcm(plaintext, key)
     elapsed = (time.perf_counter() - start) / 100
-    assert elapsed < 0.01, f"Encrypt took {elapsed*1000:.2f}ms (>10ms)"
+    assert elapsed < 0.01, f"Encrypt took {elapsed * 1000:.2f}ms (>10ms)"
 
 
 def test_decrypt_performance(key):
@@ -208,4 +207,4 @@ def test_decrypt_performance(key):
     for _ in range(100):
         decrypt_aes256gcm(ct, key)
     elapsed = (time.perf_counter() - start) / 100
-    assert elapsed < 0.01, f"Decrypt took {elapsed*1000:.2f}ms (>10ms)"
+    assert elapsed < 0.01, f"Decrypt took {elapsed * 1000:.2f}ms (>10ms)"

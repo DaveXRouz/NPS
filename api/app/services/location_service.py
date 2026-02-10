@@ -104,9 +104,7 @@ class LocationService:
         result = {
             "city": city,
             "country": (
-                item.get("display_name", "").split(", ")[-1]
-                if country is None
-                else country
+                item.get("display_name", "").split(", ")[-1] if country is None else country
             ),
             "latitude": lat,
             "longitude": lon,

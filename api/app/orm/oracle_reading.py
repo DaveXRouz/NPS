@@ -14,9 +14,7 @@ class OracleReading(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("oracle_users.id"))
     is_multi_user: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    primary_user_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("oracle_users.id")
-    )
+    primary_user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("oracle_users.id"))
     question: Mapped[str] = mapped_column(Text, nullable=False)
     question_persian: Mapped[str | None] = mapped_column(Text)
     sign_type: Mapped[str] = mapped_column(String(20), nullable=False)
@@ -27,9 +25,7 @@ class OracleReading(Base):
     individual_results: Mapped[str | None] = mapped_column(Text)  # JSONB
     compatibility_matrix: Mapped[str | None] = mapped_column(Text)  # JSONB
     combined_energy: Mapped[str | None] = mapped_column(Text)  # JSONB
-    created_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
 
 
 class OracleReadingUser(Base):
@@ -38,10 +34,6 @@ class OracleReadingUser(Base):
     reading_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("oracle_readings.id"), primary_key=True
     )
-    user_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("oracle_users.id"), primary_key=True
-    )
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("oracle_users.id"), primary_key=True)
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
