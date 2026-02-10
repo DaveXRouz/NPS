@@ -1,5 +1,3 @@
-import type { LocationData } from "@/types";
-
 /** Request browser geolocation with timeout */
 export function getCurrentPosition(
   timeout = 10000,
@@ -21,31 +19,50 @@ export function getCurrentPosition(
   });
 }
 
-/** Country list with default coordinates for manual selection */
-export const COUNTRIES: Record<string, LocationData> = {
-  Iran: { lat: 35.6892, lon: 51.389, country: "Iran", city: "Tehran" },
-  "United States": {
-    lat: 40.7128,
-    lon: -74.006,
-    country: "United States",
-    city: "New York",
-  },
-  "United Kingdom": {
-    lat: 51.5074,
-    lon: -0.1278,
-    country: "United Kingdom",
-    city: "London",
-  },
-  Germany: { lat: 52.52, lon: 13.405, country: "Germany", city: "Berlin" },
-  France: { lat: 48.8566, lon: 2.3522, country: "France", city: "Paris" },
-  Turkey: { lat: 41.0082, lon: 28.9784, country: "Turkey", city: "Istanbul" },
-  UAE: { lat: 25.2048, lon: 55.2708, country: "UAE", city: "Dubai" },
-  Canada: { lat: 43.6532, lon: -79.3832, country: "Canada", city: "Toronto" },
-  Australia: {
-    lat: -33.8688,
-    lon: 151.2093,
-    country: "Australia",
-    city: "Sydney",
-  },
-  India: { lat: 28.6139, lon: 77.209, country: "India", city: "New Delhi" },
-};
+/** Country from location API */
+export interface Country {
+  code: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+  timezone_offset_hours: number;
+  timezone_offset_minutes: number;
+}
+
+/** City from location API */
+export interface City {
+  name: string;
+  latitude: number;
+  longitude: number;
+  timezone: string;
+}
+
+/** Fetch all countries from the location API */
+export async function fetchCountries(lang: string = "en"): Promise<Country[]> {
+  try {
+    const resp = await fetch(`/api/location/countries?lang=${lang}`);
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    return data.countries;
+  } catch {
+    return [];
+  }
+}
+
+/** Fetch cities for a country from the location API */
+export async function fetchCities(
+  countryCode: string,
+  lang: string = "en",
+): Promise<City[]> {
+  try {
+    const resp = await fetch(
+      `/api/location/countries/${countryCode}/cities?lang=${lang}`,
+    );
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    return data.cities;
+  } catch {
+    return [];
+  }
+}

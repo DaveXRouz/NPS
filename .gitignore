@@ -24,8 +24,9 @@ backups/
 .env
 !.env.example
 
-# Runtime data
-api/data/
+# Runtime data (db files etc.) — keep static JSON
+api/data/*
+!api/data/*.json
 
 # IDE
 .vscode/

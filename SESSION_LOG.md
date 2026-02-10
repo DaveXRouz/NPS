@@ -9,9 +9,9 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 4 of 45
-**Last session:** Session 4 — Oracle Profiles Form & Validation UI
-**Current block:** Foundation (Sessions 1-5)
+**Sessions completed:** 5 of 45
+**Last session:** Session 5 — Location System Upgrade & Persian Keyboard Polish
+**Current block:** Foundation (Sessions 1-5) COMPLETE
 
 ---
 
@@ -208,7 +208,48 @@ TEMPLATE — copy this for each new session:
 - Pre-populated invalid BPM via user prop for validation test — avoids jsdom number input type quirks with event dispatching
 - Added `exclude: ["e2e/**"]` to vitest.config.ts — Playwright tests were being picked up by vitest runner (pre-existing issue, fixed proactively)
 
-**Next:** Session 5 — API Key Dashboard & Settings UI (oracle_settings CRUD endpoints, settings UI, API key management dashboard)
+**Next:** Session 5 — Location System Upgrade & Persian Keyboard Polish
+
+---
+
+## Session 5 — 2026-02-11
+
+**Terminal:** SINGLE
+**Block:** Foundation
+**Task:** Location System Upgrade & Persian Keyboard Polish — replace hardcoded location data with API-backed static JSON (249 countries, 272 cities in 50 countries), add 3 new location endpoints, rewrite LocationSelector with searchable country/city cascading, polish PersianKeyboard with Shift key layer
+**Spec:** .session-specs/SESSION_5_SPEC.md
+
+**Files changed:**
+
+- `api/data/countries.json` — NEW: 249 countries with bilingual EN/FA names, coordinates, timezones, phone codes (ISO 3166-1 alpha-2)
+- `api/data/cities_by_country.json` — NEW: 272 cities across 50 countries with bilingual names, coordinates, timezones; priority countries (IR, US, GB, DE, FR, TR, AE, CA, AU, IN, AF, IQ, PK, SA, EG) get 8-10 cities each
+- `api/app/services/location_service.py` — Full rewrite: added static data loading from JSON at module level, \_COUNTRY_BY_CODE index, 4 new methods (get_countries, get_cities, get_timezone, search_cities), \_lookup_static helper for coordinates fallback
+- `api/app/routers/location.py` — Added 3 new endpoints: GET /countries (lang param), GET /countries/{code}/cities (lang param), GET /timezone (country_code + optional city)
+- `api/app/models/location.py` — Added 6 new Pydantic models: CountryResponse, CountryListResponse, CityResponse, CityListResponse, TimezoneResponse, CitySearchResponse
+- `frontend/src/utils/persianKeyboardLayout.ts` — Added PERSIAN_SHIFT_ROWS: 4 rows of Persian digits (۱-۰), Arabic diacritics (tanwin, fatha, etc.), Persian punctuation, common symbols
+- `frontend/src/utils/geolocationHelpers.ts` — Removed hardcoded COUNTRIES constant, added Country/City interfaces, added fetchCountries()/fetchCities() async API helpers
+- `frontend/src/types/index.ts` — Added countryCode and timezone fields to LocationData interface
+- `frontend/src/components/oracle/PersianKeyboard.tsx` — Added isShifted state toggle between PERSIAN_ROWS and PERSIAN_SHIFT_ROWS, smart above/below positioning via getBoundingClientRect, mobile touch handlers with preventDefault, select-none CSS
+- `frontend/src/components/oracle/LocationSelector.tsx` — Full rewrite: API-backed searchable country dropdown with text filter, cascading city select, manual coordinate input toggle, auto-detect via browser geolocation, bilingual labels
+- `frontend/src/locales/en.json` — Added 11 new oracle keys (location_search_country, location_select_city, location_no_cities, location_manual_coords, location_latitude, location_longitude, location_timezone, location_loading_countries, location_loading_cities, keyboard_shift, keyboard_numbers)
+- `frontend/src/locales/fa.json` — Added 11 corresponding Persian translation keys
+- `api/tests/test_location.py` — Extended from 13 to 25 tests: 12 new (countries list, countries FA, sorted alphabetically, unauthenticated, cities Iran EN/FA, unknown country, coordinate bounds, timezone Iran/with city/unknown 404, static fallback); fixed 2 existing tests for static data compatibility
+- `frontend/src/components/oracle/__tests__/PersianKeyboard.test.tsx` — 10 tests covering shift toggle, character/touch/backspace/close callbacks, Escape key, ARIA, active styling
+- `frontend/src/components/oracle/__tests__/LocationSelector.test.tsx` — 7 tests with mocked API helpers covering search, country select, city cascade, auto-detect, manual coords
+- `frontend/src/components/oracle/__tests__/OracleConsultationForm.test.tsx` — Fixed: added i18n.language and geolocationHelpers mock for LocationSelector compatibility
+
+**Tests:** 243 API pass / 0 fail | 153 frontend pass / 0 fail | 24 new tests
+**Commit:** TBD
+**Issues:** None
+**Decisions:**
+
+- Static JSON files loaded at module import time (not per-request) for zero-latency country/city lookups; graceful fallback to empty lists if files missing
+- get_coordinates() checks static data BEFORE Nominatim — instant for known cities, network only for unknowns
+- 249 countries (full ISO 3166-1 alpha-2 including territories) with Persian names; 50 countries have city data (272 total cities)
+- PersianKeyboard shift layer shows Persian digits + diacritics + punctuation (not just symbols) — more useful for Oracle Persian text input
+- LocationSelector uses API helpers (fetchCountries/fetchCities) instead of hardcoded data — future-proof for server-side additions
+
+**Next:** Session 6 — FC60 Calculation Engine (core FC60 algorithm implementation, Python engine matching legacy .archive/ outputs)
 
 ---
 

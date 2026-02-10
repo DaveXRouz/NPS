@@ -4,10 +4,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from app.services.location_service import reset_caches
+from app.services.location_service import LocationService, reset_caches
 
 COORDINATES_URL = "/api/location/coordinates"
 DETECT_URL = "/api/location/detect"
+COUNTRIES_URL = "/api/location/countries"
+TIMEZONE_URL = "/api/location/timezone"
 
 
 @pytest.fixture(autouse=True)
@@ -112,6 +114,7 @@ async def test_coordinates_city_not_found_404(client):
 
 @pytest.mark.asyncio
 async def test_coordinates_service_error(client):
+    """When city is not in static data and Nominatim fails, return 404."""
     import httpx as httpx_mod
 
     with patch("app.services.location_service.httpx.Client") as MockClient:
@@ -121,13 +124,20 @@ async def test_coordinates_service_error(client):
         mock_client_instance.__exit__ = MagicMock(return_value=False)
         MockClient.return_value = mock_client_instance
 
-        resp = await client.get(COORDINATES_URL, params={"city": "Tehran"})
+        resp = await client.get(COORDINATES_URL, params={"city": "Smalltown123"})
         assert resp.status_code == 404
 
 
 @pytest.mark.asyncio
 async def test_coordinates_cache_second_call(client):
-    mock_resp = _mock_nominatim_success()
+    """Test Nominatim cache: use a city NOT in static data so Nominatim is actually called."""
+    mock_resp = MagicMock()
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = [
+        {"lat": "50.0755", "lon": "14.4378", "display_name": "Prague, Czechia"}
+    ]
+    mock_resp.raise_for_status = MagicMock()
+
     with patch("app.services.location_service.httpx.Client") as MockClient:
         mock_client_instance = MagicMock()
         mock_client_instance.get.return_value = mock_resp
@@ -135,11 +145,15 @@ async def test_coordinates_cache_second_call(client):
         mock_client_instance.__exit__ = MagicMock(return_value=False)
         MockClient.return_value = mock_client_instance
 
-        resp1 = await client.get(COORDINATES_URL, params={"city": "Tehran"})
+        resp1 = await client.get(
+            COORDINATES_URL, params={"city": "Smallville", "country": "Nowhere"}
+        )
         assert resp1.status_code == 200
         assert resp1.json()["cached"] is False
 
-        resp2 = await client.get(COORDINATES_URL, params={"city": "Tehran"})
+        resp2 = await client.get(
+            COORDINATES_URL, params={"city": "Smallville", "country": "Nowhere"}
+        )
         assert resp2.status_code == 200
         assert resp2.json()["cached"] is True
 
@@ -249,3 +263,134 @@ async def test_detect_readonly_allowed(readonly_client):
     """Readonly can access detect, but will get 400 due to testclient IP."""
     resp = await readonly_client.get(DETECT_URL)
     assert resp.status_code == 400
+
+
+# ─── GET /countries ──────────────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_countries_list_returns_all(client):
+    """GET /api/location/countries returns 249+ countries."""
+    resp = await client.get(COUNTRIES_URL)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] >= 249
+    assert len(data["countries"]) >= 249
+    first = data["countries"][0]
+    assert "code" in first
+    assert "name" in first
+    assert "latitude" in first
+    assert "timezone" in first
+
+
+@pytest.mark.asyncio
+async def test_countries_list_fa(client):
+    """GET /api/location/countries?lang=fa returns Persian names."""
+    resp = await client.get(f"{COUNTRIES_URL}?lang=fa")
+    assert resp.status_code == 200
+    data = resp.json()
+    iran = next((c for c in data["countries"] if c["code"] == "IR"), None)
+    assert iran is not None
+    assert iran["name"] == "\u0627\u06cc\u0631\u0627\u0646"
+
+
+@pytest.mark.asyncio
+async def test_countries_sorted_alphabetically(client):
+    """Countries should be sorted by name."""
+    resp = await client.get(COUNTRIES_URL)
+    data = resp.json()
+    names = [c["name"] for c in data["countries"]]
+    assert names == sorted(names)
+
+
+@pytest.mark.asyncio
+async def test_countries_unauthenticated_401(unauth_client):
+    """Unauthenticated requests to countries return 401."""
+    resp = await unauth_client.get(COUNTRIES_URL)
+    assert resp.status_code == 401
+
+
+# ─── GET /countries/{code}/cities ────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_cities_iran(client):
+    """GET /api/location/countries/IR/cities returns Iranian cities."""
+    resp = await client.get(f"{COUNTRIES_URL}/IR/cities")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["country_code"] == "IR"
+    assert data["total"] >= 5
+    names = [c["name"] for c in data["cities"]]
+    assert any("Tehran" in n for n in names)
+
+
+@pytest.mark.asyncio
+async def test_cities_iran_fa(client):
+    """Cities returned in Persian when lang=fa."""
+    resp = await client.get(f"{COUNTRIES_URL}/IR/cities?lang=fa")
+    data = resp.json()
+    names = [c["name"] for c in data["cities"]]
+    assert "\u062a\u0647\u0631\u0627\u0646" in names
+
+
+@pytest.mark.asyncio
+async def test_cities_unknown_country(client):
+    """Unknown country code returns empty list (not 404)."""
+    resp = await client.get(f"{COUNTRIES_URL}/ZZ/cities")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 0
+    assert data["cities"] == []
+
+
+@pytest.mark.asyncio
+async def test_cities_have_coordinates(client):
+    """Each city has valid latitude and longitude."""
+    resp = await client.get(f"{COUNTRIES_URL}/US/cities")
+    data = resp.json()
+    for city in data["cities"]:
+        assert -90 <= city["latitude"] <= 90
+        assert -180 <= city["longitude"] <= 180
+
+
+# ─── GET /timezone ───────────────────────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_timezone_iran(client):
+    """GET /api/location/timezone?country_code=IR returns Asia/Tehran."""
+    resp = await client.get(TIMEZONE_URL, params={"country_code": "IR"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["timezone"] == "Asia/Tehran"
+    assert data["offset_hours"] == 3
+    assert data["offset_minutes"] == 30
+
+
+@pytest.mark.asyncio
+async def test_timezone_with_city(client):
+    """Timezone lookup with city name."""
+    resp = await client.get(TIMEZONE_URL, params={"country_code": "US", "city": "Los Angeles"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["timezone"] == "America/Los_Angeles"
+
+
+@pytest.mark.asyncio
+async def test_timezone_unknown_country_404(client):
+    """Unknown country code returns 404."""
+    resp = await client.get(TIMEZONE_URL, params={"country_code": "ZZ"})
+    assert resp.status_code == 404
+
+
+# ─── Static fallback ─────────────────────────────────────────────────────────
+
+
+def test_coordinates_static_fallback():
+    """get_coordinates finds Tehran in static data without Nominatim."""
+    svc = LocationService()
+    result = svc.get_coordinates("Tehran", "Iran")
+    assert result is not None
+    assert abs(result["latitude"] - 35.6892) < 0.1
+    assert result["cached"] is False

@@ -43,7 +43,14 @@ vi.mock("react-i18next", () => ({
       };
       return map[key] ?? key;
     },
+    i18n: { language: "en" },
   }),
+}));
+
+vi.mock("@/utils/geolocationHelpers", () => ({
+  getCurrentPosition: vi.fn(),
+  fetchCountries: vi.fn().mockResolvedValue([]),
+  fetchCities: vi.fn().mockResolvedValue([]),
 }));
 
 describe("OracleConsultationForm", () => {

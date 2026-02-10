@@ -218,7 +218,9 @@ export interface LocationData {
   lat: number;
   lon: number;
   country?: string;
+  countryCode?: string;
   city?: string;
+  timezone?: string;
 }
 
 export interface OracleConsultationData {

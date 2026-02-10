@@ -11,6 +11,7 @@ vi.mock("react-i18next", () => ({
         "oracle.keyboard_close": "Close keyboard",
         "oracle.keyboard_space": "Space",
         "oracle.keyboard_backspace": "Backspace",
+        "oracle.keyboard_shift": "Shift",
       };
       return map[key] ?? key;
     },
@@ -18,7 +19,7 @@ vi.mock("react-i18next", () => ({
 }));
 
 describe("PersianKeyboard", () => {
-  it("renders all character rows", () => {
+  it("renders base Persian characters by default", () => {
     render(
       <PersianKeyboard
         onCharacterClick={vi.fn()}
@@ -26,14 +27,69 @@ describe("PersianKeyboard", () => {
         onClose={vi.fn()}
       />,
     );
-    // Check some Persian characters are rendered
+    // Base characters should be visible
     expect(screen.getByText("ض")).toBeInTheDocument();
     expect(screen.getByText("ش")).toBeInTheDocument();
     expect(screen.getByText("ظ")).toBeInTheDocument();
     expect(screen.getByText("ژ")).toBeInTheDocument();
   });
 
+  it("shift toggles to numbers and symbols layer", async () => {
+    const user = userEvent.setup();
+    render(
+      <PersianKeyboard
+        onCharacterClick={vi.fn()}
+        onBackspace={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    // Click Shift button
+    await user.click(screen.getByLabelText("Shift"));
+
+    // Shift layer characters should now be visible
+    expect(screen.getByText("۱")).toBeInTheDocument();
+    expect(screen.getByText("۲")).toBeInTheDocument();
+    expect(screen.getByText("۰")).toBeInTheDocument();
+
+    // Base characters should NOT be visible
+    expect(screen.queryByText("ض")).not.toBeInTheDocument();
+  });
+
+  it("shift toggles back to base layer on second click", async () => {
+    const user = userEvent.setup();
+    render(
+      <PersianKeyboard
+        onCharacterClick={vi.fn()}
+        onBackspace={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    // Click Shift twice
+    await user.click(screen.getByLabelText("Shift"));
+    await user.click(screen.getByLabelText("Shift"));
+
+    // Base characters should be back
+    expect(screen.getByText("ض")).toBeInTheDocument();
+    expect(screen.queryByText("۱")).not.toBeInTheDocument();
+  });
+
   it("calls onCharacterClick when a character is clicked", async () => {
+    const onChar = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <PersianKeyboard
+        onCharacterClick={onChar}
+        onBackspace={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    await user.click(screen.getByText("ض"));
+    expect(onChar).toHaveBeenCalledWith("ض");
+  });
+
+  it("touch event fires onCharacterClick for mobile", () => {
     const onChar = vi.fn();
     render(
       <PersianKeyboard
@@ -42,12 +98,14 @@ describe("PersianKeyboard", () => {
         onClose={vi.fn()}
       />,
     );
-    await userEvent.click(screen.getByText("ض"));
+    const charButton = screen.getByLabelText("ض");
+    fireEvent.touchStart(charButton);
     expect(onChar).toHaveBeenCalledWith("ض");
   });
 
   it("calls onBackspace when backspace is clicked", async () => {
     const onBackspace = vi.fn();
+    const user = userEvent.setup();
     render(
       <PersianKeyboard
         onCharacterClick={vi.fn()}
@@ -55,12 +113,13 @@ describe("PersianKeyboard", () => {
         onClose={vi.fn()}
       />,
     );
-    await userEvent.click(screen.getByText("⌫"));
+    await user.click(screen.getByText("⌫"));
     expect(onBackspace).toHaveBeenCalled();
   });
 
   it("calls onClose when close button is clicked", async () => {
     const onClose = vi.fn();
+    const user = userEvent.setup();
     render(
       <PersianKeyboard
         onCharacterClick={vi.fn()}
@@ -68,7 +127,7 @@ describe("PersianKeyboard", () => {
         onClose={onClose}
       />,
     );
-    await userEvent.click(screen.getByLabelText("Close keyboard"));
+    await user.click(screen.getByLabelText("Close keyboard"));
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -97,7 +156,20 @@ describe("PersianKeyboard", () => {
       "aria-label",
       "Persian Keyboard",
     );
-    // Each character button has an aria-label
     expect(screen.getByLabelText("ض")).toBeInTheDocument();
+  });
+
+  it("shift button has active styling when shifted", async () => {
+    const user = userEvent.setup();
+    render(
+      <PersianKeyboard
+        onCharacterClick={vi.fn()}
+        onBackspace={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    const shiftBtn = screen.getByLabelText("Shift");
+    await user.click(shiftBtn);
+    expect(shiftBtn.className).toContain("bg-nps-oracle-accent/30");
   });
 });
