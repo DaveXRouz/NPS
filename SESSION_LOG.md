@@ -239,7 +239,7 @@ TEMPLATE — copy this for each new session:
 - `frontend/src/components/oracle/__tests__/OracleConsultationForm.test.tsx` — Fixed: added i18n.language and geolocationHelpers mock for LocationSelector compatibility
 
 **Tests:** 243 API pass / 0 fail | 153 frontend pass / 0 fail | 24 new tests
-**Commit:** TBD
+**Commit:** 243722c — [api][frontend] upgrade location system + polish Persian keyboard (#session-5)
 **Issues:** None
 **Decisions:**
 
