@@ -166,7 +166,7 @@ TEMPLATE — copy this for each new session:
 - `api/tests/test_oracle_users.py` — REWRITTEN: expanded from 25 to 34 tests; added ownership tests, new field validation, coordinate updates, Persian name roundtrip; uses mutable user context pattern for multi-user test scenarios
 
 **Tests:** 231 pass / 0 fail / 50 new (16 system user + 34 oracle user)
-**Commit:** pending
+**Commit:** e9a623d — [api] user management: system user CRUD, oracle user ownership + new fields (#session-3)
 **Issues:** None
 **Decisions:**
 
