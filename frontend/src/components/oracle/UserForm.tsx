@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { OracleUser, OracleUserCreate } from "@/types";
+import type { OracleUser, OracleUserCreate, LocationData } from "@/types";
+import { PersianKeyboard } from "./PersianKeyboard";
+import { CalendarPicker } from "./CalendarPicker";
+import { LocationSelector } from "./LocationSelector";
 
 interface UserFormProps {
   user?: OracleUser;
@@ -15,6 +18,7 @@ interface FormErrors {
   name?: string;
   birthday?: string;
   mother_name?: string;
+  heart_rate_bpm?: string;
 }
 
 function validate(
@@ -24,14 +28,26 @@ function validate(
   const errors: FormErrors = {};
   if (!data.name || data.name.trim().length < 2) {
     errors.name = t("oracle.error_name_required");
+  } else if (/\d/.test(data.name)) {
+    errors.name = t("oracle.error_name_no_digits");
   }
   if (!data.birthday) {
     errors.birthday = t("oracle.error_birthday_required");
-  } else if (new Date(data.birthday) > new Date()) {
-    errors.birthday = t("oracle.error_birthday_future");
+  } else {
+    const bd = new Date(data.birthday);
+    if (bd > new Date()) {
+      errors.birthday = t("oracle.error_birthday_future");
+    } else if (bd.getFullYear() < 1900) {
+      errors.birthday = t("oracle.error_birthday_too_old");
+    }
   }
   if (!data.mother_name || data.mother_name.trim().length < 2) {
     errors.mother_name = t("oracle.error_mother_name_required");
+  }
+  if (data.heart_rate_bpm !== undefined && data.heart_rate_bpm !== null) {
+    if (data.heart_rate_bpm < 30 || data.heart_rate_bpm > 220) {
+      errors.heart_rate_bpm = t("oracle.error_heart_rate_range");
+    }
   }
   return errors;
 }
@@ -55,16 +71,55 @@ export function UserForm({
     mother_name_persian: user?.mother_name_persian ?? "",
     country: user?.country ?? "",
     city: user?.city ?? "",
+    gender: user?.gender ?? undefined,
+    heart_rate_bpm: user?.heart_rate_bpm ?? undefined,
+    timezone_hours: user?.timezone_hours ?? 0,
+    timezone_minutes: user?.timezone_minutes ?? 0,
+    latitude: user?.latitude ?? undefined,
+    longitude: user?.longitude ?? undefined,
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [activeKeyboard, setActiveKeyboard] = useState<string | null>(null);
 
-  function handleChange(field: keyof OracleUserCreate, value: string) {
+  function handleFieldChange(
+    field: keyof OracleUserCreate,
+    value: string | number | undefined,
+  ) {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
+  }
+
+  function handleKeyboardChar(char: string) {
+    if (!activeKeyboard) return;
+    setForm((prev) => ({
+      ...prev,
+      [activeKeyboard]:
+        String(prev[activeKeyboard as keyof OracleUserCreate] ?? "") + char,
+    }));
+  }
+
+  function handleKeyboardBackspace() {
+    if (!activeKeyboard) return;
+    setForm((prev) => {
+      const current = String(
+        prev[activeKeyboard as keyof OracleUserCreate] ?? "",
+      );
+      return { ...prev, [activeKeyboard]: current.slice(0, -1) };
+    });
+  }
+
+  function handleLocationChange(loc: LocationData) {
+    setForm((prev) => ({
+      ...prev,
+      country: loc.country ?? prev.country,
+      city: loc.city ?? prev.city,
+      latitude: loc.lat,
+      longitude: loc.lon,
+    }));
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -86,71 +141,252 @@ export function UserForm({
       onClick={onCancel}
     >
       <div
-        className="bg-nps-bg-card border border-nps-oracle-border rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
+        className="bg-nps-bg-card border border-nps-oracle-border rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold text-nps-oracle-accent mb-4">
           {isEdit ? t("oracle.edit_profile") : t("oracle.new_profile")}
         </h3>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Name */}
-          <Field
-            label={t("oracle.field_name")}
-            value={form.name}
-            onChange={(v) => handleChange("name", v)}
-            error={errors.name}
-            required
-          />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* ─── Section 1: Identity ─── */}
+          <fieldset className="space-y-3">
+            <legend className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
+              {t("oracle.section_identity")}
+            </legend>
 
-          {/* Persian Name */}
-          <Field
-            label={t("oracle.field_name_persian")}
-            value={form.name_persian ?? ""}
-            onChange={(v) => handleChange("name_persian", v)}
-            dir="rtl"
-          />
+            {/* Name */}
+            <Field
+              label={t("oracle.field_name")}
+              value={form.name}
+              onChange={(v) => handleFieldChange("name", v)}
+              error={errors.name}
+              required
+            />
 
-          {/* Birthday */}
-          <Field
-            label={t("oracle.field_birthday")}
-            value={form.birthday}
-            onChange={(v) => handleChange("birthday", v)}
-            error={errors.birthday}
-            type="date"
-            required
-          />
+            {/* Persian Name + keyboard toggle */}
+            <div className="relative">
+              <div className="flex items-end gap-1">
+                <div className="flex-1">
+                  <Field
+                    label={t("oracle.field_name_persian")}
+                    value={form.name_persian ?? ""}
+                    onChange={(v) => handleFieldChange("name_persian", v)}
+                    dir="rtl"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveKeyboard(
+                      activeKeyboard === "name_persian" ? null : "name_persian",
+                    )
+                  }
+                  className="mb-0.5 px-2 py-2 text-xs bg-nps-bg-input border border-nps-border rounded hover:bg-nps-bg-hover text-nps-text-dim"
+                  aria-label={t("oracle.keyboard_toggle")}
+                  data-testid="keyboard-toggle-name_persian"
+                >
+                  ⌨
+                </button>
+              </div>
+              {activeKeyboard === "name_persian" && (
+                <PersianKeyboard
+                  onCharacterClick={handleKeyboardChar}
+                  onBackspace={handleKeyboardBackspace}
+                  onClose={() => setActiveKeyboard(null)}
+                />
+              )}
+            </div>
 
-          {/* Mother's Name */}
-          <Field
-            label={t("oracle.field_mother_name")}
-            value={form.mother_name}
-            onChange={(v) => handleChange("mother_name", v)}
-            error={errors.mother_name}
-            required
-          />
+            {/* Birthday via CalendarPicker */}
+            <CalendarPicker
+              value={form.birthday}
+              onChange={(isoDate) => handleFieldChange("birthday", isoDate)}
+              label={t("oracle.field_birthday")}
+              error={errors.birthday}
+            />
+          </fieldset>
 
-          {/* Mother's Persian Name */}
-          <Field
-            label={t("oracle.field_mother_name_persian")}
-            value={form.mother_name_persian ?? ""}
-            onChange={(v) => handleChange("mother_name_persian", v)}
-            dir="rtl"
-          />
+          {/* ─── Section 2: Family ─── */}
+          <fieldset className="space-y-3 border-t border-nps-border/30 pt-4">
+            <legend className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
+              {t("oracle.section_family")}
+            </legend>
 
-          {/* Country */}
-          <Field
-            label={t("oracle.field_country")}
-            value={form.country ?? ""}
-            onChange={(v) => handleChange("country", v)}
-          />
+            {/* Mother's Name */}
+            <Field
+              label={t("oracle.field_mother_name")}
+              value={form.mother_name}
+              onChange={(v) => handleFieldChange("mother_name", v)}
+              error={errors.mother_name}
+              required
+            />
 
-          {/* City */}
-          <Field
-            label={t("oracle.field_city")}
-            value={form.city ?? ""}
-            onChange={(v) => handleChange("city", v)}
-          />
+            {/* Mother's Persian Name + keyboard toggle */}
+            <div className="relative">
+              <div className="flex items-end gap-1">
+                <div className="flex-1">
+                  <Field
+                    label={t("oracle.field_mother_name_persian")}
+                    value={form.mother_name_persian ?? ""}
+                    onChange={(v) =>
+                      handleFieldChange("mother_name_persian", v)
+                    }
+                    dir="rtl"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setActiveKeyboard(
+                      activeKeyboard === "mother_name_persian"
+                        ? null
+                        : "mother_name_persian",
+                    )
+                  }
+                  className="mb-0.5 px-2 py-2 text-xs bg-nps-bg-input border border-nps-border rounded hover:bg-nps-bg-hover text-nps-text-dim"
+                  aria-label={t("oracle.keyboard_toggle")}
+                  data-testid="keyboard-toggle-mother_name_persian"
+                >
+                  ⌨
+                </button>
+              </div>
+              {activeKeyboard === "mother_name_persian" && (
+                <PersianKeyboard
+                  onCharacterClick={handleKeyboardChar}
+                  onBackspace={handleKeyboardBackspace}
+                  onClose={() => setActiveKeyboard(null)}
+                />
+              )}
+            </div>
+          </fieldset>
+
+          {/* ─── Section 3: Location ─── */}
+          <fieldset className="space-y-3 border-t border-nps-border/30 pt-4">
+            <legend className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
+              {t("oracle.section_location")}
+            </legend>
+
+            <LocationSelector
+              value={
+                form.latitude !== undefined && form.longitude !== undefined
+                  ? {
+                      lat: form.latitude,
+                      lon: form.longitude,
+                      country: form.country,
+                      city: form.city,
+                    }
+                  : null
+              }
+              onChange={handleLocationChange}
+            />
+          </fieldset>
+
+          {/* ─── Section 4: Profile Details ─── */}
+          <fieldset className="space-y-3 border-t border-nps-border/30 pt-4">
+            <legend className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
+              {t("oracle.section_details")}
+            </legend>
+
+            {/* Gender */}
+            <div>
+              <label
+                htmlFor="gender-select"
+                className="block text-sm text-nps-text-dim mb-1"
+              >
+                {t("oracle.field_gender")}
+              </label>
+              <select
+                id="gender-select"
+                value={form.gender ?? ""}
+                onChange={(e) =>
+                  handleFieldChange("gender", e.target.value || undefined)
+                }
+                className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
+                data-testid="gender-select"
+              >
+                <option value="">{t("oracle.gender_unset")}</option>
+                <option value="male">{t("oracle.gender_male")}</option>
+                <option value="female">{t("oracle.gender_female")}</option>
+              </select>
+            </div>
+
+            {/* Heart Rate BPM */}
+            <div>
+              <label
+                htmlFor="heart-rate-input"
+                className="block text-sm text-nps-text-dim mb-1"
+              >
+                {t("oracle.field_heart_rate")}
+              </label>
+              <input
+                id="heart-rate-input"
+                type="number"
+                min={30}
+                max={220}
+                value={form.heart_rate_bpm ?? ""}
+                onChange={(e) =>
+                  handleFieldChange(
+                    "heart_rate_bpm",
+                    e.target.value ? Number(e.target.value) : undefined,
+                  )
+                }
+                aria-invalid={!!errors.heart_rate_bpm}
+                className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
+                  errors.heart_rate_bpm
+                    ? "border-nps-error"
+                    : "border-nps-border"
+                }`}
+                data-testid="heart-rate-input"
+              />
+              {errors.heart_rate_bpm && (
+                <p className="text-nps-error text-xs mt-1" role="alert">
+                  {errors.heart_rate_bpm}
+                </p>
+              )}
+            </div>
+
+            {/* Timezone */}
+            <div>
+              <label className="block text-sm text-nps-text-dim mb-1">
+                {t("oracle.field_timezone")}
+              </label>
+              <div className="flex gap-2">
+                <select
+                  value={form.timezone_hours ?? 0}
+                  onChange={(e) =>
+                    handleFieldChange("timezone_hours", Number(e.target.value))
+                  }
+                  className="flex-1 bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
+                  aria-label={t("oracle.timezone_hours")}
+                  data-testid="timezone-hours"
+                >
+                  {Array.from({ length: 27 }, (_, i) => i - 12).map((h) => (
+                    <option key={h} value={h}>
+                      UTC{h >= 0 ? `+${h}` : h}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={form.timezone_minutes ?? 0}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "timezone_minutes",
+                      Number(e.target.value),
+                    )
+                  }
+                  className="w-24 bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
+                  aria-label={t("oracle.timezone_minutes")}
+                  data-testid="timezone-minutes"
+                >
+                  <option value={0}>:00</option>
+                  <option value={15}>:15</option>
+                  <option value={30}>:30</option>
+                  <option value={45}>:45</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
 
           {/* Server error */}
           {serverError && (

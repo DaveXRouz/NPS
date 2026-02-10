@@ -9,8 +9,8 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 3 of 45
-**Last session:** Session 3 — User Profile Management
+**Sessions completed:** 4 of 45
+**Last session:** Session 4 — Oracle Profiles Form & Validation UI
 **Current block:** Foundation (Sessions 1-5)
 
 ---
@@ -176,7 +176,39 @@ TEMPLATE — copy this for each new session:
 - Ownership security: non-owner access returns 404 instead of 403 to avoid revealing resource existence
 - Mutable \_active_user dict pattern for test fixtures avoids FastAPI dependency override collision when testing multiple user identities
 
-**Next:** Session 4 — Oracle Settings & Preferences (CRUD for oracle_settings table, user preference management, defaults handling)
+**Next:** Session 4 — Oracle Profiles Form & Validation UI (frontend rewrite of UserForm, new UserCard/UserProfileList components)
+
+---
+
+## Session 4 — 2026-02-11
+
+**Terminal:** SINGLE
+**Block:** Foundation
+**Task:** Oracle Profiles Form & Validation UI — rewrite UserForm (13 fields, 4 sections), integrate PersianKeyboard/CalendarPicker/LocationSelector, create UserCard + UserProfileList components, expand TypeScript types
+**Spec:** .session-specs/SESSION_4_SPEC.md
+
+**Files changed:**
+
+- `frontend/src/types/index.ts` — Added 7 fields to OracleUser (gender, heart_rate_bpm, timezone_hours, timezone_minutes, latitude, longitude, created_by), 6 fields to OracleUserCreate
+- `frontend/src/components/oracle/UserForm.tsx` — Full rewrite: 13 fields in 4 sections (Identity, Family, Location, Details), PersianKeyboard toggle per Persian field, CalendarPicker replaces native date input, LocationSelector replaces country/city text inputs, gender dropdown, heart rate number input, timezone hour+minute selectors, enhanced validation (no-digits name, pre-1900 birthday, BPM 30-220 range)
+- `frontend/src/components/oracle/UserCard.tsx` — NEW: compact profile card showing name/Persian name, birthday, location, gender badge, heart rate indicator, timezone display, edit/delete action buttons, selected state highlight
+- `frontend/src/components/oracle/UserProfileList.tsx` — NEW: searchable card grid with useOracleUsers hook, search filter, add/edit/delete actions via UserForm modals, loading/empty/error states
+- `frontend/src/components/oracle/__tests__/UserForm.test.tsx` — Rewritten: expanded from 11 to 23 tests; mocks for PersianKeyboard/CalendarPicker/LocationSelector; tests for gender select, BPM validation, timezone selectors, name no-digits, birthday before-1900, keyboard toggle+insert, component integrations, edit mode new fields, submit payload
+- `frontend/src/components/oracle/__tests__/UserCard.test.tsx` — NEW: 10 tests (name+Persian, birthday, location, gender badge, heart rate, timezone, missing optionals, edit/delete callbacks, selected highlight)
+- `frontend/src/components/oracle/__tests__/UserProfileList.test.tsx` — NEW: 6 tests (renders cards, search filter, loading state, empty state, add profile opens form, edit opens form)
+- `frontend/src/components/oracle/__tests__/Accessibility.test.tsx` — Updated: added child component mocks, new translation keys, fixed label query for rewritten UserForm
+- `frontend/vitest.config.ts` — Added e2e exclude to prevent vitest from picking up Playwright tests
+
+**Tests:** 147 pass / 0 fail / 39 new (23 UserForm + 10 UserCard + 6 UserProfileList)
+**Commit:** pending
+**Issues:** None
+**Decisions:**
+
+- Used `fireEvent.submit(form)` instead of `userEvent.click(submitBtn)` for form validation tests — jsdom + React 18 doesn't reliably trigger form onSubmit via button click in testing-library
+- Pre-populated invalid BPM via user prop for validation test — avoids jsdom number input type quirks with event dispatching
+- Added `exclude: ["e2e/**"]` to vitest.config.ts — Playwright tests were being picked up by vitest runner (pre-existing issue, fixed proactively)
+
+**Next:** Session 5 — API Key Dashboard & Settings UI (oracle_settings CRUD endpoints, settings UI, API key management dashboard)
 
 ---
 

@@ -28,6 +28,23 @@ vi.mock("react-i18next", () => ({
         "oracle.add_new_profile": "Add Profile",
         "oracle.delete_profile": "Delete",
         "oracle.delete_confirm": "Confirm Delete",
+        "oracle.section_identity": "Identity",
+        "oracle.section_family": "Family",
+        "oracle.section_location": "Location",
+        "oracle.section_details": "Details",
+        "oracle.field_gender": "Gender",
+        "oracle.field_heart_rate": "Heart Rate (BPM)",
+        "oracle.field_timezone": "Timezone",
+        "oracle.gender_unset": "— Select —",
+        "oracle.gender_male": "Male",
+        "oracle.gender_female": "Female",
+        "oracle.timezone_hours": "Hours",
+        "oracle.timezone_minutes": "Minutes",
+        "oracle.keyboard_toggle": "Toggle keyboard",
+        "oracle.error_heart_rate_range":
+          "Heart rate must be between 30 and 220 BPM",
+        "oracle.error_name_no_digits": "Name must not contain digits",
+        "oracle.error_birthday_too_old": "Birthday must be after 1900",
         "common.loading": "Loading...",
         "common.save": "Save",
         "common.cancel": "Cancel",
@@ -50,6 +67,29 @@ vi.mock("../ReadingHistory", () => ({
 }));
 vi.mock("../ExportButton", () => ({
   ExportButton: () => <button>Export</button>,
+}));
+vi.mock("../PersianKeyboard", () => ({
+  PersianKeyboard: () => <div data-testid="persian-keyboard" />,
+}));
+vi.mock("../CalendarPicker", () => ({
+  CalendarPicker: ({
+    label,
+    error,
+  }: {
+    value: string;
+    onChange: (d: string) => void;
+    label?: string;
+    error?: string;
+  }) => (
+    <div data-testid="calendar-picker">
+      <label>{label}</label>
+      <input data-testid="calendar-input" type="date" />
+      {error && <span>{error}</span>}
+    </div>
+  ),
+}));
+vi.mock("../LocationSelector", () => ({
+  LocationSelector: () => <div data-testid="location-selector" />,
 }));
 
 describe("ReadingResults Accessibility", () => {
@@ -102,9 +142,11 @@ describe("UserForm Accessibility", () => {
 
   it("form inputs have aria-required for required fields", () => {
     render(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
-    // Name, Birthday, Mother Name should be required
-    const nameInput = screen.getByLabelText(/Name/);
+    // Name and Mother Name fields should have aria-required
+    const nameInput = screen.getByLabelText(/^Name/);
     expect(nameInput.getAttribute("aria-required")).toBe("true");
+    const motherInput = screen.getByLabelText(/^Mother Name/);
+    expect(motherInput.getAttribute("aria-required")).toBe("true");
   });
 
   it("shows validation errors with role=alert", async () => {

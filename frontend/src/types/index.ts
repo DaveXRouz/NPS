@@ -176,6 +176,13 @@ export interface OracleUser {
   mother_name_persian?: string;
   country?: string;
   city?: string;
+  gender?: string; // "male" | "female" | null
+  heart_rate_bpm?: number; // 30-220 | null
+  timezone_hours?: number; // -12 to +14
+  timezone_minutes?: number; // 0-59
+  latitude?: number; // -90 to 90
+  longitude?: number; // -180 to 180
+  created_by?: string; // UUID of system user who created this profile
   created_at?: string;
   updated_at?: string;
 }
@@ -188,6 +195,12 @@ export interface OracleUserCreate {
   mother_name_persian?: string;
   country?: string;
   city?: string;
+  gender?: string;
+  heart_rate_bpm?: number;
+  timezone_hours?: number;
+  timezone_minutes?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export type OracleUserUpdate = Partial<OracleUserCreate>;
