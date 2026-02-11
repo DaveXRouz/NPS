@@ -9,8 +9,8 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 7 of 45
-**Last session:** Session 7 — Framework Integration: Reading Types
+**Sessions completed:** 8 of 45
+**Last session:** Session 8 — Numerology System Selection
 **Current block:** Calculation Engines (Sessions 6-12)
 
 ---
@@ -341,6 +341,47 @@ TEMPLATE — copy this for each new session:
 - Multi-user reading dispatches to appropriate single-user function based on reading_type, then passes to MultiUserAnalyzer.analyze_group()
 
 **Next:** Session 8 — Numerology System Selection (auto-detection logic, selector UI, API parameter for pythagorean/chaldean/abjad switching)
+
+---
+
+## Session 8 — 2026-02-11
+
+**Terminal:** SINGLE
+**Block:** Calculation Engines
+**Task:** Numerology System Selection — Abjad letter table, script detection (Python + TypeScript), auto-selection logic, API parameter, settings persistence, frontend selector component
+**Spec:** .session-specs/SESSION_8_SPEC.md
+
+**Files changed:**
+
+- `numerology_ai_framework/personal/abjad_table.py` — NEW: Abjad numeral system mapping (28 Arabic + 4 Persian letters), IGNORED_CHARS (diacritics), ALEF_VARIANTS, get_abjad_value() and name_to_abjad_sum() functions
+- `numerology_ai_framework/personal/numerology_engine.py` — Added Abjad system support to expression_number(), soul_urge(), personality_number(); added ABJAD_VOWEL_LETTERS class var (alef, vav, ya in Arabic + Persian forms); added get_abjad_value import
+- `services/oracle/oracle_service/utils/__init__.py` — NEW: utils package init
+- `services/oracle/oracle_service/utils/script_detector.py` — NEW: detect_script(), contains_persian(), contains_latin(), auto_select_system() with priority: manual override > name script > locale > pythagorean default
+- `services/oracle/oracle_service/framework_bridge.py` — Added resolve_numerology_system() function; updated all 5 typed reading functions with locale parameter and system resolution via auto_select_system
+- `api/app/models/oracle.py` — Added NumerologySystemType Literal type; added numerology_system field to ReadingRequest, QuestionRequest, NameReadingRequest, MultiUserReadingRequest
+- `api/app/orm/oracle_settings.py` — NEW: SQLAlchemy ORM for oracle_settings table (user_id FK, language, theme, numerology_system, timezone, toggles)
+- `api/app/main.py` — Added oracle_settings ORM import for table registration
+- `frontend/src/utils/scriptDetector.ts` — NEW: TypeScript mirror of Python script_detector (detectScript, containsPersian, containsLatin, autoSelectSystem)
+- `frontend/src/components/oracle/NumerologySystemSelector.tsx` — NEW: radio group with 4 options (auto/pythagorean/chaldean/abjad), auto-detect hint, i18n
+- `frontend/src/components/oracle/OracleConsultationForm.tsx` — Integrated NumerologySystemSelector after SignTypeSelector
+- `frontend/src/locales/en.json` — Added 11 numerology selector i18n keys
+- `frontend/src/locales/fa.json` — Added 11 corresponding Persian translation keys
+- `numerology_ai_framework/tests/test_abjad.py` — NEW: 15 tests (Abjad table values, name sums, diacritics, alef variants, Persian-specific letters, vowel equivalents, digital root)
+- `services/oracle/tests/test_numerology_selection.py` — NEW: 17 tests (script detection, contains_persian/latin, auto_select_system, resolve_numerology_system with UserProfile)
+- `frontend/src/utils/__tests__/scriptDetector.test.ts` — NEW: 12 tests (detectScript, containsPersian, containsLatin, autoSelectSystem)
+
+**Tests:** 123 framework pass (no regressions) | 15 Abjad tests pass | 17 selection tests pass | 12 frontend script tests pass | 165 total frontend pass (20 files, no regressions)
+**Commit:** (pending)
+**Issues:** None
+**Decisions:**
+
+- Persian Ya (U+06CC) added alongside Arabic Ya (U+064A) in Abjad table — critical for correct Persian name calculations; both map to value 10
+- Abjad soul_urge for names without long vowel letters (e.g., حمزه) correctly returns 0 — ح and ه are not vowel equivalents in Abjad tradition
+- Auto-selection priority: manual override > Persian characters in name > fa locale > pythagorean default — ensures correct system without user intervention for most cases
+- ORM model uses String(36) for user_id FK for SQLite test compatibility (same pattern as Session 3)
+- Framework bridge resolve_numerology_system() called at the start of each typed reading function, keeping system selection centralized
+
+**Next:** Session 9 — Zodiac & Elemental Engine (Chinese zodiac animal/element calculations, Western zodiac mapping, element balance analysis)
 
 ---
 

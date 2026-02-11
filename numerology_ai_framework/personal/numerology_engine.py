@@ -2,21 +2,23 @@
 Numerology Engine - Personal Tier Module 1
 ===========================================
 Purpose: Calculate all core numerology numbers from names and birthdates
-         Supports Pythagorean and Chaldean systems
+         Supports Pythagorean, Chaldean, and Abjad systems
 
 Core Numbers:
 - Life Path: Core purpose from birthdate
 - Expression: Full potential from full name
-- Soul Urge: Inner desires from vowels
-- Personality: Outer impression from consonants
+- Soul Urge: Inner desires from vowels (or long vowel letters for Abjad)
+- Personality: Outer impression from consonants (or non-vowel letters for Abjad)
 - Personal Year/Month/Day: Current cycle themes
 """
 
 from typing import Dict
 
+from personal.abjad_table import get_abjad_value
+
 
 class NumerologyEngine:
-    """Complete numerology calculator with dual-system support."""
+    """Complete numerology calculator with tri-system support."""
 
     # Pythagorean Letter Values
     PYTHAGOREAN = {
@@ -80,6 +82,18 @@ class NumerologyEngine:
     VOWELS = set("AEIOUY")
     MASTER_NUMBERS = {11, 22, 33}
 
+    # Abjad "vowel equivalents" — letters that represent long vowels
+    ABJAD_VOWEL_LETTERS = {
+        "\u0627",
+        "\u0648",
+        "\u064a",
+        "\u06cc",  # alef, vav, ya (Arabic + Persian forms)
+        "\u0622",
+        "\u0623",
+        "\u0625",
+        "\u0671",  # alef variants
+    }
+
     LIFE_PATH_MEANINGS = {
         1: ("Pioneer", "Lead and initiate"),
         2: ("Bridge", "Connect and harmonize"),
@@ -116,7 +130,10 @@ class NumerologyEngine:
 
     @staticmethod
     def expression_number(full_name: str, system: str = "pythagorean") -> int:
-        """Expression from full name."""
+        """Expression from full name. Supports pythagorean, chaldean, abjad."""
+        if system == "abjad":
+            value = sum(get_abjad_value(c) for c in full_name)
+            return NumerologyEngine.digital_root(value) if value > 0 else 0
         table = (
             NumerologyEngine.PYTHAGOREAN
             if system == "pythagorean"
@@ -127,7 +144,14 @@ class NumerologyEngine:
 
     @staticmethod
     def soul_urge(full_name: str, system: str = "pythagorean") -> int:
-        """Soul Urge from vowels."""
+        """Soul Urge from vowels (or long vowel letters for Abjad)."""
+        if system == "abjad":
+            value = sum(
+                get_abjad_value(c)
+                for c in full_name
+                if c in NumerologyEngine.ABJAD_VOWEL_LETTERS
+            )
+            return NumerologyEngine.digital_root(value) if value > 0 else 0
         table = (
             NumerologyEngine.PYTHAGOREAN
             if system == "pythagorean"
@@ -140,7 +164,15 @@ class NumerologyEngine:
 
     @staticmethod
     def personality_number(full_name: str, system: str = "pythagorean") -> int:
-        """Personality from consonants."""
+        """Personality from consonants (or non-vowel letters for Abjad)."""
+        if system == "abjad":
+            value = sum(
+                get_abjad_value(c)
+                for c in full_name
+                if c not in NumerologyEngine.ABJAD_VOWEL_LETTERS
+                and get_abjad_value(c) > 0
+            )
+            return NumerologyEngine.digital_root(value) if value > 0 else 0
         table = (
             NumerologyEngine.PYTHAGOREAN
             if system == "pythagorean"
@@ -293,7 +325,7 @@ if __name__ == "__main__":
         )
         passed += 1
     else:
-        print(f"✗ Gender polarity incorrect")
+        print("✗ Gender polarity incorrect")
         failed += 1
 
     # Test 5: Profile with gender
@@ -317,7 +349,7 @@ if __name__ == "__main__":
     # Test 6: Backward compatibility (no gender param)
     profile3 = NumerologyEngine.complete_profile("Test User", 1, 1, 2000, 2026, 2, 9)
     if profile3["gender_polarity"]["label"] == "Neutral":
-        print(f"✓ Backward compat: no gender → Neutral")
+        print("✓ Backward compat: no gender → Neutral")
         passed += 1
     else:
         print("✗ Backward compat broken")

@@ -32,6 +32,7 @@ import app.orm.oracle_reading  # noqa: F401
 import app.orm.audit_log  # noqa: F401
 import app.orm.user  # noqa: F401
 import app.orm.api_key  # noqa: F401
+import app.orm.oracle_settings  # noqa: F401
 
 logger = logging.getLogger(__name__)
 

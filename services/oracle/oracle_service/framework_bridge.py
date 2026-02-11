@@ -21,6 +21,7 @@ from oracle_service.models.reading_types import (
     UserProfile,
 )
 from oracle_service.multi_user_analyzer import MultiUserAnalyzer
+from oracle_service.utils.script_detector import auto_select_system
 
 from numerology_ai_framework.core.base60_codec import Base60Codec
 from numerology_ai_framework.core.fc60_stamp_engine import FC60StampEngine
@@ -551,6 +552,27 @@ def generate_symbolic_reading(
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# Numerology System Resolution (Session 8)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def resolve_numerology_system(
+    user: UserProfile,
+    locale: str = "en",
+) -> str:
+    """Resolve the effective numerology system for a reading.
+
+    If user's numerology_system is 'auto', detects based on name script + locale.
+    Otherwise uses the explicit setting.
+    """
+    return auto_select_system(
+        name=user.full_name,
+        locale=locale,
+        user_preference=user.numerology_system,
+    )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # Typed Reading Functions (Session 7)
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -639,6 +661,7 @@ def generate_time_reading(
     minute: int,
     second: int,
     target_date: Optional[datetime] = None,
+    locale: str = "en",
 ) -> ReadingResult:
     """Generate a reading where the "sign" is a specific time (HH:MM:SS).
 
@@ -655,8 +678,10 @@ def generate_time_reading(
     if not (0 <= second <= 59):
         raise ValueError(f"Invalid second: {second}")
 
+    resolved_system = resolve_numerology_system(user, locale)
     t0 = time.perf_counter()
     kwargs = user.to_framework_kwargs()
+    kwargs["numerology_system"] = resolved_system
     kwargs["current_hour"] = hour
     kwargs["current_minute"] = minute
     kwargs["current_second"] = second
@@ -680,12 +705,12 @@ def generate_name_reading(
     user: UserProfile,
     name_to_analyze: str,
     target_date: Optional[datetime] = None,
+    locale: str = "en",
 ) -> ReadingResult:
     """Generate a reading where the "sign" is a name string.
 
     The name_to_analyze overrides user.full_name for numerology calculation.
-    Other personal data (birth date, location, etc.) still comes from the
-    user's profile.
+    For name readings, script detection uses the analyzed name, not the user's name.
 
     Raises:
         ValueError: If name_to_analyze is empty.
@@ -694,9 +719,17 @@ def generate_name_reading(
     if not name_to_analyze or not name_to_analyze.strip():
         raise ValueError("Name cannot be empty")
 
+    # For name readings, detect script from the analyzed name, not the user's name
+    resolved_system = auto_select_system(
+        name=name_to_analyze,
+        locale=locale,
+        user_preference=user.numerology_system,
+    )
+
     t0 = time.perf_counter()
     kwargs = user.to_framework_kwargs()
     kwargs["full_name"] = name_to_analyze
+    kwargs["numerology_system"] = resolved_system
     if target_date is not None:
         kwargs["current_date"] = target_date
 
@@ -717,6 +750,7 @@ def generate_question_reading(
     user: UserProfile,
     question_text: str,
     target_date: Optional[datetime] = None,
+    locale: str = "en",
 ) -> ReadingResult:
     """Generate a reading where the "sign" is a question typed by the user.
 
@@ -731,11 +765,13 @@ def generate_question_reading(
     if not question_text or not question_text.strip():
         raise ValueError("Question cannot be empty")
 
+    resolved_system = resolve_numerology_system(user, locale)
     t0 = time.perf_counter()
 
-    vibration = NumerologyEngine.expression_number(question_text, system=user.numerology_system)
+    vibration = NumerologyEngine.expression_number(question_text, system=resolved_system)
 
     kwargs = user.to_framework_kwargs()
+    kwargs["numerology_system"] = resolved_system
     if target_date is not None:
         kwargs["current_date"] = target_date
 
@@ -757,6 +793,7 @@ def generate_question_reading(
 def generate_daily_reading(
     user: UserProfile,
     target_date: Optional[datetime] = None,
+    locale: str = "en",
 ) -> ReadingResult:
     """Generate a daily reading — no manual sign input.
 
@@ -767,9 +804,11 @@ def generate_daily_reading(
     Raises:
         FrameworkBridgeError: If framework reading generation fails.
     """
+    resolved_system = resolve_numerology_system(user, locale)
     t0 = time.perf_counter()
 
     kwargs = user.to_framework_kwargs()
+    kwargs["numerology_system"] = resolved_system
     kwargs["current_hour"] = 12
     kwargs["current_minute"] = 0
     kwargs["current_second"] = 0
@@ -799,6 +838,7 @@ def generate_multi_user_reading(
     reading_type: ReadingType = ReadingType.TIME,
     sign_value: Optional[str] = None,
     target_date: Optional[datetime] = None,
+    locale: str = "en",
 ) -> MultiUserResult:
     """Generate readings for 2-5 users with pairwise compatibility analysis.
 
@@ -827,17 +867,17 @@ def generate_multi_user_reading(
             else:
                 now = target_date or datetime.now()
                 h, m, s = now.hour, now.minute, now.second
-            reading = generate_time_reading(user, h, m, s, target_date)
+            reading = generate_time_reading(user, h, m, s, target_date, locale)
         elif reading_type == ReadingType.NAME:
-            reading = generate_name_reading(user, sign_value or user.full_name, target_date)
+            reading = generate_name_reading(user, sign_value or user.full_name, target_date, locale)
         elif reading_type == ReadingType.QUESTION:
             reading = generate_question_reading(
-                user, sign_value or "What is our shared destiny?", target_date
+                user, sign_value or "What is our shared destiny?", target_date, locale
             )
         elif reading_type == ReadingType.DAILY:
-            reading = generate_daily_reading(user, target_date)
+            reading = generate_daily_reading(user, target_date, locale)
         else:
-            reading = generate_time_reading(user, 12, 0, 0, target_date)
+            reading = generate_time_reading(user, 12, 0, 0, target_date, locale)
         individual.append(reading)
 
     result = MultiUserAnalyzer.analyze_group(individual)

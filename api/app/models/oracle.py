@@ -1,11 +1,16 @@
 """Oracle request/response models."""
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict
+
+NumerologySystemType = Literal["pythagorean", "chaldean", "abjad", "auto"]
 
 
 class ReadingRequest(BaseModel):
     datetime: str | None = None  # ISO 8601, defaults to now
     extended: bool = False
+    numerology_system: NumerologySystemType = "auto"
 
 
 class FC60Data(BaseModel):
@@ -87,6 +92,7 @@ class ReadingResponse(BaseModel):
 
 class QuestionRequest(BaseModel):
     question: str
+    numerology_system: NumerologySystemType = "auto"
 
 
 class QuestionResponse(BaseModel):
@@ -99,6 +105,7 @@ class QuestionResponse(BaseModel):
 
 class NameReadingRequest(BaseModel):
     name: str
+    numerology_system: NumerologySystemType = "auto"
 
 
 class LetterAnalysis(BaseModel):
@@ -193,6 +200,7 @@ class MultiUserReadingRequest(BaseModel):
     users: list[MultiUserInput]
     primary_user_index: int = 0
     include_interpretation: bool = True
+    numerology_system: NumerologySystemType = "auto"
 
     def model_post_init(self, __context):
         if len(self.users) < 2:

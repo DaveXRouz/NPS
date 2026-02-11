@@ -168,7 +168,18 @@
     "personal_day": "Personal Day",
     "element_balance": "Element Balance",
     "sign_number": "Sign Number",
-    "generated_at": "Generated at"
+    "generated_at": "Generated at",
+
+    "numerology_selector_title": "Numerology System",
+    "numerology_selector_auto": "Auto-detect",
+    "numerology_selector_auto_desc": "Automatically selects based on name script",
+    "numerology_selector_pythagorean": "Pythagorean",
+    "numerology_selector_pythagorean_desc": "Western system, best for English names",
+    "numerology_selector_chaldean": "Chaldean",
+    "numerology_selector_chaldean_desc": "Ancient Babylonian alternative",
+    "numerology_selector_abjad": "Abjad",
+    "numerology_selector_abjad_desc": "Traditional Arabic/Persian system",
+    "numerology_selector_detected": "Detected: {{system}}"
   },
   "vault": {
     "title": "Vault",

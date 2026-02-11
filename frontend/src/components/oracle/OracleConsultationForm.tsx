@@ -3,10 +3,12 @@ import { useTranslation } from "react-i18next";
 import type { SignData, LocationData, ConsultationResult } from "@/types";
 import { validateSign } from "@/utils/signValidators";
 import { oracle } from "@/services/api";
+import type { NumerologySystem } from "@/utils/scriptDetector";
 import { PersianKeyboard } from "./PersianKeyboard";
 import { CalendarPicker } from "./CalendarPicker";
 import { SignTypeSelector } from "./SignTypeSelector";
 import { LocationSelector } from "./LocationSelector";
+import { NumerologySystemSelector } from "./NumerologySystemSelector";
 
 interface OracleConsultationFormProps {
   userId: number;
@@ -27,6 +29,8 @@ export function OracleConsultationForm({
   const [location, setLocation] = useState<LocationData | null>(null);
   const [showKeyboard, setShowKeyboard] = useState(false);
   const [signError, setSignError] = useState<string | undefined>();
+  const [numerologySystem, setNumerologySystem] =
+    useState<NumerologySystem>("auto");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -122,6 +126,13 @@ export function OracleConsultationForm({
         value={sign}
         onChange={handleSignChange}
         error={signError}
+      />
+
+      {/* Numerology system selector */}
+      <NumerologySystemSelector
+        value={numerologySystem}
+        onChange={setNumerologySystem}
+        userName={userName}
       />
 
       {/* Location selector */}
