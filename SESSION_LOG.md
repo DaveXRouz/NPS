@@ -520,7 +520,7 @@ TEMPLATE — copy this for each new session:
 - Bridge passthrough verification — already passing all optional data since Session 6
 
 **Tests:** 239 API pass (10 pre-existing multi_user fail) | 275 oracle pass (1 pre-existing Docker path fail) | 210 frontend pass | 123 framework pass (no regressions) | 25 new tests total (12 backend + 13 frontend)
-**Commit:** TBD
+**Commit:** 9830db0 — [oracle][api][frontend] heartbeat & location engines: display components, confidence meter, bridge tests (#session-12)
 **Issues:** None
 **Decisions:**
 
