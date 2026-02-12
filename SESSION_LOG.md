@@ -9,9 +9,9 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 25 of 45
-**Last session:** Session 25 — WebSocket & Real-Time Updates
-**Current block:** Frontend Core (Sessions 19-25) — COMPLETE (7 sessions)
+**Sessions completed:** 26 of 45
+**Last session:** Session 26 — RTL Layout System
+**Current block:** Frontend Advanced (Sessions 26-31) — 1 of 6 sessions complete
 
 ---
 
@@ -1182,6 +1182,61 @@ TEMPLATE — copy this for each new session:
 - useReadingProgress rewritten to be a pure event consumer (no imperative startProgress/resetProgress) — progress state driven entirely by WS events
 
 **Next:** Session 26 — RTL Layout System (comprehensive RTL support, bidirectional layout, component RTL testing)
+
+---
+
+## Session 26 — 2026-02-13
+
+**Objective:** RTL Layout System — full bidirectional support for Persian locale
+**Spec:** `.session-specs/SESSION_26_SPEC.md`
+**Block:** Frontend Advanced (Sessions 26-31) — Session 1 of 6
+
+**What was built:**
+
+1. **Tailwind RTL plugin** — installed `tailwindcss-rtl`, configured in `tailwind.config.ts`
+2. **useDirection hook** (`frontend/src/hooks/useDirection.ts`) — single source of truth for `dir`, `isRTL`, `locale`; memoized on `i18n.language`
+3. **BiDirectionalText** (`frontend/src/components/common/BiDirectionalText.tsx`) — auto-detects script direction (Latin vs Arabic regex), applies `unicode-bidi: isolate`, supports `forceDir` override and custom `as` element
+4. **DirectionalIcon** (`frontend/src/components/common/DirectionalIcon.tsx`) — auto-flips horizontal icons via `scaleX(-1)` in RTL mode, `flip` prop opt-out
+5. **Expanded rtl.css** — icon-flip class, font-mono LTR isolation, technical-value isolation, sidebar transitions, table alignment, dropdown positioning, address/hash/monospace LTR
+6. **Logical CSS migration** — converted 20+ components from physical to logical properties:
+   - `ml-*`/`mr-*` → `ms-*`/`me-*`
+   - `pl-*`/`pr-*` → `ps-*`/`pe-*`
+   - `border-l-*`/`border-r-*` → `border-s-*`/`border-e-*`
+   - `left-*`/`right-*` → `start-*`/`end-*`
+   - `text-left`/`text-right` → `text-start`/`text-end`
+7. **i18n hardcoded string removal** — DetailsTab.tsx fully migrated from hardcoded English to `t()` keys; added `oracle.letter_column` key to distinguish table headers from section titles
+8. **14 RTL unit tests** — useDirection (LTR/RTL), BiDirectionalText (force dir, auto-detect Latin/Persian, as prop, unicode-bidi), DirectionalIcon (no flip LTR, flip RTL, flip=false)
+
+**Files created (3):**
+
+- `frontend/src/hooks/useDirection.ts`
+- `frontend/src/components/common/BiDirectionalText.tsx`
+- `frontend/src/components/common/DirectionalIcon.tsx`
+
+**Files modified (28):**
+
+- `frontend/package.json`, `frontend/package-lock.json` (tailwindcss-rtl dep)
+- `frontend/tailwind.config.ts` (rtl plugin)
+- `frontend/src/styles/rtl.css` (expanded utilities)
+- `frontend/src/locales/en.json`, `frontend/src/locales/fa.json` (letter_column key)
+- `frontend/src/__tests__/rtl-layout.test.tsx` (14 tests rewritten)
+- `frontend/src/components/Layout.tsx`, `Navigation.tsx`
+- `frontend/src/components/admin/LearningDashboard.tsx`
+- `frontend/src/components/dashboard/MoonPhaseWidget.tsx`, `RecentReadings.tsx`
+- `frontend/src/components/oracle/CalendarPicker.tsx`, `DailyReadingCard.tsx`, `DetailsTab.tsx`, `FC60StampDisplay.tsx`, `NameReadingForm.tsx`, `PersianKeyboard.tsx`, `QuestionReadingForm.tsx`, `ReadingCard.tsx`, `ReadingFeedback.tsx`, `ReadingTypeSelector.tsx`, `SignTypeSelector.tsx`, `SummaryTab.tsx`, `TimeReadingForm.tsx`, `UserChip.tsx`, `UserForm.tsx`
+- `frontend/src/components/oracle/__tests__/SummaryTab.test.tsx`
+
+**Tests:** 478 frontend pass / 0 fail / 14 new RTL tests | 0 regressions
+**Commit:** PENDING_HASH
+**Issues:** None — all pre-existing tsc errors unchanged
+**Decisions:**
+
+- Used Tailwind native logical properties (`ms-*`, `ps-*`, `border-s-*`, `start-*`, `text-start`) instead of `rtl:` variants where possible — cleaner, less verbose, works automatically
+- Created `oracle.letter_column` i18n key to disambiguate table column "Letter" from section title "Letter Analysis" (both mapped to `oracle.details_letters` previously)
+- BiDirectionalText uses regex-based script detection (Arabic Unicode range vs Latin count) — fast, no external dependency
+- DirectionalIcon uses inline `transform: scaleX(-1)` instead of CSS class to avoid Tailwind purge issues
+
+**Next:** Session 27 — Responsive Design System (mobile breakpoints, fluid typography, touch targets, responsive Oracle layout)
 
 ---
 
