@@ -1017,7 +1017,7 @@ TEMPLATE — copy this for each new session:
 - `api/app/services/oracle_reading.py` — Added `get_dashboard_stats()` method: total readings, by-type counts, average confidence (parsed from JSONB reading_result), streak calculation (consecutive days backwards from today), readings today/week/month
 
 **Tests:** 343 pass / 0 fail / 27 new frontend (3 MoonPhase + 4 WelcomeBanner + 4 DailyReading + 3 StatsCards + 6 RecentReadings + 4 QuickActions + 3 Dashboard page) + 5 new API | 0 regressions across all 56 frontend test files
-**Commit:** TBD
+**Commit:** cdd4042
 **Issues:** None
 **Decisions:**
 
