@@ -1069,7 +1069,7 @@ TEMPLATE — copy this for each new session:
 **Backend tests:** `api/tests/test_settings.py` — 5 tests (get empty, update, get after update, invalid key, upsert)
 
 **Tests:** 353 frontend pass / 0 fail / 10 new (6 Settings + 4 ApiKeySection) | 354 backend pass / 10 fail (pre-existing multi_user_reading CompatibilityAnalyzer issue) / 5 new settings | 0 regressions
-**Commit:** PENDING
+**Commit:** fdea535
 **Issues:** None — adapted spec's oracle_settings table name to user_settings to avoid conflict with existing oracle_settings ORM (Session 1); used migration 018 since 015-017 were taken
 **Decisions:**
 
