@@ -32,15 +32,13 @@ if _ORACLE_SERVICE_DIR not in sys.path:
 
 import oracle_service  # noqa: E402, F401 — triggers shim for absolute imports
 
-from engines.fc60 import (  # noqa: E402
+from oracle_service.framework_bridge import (  # noqa: E402
     ANIMAL_NAMES,
     STEM_ELEMENTS,
     STEM_NAMES,
     STEM_POLARITY,
     encode_fc60,
     ganzhi_year,
-)
-from engines.numerology import (  # noqa: E402
     LETTER_VALUES,
     LIFE_PATH_MEANINGS,
     life_path,
@@ -54,7 +52,7 @@ from engines.oracle import (  # noqa: E402
     read_name,
     read_sign,
 )
-from logic.timing_advisor import (  # noqa: E402
+from engines.timing_advisor import (  # noqa: E402
     get_current_quality,
 )
 from engines.multi_user_service import MultiUserFC60Service  # noqa: E402

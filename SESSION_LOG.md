@@ -9,8 +9,8 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 9 of 45
-**Last session:** Session 9 — Signal Processing & Patterns
+**Sessions completed:** 10 of 45
+**Last session:** Session 10 — FC60 Stamp Display & Validation
 **Current block:** Calculation Engines (Sessions 6-12)
 
 ---
@@ -408,7 +408,46 @@ TEMPLATE — copy this for each new session:
 - Pattern enrichment happens inside generate_single_reading() so all 5 typed reading functions (time, name, question, daily, multi-user) inherit it automatically
 - Confidence caveats in both EN and FA — low gets "limited data" warning, medium gets "add optional data" suggestion, high/very_high get empty string
 
-**Next:** Session 10 — Zodiac & Elemental Engine (Chinese zodiac animal/element calculations, Western zodiac mapping, element balance analysis)
+**Next:** Session 10 — FC60 Stamp Display & Validation
+
+---
+
+## Session 10 — 2026-02-13
+
+**Terminal:** SINGLE
+**Block:** Calculation Engines
+**Task:** FC60 Stamp Display & Validation — bridge stamp functions, API validate-stamp endpoint, TypeScript types, FC60StampDisplay component, StampComparison component, i18n translations, comprehensive tests
+**Spec:** .session-specs/SESSION_10_SPEC.md
+
+**Files changed:**
+
+- `services/oracle/oracle_service/framework_bridge.py` — Added 3 functions: \_describe_token() (breaks 4-char FC60 token into animal+element with names), validate_fc60_stamp() (validates stamp string, returns decoded components), format_stamp_for_display() (formats framework reading for frontend display with all segments annotated)
+- `api/app/models/oracle.py` — Added 4 Pydantic models: StampValidateRequest, StampSegment, StampDecodedResponse (weekday/month/day/half/hour/minute/second), StampValidateResponse
+- `api/app/routers/oracle.py` — Added POST /validate-stamp endpoint with oracle:read scope, framework_bridge import, 503 fallback on import error
+- `api/app/services/oracle_reading.py` — Fixed pre-existing broken imports from deleted engines.fc60 and engines.numerology → redirected to oracle_service.framework_bridge; fixed logic.timing_advisor → engines.timing_advisor
+- `frontend/src/types/index.ts` — Added 5 interfaces: FC60StampSegment, FC60StampWeekday, FC60StampTime, FC60StampData, StampValidateResponse
+- `frontend/src/services/api.ts` — Added validateStamp() method to oracle API object
+- `frontend/src/components/oracle/FC60StampDisplay.tsx` — NEW: element-colored token badges (WU=green, FI=red, ER=amber, MT=yellow, WA=blue), copy-to-clipboard, tooltips with animal/element names, 3 size variants (compact/normal/large), accessibility aria-labels, i18n
+- `frontend/src/components/oracle/StampComparison.tsx` — NEW: multi-user stamp comparison with responsive side-by-side grid, shared animal/element detection via useMemo, summary badges
+- `frontend/src/locales/en.json` — Added 41 FC60-specific i18n keys (animals, elements, UI labels)
+- `frontend/src/locales/fa.json` — Added 41 corresponding Persian translations
+- `services/oracle/tests/test_stamp_validation.py` — NEW: 15 tests (3 \_describe_token + 9 validate_fc60_stamp + 3 format_stamp_for_display)
+- `api/tests/test_stamp_endpoint.py` — NEW: 3 async tests (valid stamp, invalid stamp, unauthorized 401) using conftest fixtures
+- `frontend/src/components/oracle/__tests__/FC60StampDisplay.test.tsx` — NEW: 13 tests (renders stamp, 5 element colors, AM/PM markers, tooltips, clipboard copy, compact/large variants, aria-label)
+- `frontend/src/components/oracle/__tests__/StampComparison.test.tsx` — NEW: 4 tests (side-by-side rendering, user name headers, shared animals, shared elements)
+
+**Tests:** 239 API pass (10 pre-existing multi_user fail) | 15 oracle stamp pass | 182 frontend pass | 35 new tests total
+**Commit:** pending
+**Issues:** Fixed pre-existing broken imports in oracle_reading.py (engines.fc60 and engines.numerology deleted in Session 6 but imports not updated)
+**Decisions:**
+
+- Used async httpx.AsyncClient pattern for API stamp tests to match conftest fixtures (sync TestClient conflicted with setup_database autouse fixture)
+- Element color palette: green-500 (Wood), red-500 (Fire), amber-700 (Earth), yellow-400 (Metal), blue-500 (Water) — matches traditional Wu Xing color associations
+- Weekday display shows both day name ("Friday") and planet/domain from framework output
+- format_stamp_for_display returns null time for date-only stamps (no has_time flag)
+- StampComparison shared detection uses Set intersection across all token positions
+
+**Next:** Session 11 — Zodiac & Elemental Engine (Chinese zodiac animal/element calculations, Western zodiac mapping, element balance analysis)
 
 ---
 

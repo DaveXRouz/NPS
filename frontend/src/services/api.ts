@@ -104,6 +104,11 @@ export const oracle = {
   },
   getReading: (id: number) =>
     request<import("@/types").StoredReading>(`/oracle/readings/${id}`),
+  validateStamp: (stamp: string) =>
+    request<import("@/types").StampValidateResponse>("/oracle/validate-stamp", {
+      method: "POST",
+      body: JSON.stringify({ stamp }),
+    }),
 };
 
 // ─── Oracle Users ───

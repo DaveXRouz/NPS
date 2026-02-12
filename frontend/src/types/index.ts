@@ -310,6 +310,47 @@ export interface MultiUserReadingResponse {
   reading_id: number | null;
 }
 
+// ─── FC60 Stamp (Framework-aligned, Session 10) ───
+
+export interface FC60StampSegment {
+  token: string;
+  value?: number;
+  animalName?: string;
+  elementName?: string;
+}
+
+export interface FC60StampWeekday {
+  token: string;
+  name: string;
+  planet: string;
+  domain: string;
+}
+
+export interface FC60StampTime {
+  half: string; // "☀" or "🌙"
+  hour: FC60StampSegment;
+  minute: FC60StampSegment;
+  second: FC60StampSegment;
+}
+
+export interface FC60StampData {
+  fc60: string;
+  j60: string;
+  y60: string;
+  chk: string;
+  weekday: FC60StampWeekday;
+  month: FC60StampSegment & { index: number };
+  dom: FC60StampSegment;
+  time: FC60StampTime | null;
+}
+
+export interface StampValidateResponse {
+  valid: boolean;
+  stamp: string;
+  decoded: Record<string, unknown> | null;
+  error: string | null;
+}
+
 // ─── Translation ───
 
 export interface TranslateResponse {

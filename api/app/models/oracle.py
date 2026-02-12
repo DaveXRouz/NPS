@@ -286,3 +286,40 @@ class MultiUserReadingResponse(BaseModel):
     group_dynamics: GroupDynamics | None = None
     ai_interpretation: dict | None = None
     reading_id: int | None = None
+
+
+# ─── FC60 Stamp Validation Models (Session 10) ────────────────────────────
+
+
+class StampValidateRequest(BaseModel):
+    stamp: str
+
+
+class StampSegment(BaseModel):
+    token: str
+    value: int | None = None
+    animal_name: str | None = None
+    element_name: str | None = None
+
+
+class StampDecodedResponse(BaseModel):
+    weekday_token: str
+    weekday_name: str
+    month: int | None = None
+    month_token: str
+    day: int | None = None
+    dom_token: str
+    half: str | None = None
+    hour: int | None = None
+    hour_animal: str | None = None
+    minute: int | None = None
+    minute_token: str | None = None
+    second: int | None = None
+    second_token: str | None = None
+
+
+class StampValidateResponse(BaseModel):
+    valid: bool
+    stamp: str
+    decoded: StampDecodedResponse | None = None
+    error: str | None = None

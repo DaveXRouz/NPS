@@ -31,6 +31,8 @@ from app.models.oracle import (
     RangeResponse,
     ReadingRequest,
     ReadingResponse,
+    StampValidateRequest,
+    StampValidateResponse,
     StoredReadingListResponse,
     StoredReadingResponse,
 )
@@ -271,6 +273,42 @@ def suggest_scan_range(
         ai_level=body.ai_level,
     )
     return RangeResponse(**result)
+
+
+# ─── FC60 Stamp Validation Endpoint (Session 10) ────────────────────────────
+
+
+@router.post(
+    "/validate-stamp",
+    response_model=StampValidateResponse,
+    dependencies=[Depends(require_scope("oracle:read"))],
+)
+def validate_stamp(
+    body: StampValidateRequest,
+    _user: dict = Depends(get_current_user),
+):
+    """Validate an FC60 stamp string and return decoded components."""
+    import sys
+    from pathlib import Path
+
+    # Ensure framework bridge is importable
+    project_root = Path(__file__).resolve().parents[3]
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    oracle_root = project_root / "services" / "oracle"
+    if str(oracle_root) not in sys.path:
+        sys.path.insert(0, str(oracle_root))
+
+    try:
+        from oracle_service.framework_bridge import validate_fc60_stamp
+
+        result = validate_fc60_stamp(body.stamp)
+        return StampValidateResponse(**result)
+    except ImportError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Framework bridge not available",
+        )
 
 
 # ─── Multi-User Reading Endpoint ────────────────────────────────────────────

@@ -919,3 +919,195 @@ def generate_multi_user_reading(
     logger.info("Multi-user reading (%d users) generated in %.1fms", len(users), duration_ms)
 
     return result
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# FC60 Stamp Validation & Display (Session 10)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def _describe_token(token: str) -> Dict[str, Any]:
+    """Break a 4-char FC60 token into animal + element with names.
+
+    Args:
+        token: 4-character FC60 token (e.g., "RAWU", "SNFI").
+
+    Returns:
+        Dict with token, value, animal_name, element_name.
+
+    Raises:
+        ValueError: If token is invalid.
+    """
+    n = Base60Codec.digit60(token)
+    animal_idx = n // 5
+    element_idx = n % 5
+    return {
+        "token": token,
+        "value": n,
+        "animal_name": Base60Codec.get_animal_name(animal_idx),
+        "element_name": Base60Codec.get_element_name(element_idx),
+    }
+
+
+def validate_fc60_stamp(stamp_string: str) -> Dict[str, Any]:
+    """Validate an FC60 stamp and return decoded components.
+
+    Uses FC60StampEngine.decode_stamp() for parsing and
+    ChecksumValidator for verification (when enough data is available).
+
+    Args:
+        stamp_string: FC60 stamp string to validate.
+
+    Returns:
+        Dict with valid, stamp, decoded (if valid), error (if invalid).
+    """
+    if not stamp_string or not stamp_string.strip():
+        return {
+            "valid": False,
+            "stamp": stamp_string or "",
+            "decoded": None,
+            "error": "Empty stamp",
+        }
+
+    stamp_string = stamp_string.strip()
+
+    try:
+        decoded = FC60StampEngine.decode_stamp(stamp_string)
+    except (ValueError, IndexError, KeyError) as e:
+        return {"valid": False, "stamp": stamp_string, "decoded": None, "error": str(e)}
+
+    # Validate we got the minimum required fields
+    if "weekday_token" not in decoded or "month_token" not in decoded or "dom_token" not in decoded:
+        return {
+            "valid": False,
+            "stamp": stamp_string,
+            "decoded": None,
+            "error": "Stamp missing required date components (weekday, month, day)",
+        }
+
+    # Validate weekday token is recognized
+    if decoded.get("weekday_name") == "Unknown":
+        return {
+            "valid": False,
+            "stamp": stamp_string,
+            "decoded": None,
+            "error": f"Unknown weekday token: {decoded.get('weekday_token')}",
+        }
+
+    # Validate month token is a recognized animal
+    if "month" not in decoded:
+        return {
+            "valid": False,
+            "stamp": stamp_string,
+            "decoded": None,
+            "error": f"Unknown month token: {decoded.get('month_token')}",
+        }
+
+    return {
+        "valid": True,
+        "stamp": stamp_string,
+        "decoded": decoded,
+        "error": None,
+    }
+
+
+def format_stamp_for_display(reading: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract and format FC60 stamp data from a framework reading for frontend display.
+
+    Takes the full reading dict from MasterOrchestrator.generate_reading()
+    and returns a display-ready dict with all stamp segments annotated.
+
+    Args:
+        reading: Full framework output dict.
+
+    Returns:
+        Dict with fc60, j60, y60, chk, weekday, month, dom, time segments.
+    """
+    fc60_data = reading.get("fc60_stamp", reading)
+
+    fc60 = fc60_data.get("fc60", "")
+    j60 = fc60_data.get("j60", "")
+    y60 = fc60_data.get("y60", "")
+    chk = fc60_data.get("chk", "")
+
+    # Weekday info
+    weekday = {
+        "token": fc60_data.get("_weekday_token", ""),
+        "name": fc60_data.get("_weekday_name", ""),
+        "planet": fc60_data.get("_planet", ""),
+        "domain": fc60_data.get("_domain", ""),
+    }
+
+    # Month info
+    month_token = fc60_data.get("_month_animal", "")
+    month_idx = Base60Codec.ANIMAL_TO_INDEX.get(month_token, -1)
+    month = {
+        "token": month_token,
+        "animal_name": Base60Codec.get_animal_name(month_idx) if month_idx >= 0 else "",
+        "index": month_idx + 1 if month_idx >= 0 else 0,
+    }
+
+    # Day-of-month info
+    dom_token = fc60_data.get("_dom_token", "")
+    dom: Dict[str, Any] = {"token": dom_token}
+    if dom_token and len(dom_token) == 4:
+        try:
+            dom = _describe_token(dom_token)
+        except ValueError:
+            pass
+
+    # Time info
+    time_data = None
+    half_marker = fc60_data.get("_half_marker", "")
+    hour_animal = fc60_data.get("_hour_animal", "")
+    if half_marker and hour_animal:
+        hour_idx = Base60Codec.ANIMAL_TO_INDEX.get(hour_animal, -1)
+        hour_segment: Dict[str, Any] = {
+            "token": hour_animal,
+            "animal_name": (Base60Codec.get_animal_name(hour_idx) if hour_idx >= 0 else ""),
+            "value": hour_idx if hour_idx >= 0 else 0,
+        }
+
+        minute_token = fc60_data.get("_minute_token", "")
+        minute_segment: Dict[str, Any] = {"token": minute_token}
+        if minute_token and len(minute_token) == 4:
+            try:
+                minute_segment = _describe_token(minute_token)
+            except ValueError:
+                pass
+
+        # Parse second token from fc60 stamp string
+        second_segment: Dict[str, Any] = {"token": ""}
+        if fc60:
+            parts = fc60.split(" ")
+            if len(parts) > 1:
+                time_part = parts[1]
+                # Remove half marker
+                if time_part and (time_part[0] == "\u2600" or time_part[0] == "\U0001f319"):
+                    time_body = time_part[1:]
+                else:
+                    time_body = time_part
+                time_tokens = time_body.split("-")
+                if len(time_tokens) >= 3:
+                    try:
+                        second_segment = _describe_token(time_tokens[2])
+                    except ValueError:
+                        second_segment = {"token": time_tokens[2]}
+
+        time_data = {
+            "half": half_marker,
+            "hour": hour_segment,
+            "minute": minute_segment,
+            "second": second_segment,
+        }
+
+    return {
+        "fc60": fc60,
+        "j60": j60,
+        "y60": y60,
+        "chk": chk,
+        "weekday": weekday,
+        "month": month,
+        "dom": dom,
+        "time": time_data,
+    }
