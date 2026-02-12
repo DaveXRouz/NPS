@@ -116,6 +116,17 @@
   }
 }
 
+@keyframes nps-height-expand {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: var(--nps-section-height, 2000px);
+    opacity: 1;
+  }
+}
+
 /* === Utility Classes === */
 
 .nps-animate-fade-in {
@@ -148,6 +159,11 @@
 
 .nps-animate-stamp {
   animation: nps-stamp-reveal var(--nps-duration-md) ease-out forwards;
+}
+
+.nps-animate-height-expand {
+  overflow: hidden;
+  animation: nps-height-expand var(--nps-duration-md) ease forwards;
 }
 
 /* === Stagger Delay Classes === */

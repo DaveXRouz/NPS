@@ -12,6 +12,8 @@ import type {
 } from "@/types";
 import { useSubmitMultiUserReading } from "@/hooks/useOracleReadings";
 import { useToast } from "@/hooks/useToast";
+import { FadeIn } from "@/components/common/FadeIn";
+import { LoadingOrb } from "@/components/common/LoadingOrb";
 import TimeReadingForm from "./TimeReadingForm";
 import { NameReadingForm } from "./NameReadingForm";
 import { QuestionReadingForm } from "./QuestionReadingForm";
@@ -122,46 +124,58 @@ export function OracleConsultationForm({
   switch (readingType) {
     case "time":
       return (
-        <TimeReadingForm
-          userId={userId}
-          userName={userName}
-          onResult={(response) => {
-            onResult(normalizeFrameworkResult(response, "reading"));
-            onLoadingChange(false);
-          }}
-        />
+        <FadeIn key="time">
+          <TimeReadingForm
+            userId={userId}
+            userName={userName}
+            onResult={(response) => {
+              onResult(normalizeFrameworkResult(response, "reading"));
+              onLoadingChange(false);
+            }}
+          />
+        </FadeIn>
       );
     case "name":
       return (
-        <NameReadingForm
-          userId={userId}
-          userName={userName}
-          onResult={(data: NameReading) => {
-            onResult({ type: "name", data });
-            onLoadingChange(false);
-          }}
-        />
+        <FadeIn key="name">
+          <NameReadingForm
+            userId={userId}
+            userName={userName}
+            onResult={(data: NameReading) => {
+              onResult({ type: "name", data });
+              onLoadingChange(false);
+            }}
+          />
+        </FadeIn>
       );
     case "question":
       return (
-        <QuestionReadingForm
-          userId={userId}
-          onResult={(data: QuestionReadingResult) => {
-            onResult({ type: "question", data });
-            onLoadingChange(false);
-          }}
-        />
+        <FadeIn key="question">
+          <QuestionReadingForm
+            userId={userId}
+            onResult={(data: QuestionReadingResult) => {
+              onResult({ type: "question", data });
+              onLoadingChange(false);
+            }}
+          />
+        </FadeIn>
       );
     case "daily":
-      return <DailyReadingCard userId={userId} userName={userName} />;
+      return (
+        <FadeIn key="daily">
+          <DailyReadingCard userId={userId} userName={userName} />
+        </FadeIn>
+      );
     case "multi":
       return (
-        <MultiUserFlow
-          userId={userId}
-          selectedUsers={selectedUsers}
-          onResult={onResult}
-          onLoadingChange={onLoadingChange}
-        />
+        <FadeIn key="multi">
+          <MultiUserFlow
+            userId={userId}
+            selectedUsers={selectedUsers}
+            onResult={onResult}
+            onLoadingChange={onLoadingChange}
+          />
+        </FadeIn>
       );
   }
 }
@@ -239,17 +253,19 @@ function MultiUserFlow({
       <p className="text-sm text-[var(--nps-text-dim)] mb-4">
         {t("oracle.multi_user_title")} ({totalUsers} users)
       </p>
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={mutation.isPending}
-        className="px-4 py-2 text-sm bg-[var(--nps-accent)] text-[var(--nps-bg)] font-medium rounded hover:bg-[var(--nps-accent)]/80 transition-colors disabled:opacity-50"
-        data-testid="submit-multi-reading"
-      >
-        {mutation.isPending
-          ? t("oracle.generating_reading")
-          : t("oracle.submit_reading")}
-      </button>
+      {mutation.isPending ? (
+        <LoadingOrb label={t("common.loading_reading")} size="md" />
+      ) : (
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={mutation.isPending}
+          className="px-4 py-2 text-sm bg-[var(--nps-accent)] text-[var(--nps-bg)] font-medium rounded hover:bg-[var(--nps-accent)]/80 transition-colors disabled:opacity-50"
+          data-testid="submit-multi-reading"
+        >
+          {t("oracle.submit_reading")}
+        </button>
+      )}
       {mutation.error && (
         <p className="text-xs text-red-500 mt-2" role="alert">
           {t("oracle.error_submit")}

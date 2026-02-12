@@ -69,7 +69,7 @@ export function ExportButton({ result }: ExportButtonProps) {
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 nps-animate-scale-in">
       <button
         type="button"
         onClick={handleExportTxt}

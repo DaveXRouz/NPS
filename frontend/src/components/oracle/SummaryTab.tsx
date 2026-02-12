@@ -6,6 +6,8 @@ import { PatternBadge } from "./PatternBadge";
 import { ReadingHeader } from "./ReadingHeader";
 import { ReadingFooter } from "./ReadingFooter";
 import { EmptyState } from "@/components/common/EmptyState";
+import { FadeIn } from "@/components/common/FadeIn";
+import { StaggerChildren } from "@/components/common/StaggerChildren";
 import type { ConsultationResult } from "@/types";
 
 interface SummaryTabProps {
@@ -32,7 +34,7 @@ function ReadingSummary({
   }
 
   return (
-    <div className="space-y-4">
+    <StaggerChildren staggerMs={60}>
       {/* Section 1: Header */}
       <ReadingHeader
         userName={t("oracle.current_reading")}
@@ -164,9 +166,11 @@ function ReadingSummary({
       {/* Section 6: The Message (AI Interpretation) */}
       {data.ai_interpretation && (
         <ReadingSection title={t("oracle.section_message")} icon="\u2728">
-          <div className="pt-2 bg-nps-oracle-accent/5 rounded p-3 -mx-1">
-            <TranslatedReading reading={data.ai_interpretation} />
-          </div>
+          <FadeIn delay={300}>
+            <div className="pt-2 bg-nps-oracle-accent/5 rounded p-3 -mx-1">
+              <TranslatedReading reading={data.ai_interpretation} />
+            </div>
+          </FadeIn>
         </ReadingSection>
       )}
 
@@ -199,7 +203,7 @@ function ReadingSummary({
         confidence={data.fc60 ? data.fc60.energy_level / 10 : 0.5}
         generatedAt={data.generated_at}
       />
-    </div>
+    </StaggerChildren>
   );
 }
 
