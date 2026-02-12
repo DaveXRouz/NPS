@@ -48,3 +48,52 @@ class CacheStatsResponse(BaseModel):
     hit_count: int
     miss_count: int
     ttl_seconds: int
+
+
+class ReadingTranslationRequest(BaseModel):
+    text: str
+    reading_type: str
+    source_lang: str = "en"
+    target_lang: str = "fa"
+
+    @field_validator("text")
+    @classmethod
+    def text_not_empty(cls, v):
+        if not v or not v.strip():
+            raise ValueError("text must not be empty")
+        if len(v) > 50000:
+            raise ValueError("text must not exceed 50000 characters")
+        return v
+
+    @field_validator("source_lang", "target_lang")
+    @classmethod
+    def valid_lang_reading(cls, v):
+        if v not in ("en", "fa"):
+            raise ValueError("language must be 'en' or 'fa'")
+        return v
+
+
+class BatchTranslationRequest(BaseModel):
+    texts: list[str]
+    source_lang: str = "en"
+    target_lang: str = "fa"
+
+    @field_validator("texts")
+    @classmethod
+    def texts_not_empty(cls, v):
+        if not v:
+            raise ValueError("texts list must not be empty")
+        if len(v) > 100:
+            raise ValueError("texts list must not exceed 100 items")
+        return v
+
+    @field_validator("source_lang", "target_lang")
+    @classmethod
+    def valid_lang_batch(cls, v):
+        if v not in ("en", "fa"):
+            raise ValueError("language must be 'en' or 'fa'")
+        return v
+
+
+class BatchTranslationResponse(BaseModel):
+    translations: list[TranslateResponse]

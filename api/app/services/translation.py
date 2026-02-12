@@ -21,8 +21,10 @@ if _ORACLE_SERVICE_DIR not in sys.path:
     sys.path.insert(0, _ORACLE_SERVICE_DIR)
 
 from engines.translation_service import (  # noqa: E402
+    batch_translate as _batch_translate,
     detect_language as _detect,
     translate as _translate,
+    translate_reading as _translate_reading,
 )
 
 # ─── Module-level cache ─────────────────────────────────────────────────────
@@ -127,6 +129,60 @@ class TranslationService:
         if not text or not text.strip():
             return {"text": text, "detected_lang": "en", "confidence": 0.5}
         return {"text": text, "detected_lang": lang, "confidence": 0.9}
+
+    def translate_reading(
+        self,
+        text: str,
+        reading_type: str,
+        source_lang: str = "en",
+        target_lang: str = "fa",
+    ) -> dict:
+        """Translate a reading with reading-type-specific context.
+
+        Returns dict with keys: source_text, translated_text, source_lang,
+        target_lang, preserved_terms, ai_generated, elapsed_ms, cached.
+        """
+        global _cache_hits, _cache_misses
+
+        key = _cache_key(f"{reading_type}:{text}", source_lang, target_lang)
+
+        _evict_expired()
+        if key in _cache:
+            _cache_hits += 1
+            entry = _cache[key]
+            entry["ts"] = time.monotonic()
+            return {**entry["result"], "cached": True}
+
+        _cache_misses += 1
+
+        start = time.monotonic()
+        result = _translate_reading(text, reading_type, source_lang, target_lang)
+        elapsed_ms = (time.monotonic() - start) * 1000
+
+        result_dict = result.to_dict()
+        result_dict["elapsed_ms"] = round(elapsed_ms, 1)
+        result_dict["cached"] = False
+
+        _evict_lru()
+        _cache[key] = {"result": result_dict, "ts": time.monotonic()}
+
+        return result_dict
+
+    def batch_translate(
+        self,
+        texts: list[str],
+        source_lang: str = "en",
+        target_lang: str = "fa",
+    ) -> list[dict]:
+        """Translate multiple texts at once.
+
+        Returns list of dicts with translation results.
+        """
+        if not texts:
+            return []
+
+        results = _batch_translate(texts, source_lang, target_lang)
+        return [{**r.to_dict(), "cached": False} for r in results]
 
     def get_cache_stats(self) -> dict:
         """Return cache statistics."""

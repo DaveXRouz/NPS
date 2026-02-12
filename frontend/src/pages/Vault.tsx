@@ -1,22 +1,16 @@
+import { useTranslation } from "react-i18next";
+
 export default function Vault() {
-  // TODO: Findings table with pagination and filtering
-  // TODO: Summary stats
-  // TODO: Search
-  // TODO: Export controls (CSV/JSON)
+  const { t } = useTranslation();
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold text-nps-text-bright">Vault</h2>
-
-      {/* TODO: Vault summary stats */}
-      {/* TODO: Findings data table */}
-      {/* TODO: Search bar */}
-      {/* TODO: Export buttons */}
+      <h2 className="text-xl font-bold text-nps-text-bright">
+        {t("vault.title")}
+      </h2>
 
       <div className="bg-nps-bg-card border border-nps-border rounded-lg p-4">
-        <p className="text-nps-text-dim text-sm">
-          Vault findings will be loaded from PostgreSQL via the API.
-        </p>
+        <p className="text-nps-text-dim text-sm">{t("vault.description")}</p>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import en from "../locales/en.json";
 import fa from "../locales/fa.json";
+import { toPersianNumber, formatPersianDate } from "../utils/persianFormatter";
 
 i18n
   .use(LanguageDetector)
@@ -20,7 +21,25 @@ i18n
     },
     interpolation: {
       escapeValue: false,
+      format: (
+        value: string,
+        format: string | undefined,
+        lng: string | undefined,
+      ) => {
+        if (format === "number" && lng === "fa") {
+          return toPersianNumber(Number(value));
+        }
+        if (format === "date" && lng === "fa") {
+          return formatPersianDate(String(value));
+        }
+        return String(value);
+      },
     },
   });
+
+i18n.on("languageChanged", (lng: string) => {
+  document.documentElement.dir = lng === "fa" ? "rtl" : "ltr";
+  document.documentElement.lang = lng;
+});
 
 export default i18n;

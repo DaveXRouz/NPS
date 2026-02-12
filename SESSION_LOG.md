@@ -9,9 +9,9 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 23 of 45
-**Last session:** Session 23 — Settings Page
-**Current block:** Frontend Core (Sessions 19-25) — Five sessions complete
+**Sessions completed:** 24 of 45
+**Last session:** Session 24 — Translation Service & i18n Completion
+**Current block:** Frontend Core (Sessions 19-25) — Six sessions complete
 
 ---
 
@@ -1082,7 +1082,58 @@ TEMPLATE — copy this for each new session:
 - ApiKeySection shows key value only once after creation (copy-once banner) — matches API behavior where key hash is stored, not plaintext
 - SettingsSection uses simple isOpen state toggle (no animation library) — CSS transition on chevron only
 
-**Next:** Session 24 — Translation Service & i18n Completion (audit all .tsx files for hardcoded strings, complete en.json/fa.json, Persian numeral formatting)
+**Next:** Session 25 — Results Display & Reading Flow Polish (reading results page layout, reading flow UX, loading states, error boundaries)
+
+---
+
+## Session 24 — 2026-02-13
+
+**Terminal:** SINGLE
+**Block:** Frontend Core (sixth session in block)
+**Task:** Translation Service & i18n Completion — audit all .tsx files for hardcoded strings, expand en.json/fa.json to 619 keys, add Persian numeral formatting utilities, add RTL CSS overrides, enhance backend translation service with reading-type-specific translation and batch endpoints, comprehensive i18n test suite
+**Spec:** .session-specs/SESSION_24_SPEC.md
+
+**Files created (8):**
+
+- `frontend/src/hooks/useFormattedNumber.ts` — Hook returning formatNumber, formatPercent, formatScore with automatic Persian digit conversion based on locale
+- `frontend/src/hooks/useFormattedDate.ts` — Hook returning format and formatRelative (امروز, دیروز, X روز پیش) with Jalali calendar support
+- `frontend/src/styles/rtl.css` — RTL layout overrides for inputs (email/url/number stay LTR), sidebar, tables, dropdowns, Bitcoin addresses/hashes
+- `frontend/src/__tests__/i18n-completeness.test.ts` — 5 tests: key parity between en.json/fa.json, no empty values, minimum sections, 150+ key threshold
+- `frontend/src/__tests__/i18n-no-hardcoded.test.ts` — Parametric test scanning all 75 .tsx files for hardcoded multi-word English text between JSX tags
+- `frontend/src/__tests__/persian-formatting.test.ts` — 16 tests: toPersianDigits, toPersianNumber, formatPersianGrouped, toPersianOrdinal, formatPersianDate
+- `frontend/src/__tests__/rtl-layout.test.tsx` — 3 tests: dir changes to RTL/LTR, lang attribute updates on language change
+- `api/tests/test_translation_session24.py` — 9 tests: Pydantic model validation (valid/empty/invalid lang/batch), service wrapper methods exist, batch empty
+- `services/oracle/oracle_service/tests/test_translation_session24.py` — 11 tests: READING_TYPE_CONTEXTS defined, translate_reading (empty/result/unknown fallback), detect_language (Persian/English/mixed/empty), batch_translate (count/empty/fields)
+
+**Files modified (11):**
+
+- `frontend/src/locales/en.json` — Expanded from 540 to 619 keys: added scanner (6), oracle details/compatibility/fc60_meaning/star/export (30+), vault (5), learning (6), validation (11), accessibility (8), log (1), admin (2), history_page (1), common (8)
+- `frontend/src/locales/fa.json` — Expanded to match en.json with 619 Persian translations (0 missing keys in either direction)
+- `frontend/src/pages/Scanner.tsx` — Replaced hardcoded strings with t() calls (title, config_title, config_desc, status, active_terminals, live_feed, checkpoints)
+- `frontend/src/pages/Vault.tsx` — Replaced hardcoded strings with t() calls (title, description, no_findings, total_findings, export buttons)
+- `frontend/src/pages/Learning.tsx` — Replaced hardcoded strings with t() calls using interpolation (level_label, xp_progress with {{current}}/{{max}})
+- `frontend/src/utils/persianFormatter.ts` — Added formatPersianGrouped (thousands separator ٬) and toPersianOrdinal (اول through دهم + generic pattern)
+- `frontend/src/i18n/config.ts` — Added interpolation format function (auto-converts numbers/dates to Persian in fa locale), added languageChanged listener for dir/lang attributes
+- `frontend/src/App.tsx` — Added import for rtl.css
+- `services/oracle/oracle_service/engines/translation_service.py` — Added READING_TYPE_CONTEXTS dict (5 reading types), TRANSLATE_READING_TEMPLATE prompt, translate_reading() function with FC60 term protection
+- `api/app/models/translation.py` — Added ReadingTranslationRequest, BatchTranslationRequest, BatchTranslationResponse Pydantic models with validators
+- `api/app/services/translation.py` — Added translate_reading() and batch_translate() wrapper methods
+- `api/app/routers/translation.py` — Added POST /reading (reading-type-specific) and POST /batch (bulk UI) endpoints
+
+**Tests:** 100 frontend pass / 0 fail / 100 new (5 completeness + 76 no-hardcoded + 16 formatting + 3 RTL) | 9 API pass / 0 fail / 9 new | 11 Oracle pass / 0 fail / 11 new | 0 regressions
+**Commit:** (pending)
+**Issues:** None
+**Decisions:**
+
+- Used `glob.sync` instead of named `globSync` export for compatibility with glob v8 installed in project
+- Oracle test uses `importlib.import_module("engines.translation_service")` to bypass `engines/__init__.py` which has heavy framework_bridge dependencies
+- i18n languageChanged listener added to config.ts (in addition to existing App.tsx useEffect) so language changes outside React components also update dir/lang
+- RTL CSS uses `[dir="rtl"]` selector prefix for all overrides — no JS runtime cost
+- Translation keys for oracle sub-components (DetailsTab, SummaryTab, FC60StampDisplay, etc.) added to en.json/fa.json — component conversion to t() calls deferred to Session 26 (RTL/responsive block)
+- formatPersianGrouped uses Persian thousands separator ٬ (U+066C) not Western comma
+- toPersianOrdinal has hardcoded ordinals for 1-10 (irregular forms in Persian), generic suffix م for 11+
+
+**Next:** Session 25 — Results Display & Reading Flow Polish (reading results page layout, reading flow UX, loading states, error boundaries)
 
 ---
 

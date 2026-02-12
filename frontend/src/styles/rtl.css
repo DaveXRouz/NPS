@@ -1,0 +1,48 @@
+/* RTL-specific overrides that Tailwind cannot handle */
+
+/* Fix icon positioning in RTL */
+[dir="rtl"] .icon-left {
+  transform: scaleX(-1);
+}
+
+/* Fix text alignment for mixed LTR/RTL content */
+[dir="rtl"] .ltr-numbers {
+  direction: ltr;
+  unicode-bidi: embed;
+}
+
+/* Fix input field text direction for English input in RTL context */
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="url"],
+[dir="rtl"] input[type="number"] {
+  direction: ltr;
+  text-align: right;
+}
+
+/* Fix sidebar transition direction */
+[dir="rtl"] .sidebar-enter {
+  transform: translateX(100%);
+}
+[dir="rtl"] .sidebar-enter-active {
+  transform: translateX(0);
+}
+
+/* Fix table alignment */
+[dir="rtl"] th,
+[dir="rtl"] td {
+  text-align: right;
+}
+
+/* Fix dropdown positioning */
+[dir="rtl"] .dropdown-menu {
+  left: auto;
+  right: 0;
+}
+
+/* Bitcoin addresses and hashes always LTR */
+.address,
+.hash,
+.monospace {
+  direction: ltr;
+  unicode-bidi: embed;
+}

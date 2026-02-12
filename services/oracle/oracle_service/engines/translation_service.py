@@ -336,6 +336,121 @@ def detect_language(text):
 
 
 # ════════════════════════════════════════════════════════════
+# Reading-type-specific translation (Session 24)
+# ════════════════════════════════════════════════════════════
+
+READING_TYPE_CONTEXTS = {
+    "personal": "numerology personal reading with life path and expression numbers",
+    "compatibility": "numerology compatibility analysis between two people",
+    "daily": "daily numerology forecast with personal year and universal day",
+    "name_analysis": "name numerology analysis with soul urge and personality numbers",
+    "question": "numerology-based question answering consultation",
+}
+
+TRANSLATE_READING_TEMPLATE = """\
+Translate the following {reading_context} from {source_lang_name} to {target_lang_name}.
+Preserve these terms in their original form: {preserved_terms}
+
+Text to translate:
+{text}
+
+Provide ONLY the translated text, nothing else."""
+
+
+def translate_reading(text, reading_type, source_lang="en", target_lang="fa"):
+    """Translate a reading with reading-type-specific context for better accuracy.
+
+    Parameters
+    ----------
+    text : str
+        The reading text to translate.
+    reading_type : str
+        One of: personal, compatibility, daily, name_analysis, question.
+    source_lang : str
+        Source language code ("en" or "fa").
+    target_lang : str
+        Target language code ("en" or "fa").
+
+    Returns
+    -------
+    TranslationResult
+    """
+    if not text or not text.strip():
+        return TranslationResult(
+            source_text=text,
+            translated_text=text,
+            source_lang=source_lang,
+            target_lang=target_lang,
+            preserved_terms=[],
+            ai_generated=False,
+            elapsed_ms=0.0,
+        )
+
+    start = time.time()
+    context = READING_TYPE_CONTEXTS.get(reading_type, "numerology reading")
+
+    # Protect FC60 terms
+    protected_text, replacements = _protect_terms(text)
+    found_terms = [r[0] for r in replacements]
+
+    if not is_available():
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "ANTHROPIC_API_KEY not set, returning untranslated text"
+        )
+        elapsed_ms = (time.time() - start) * 1000
+        return TranslationResult(
+            source_text=text,
+            translated_text=text,
+            source_lang=source_lang,
+            target_lang=target_lang,
+            preserved_terms=found_terms,
+            ai_generated=False,
+            elapsed_ms=elapsed_ms,
+        )
+
+    lang_names = {"en": "English", "fa": "Persian"}
+    preserved_str = ", ".join(FC60_PRESERVED_TERMS[:20])
+
+    prompt = build_prompt(
+        TRANSLATE_READING_TEMPLATE,
+        {
+            "text": protected_text,
+            "reading_context": context,
+            "source_lang_name": lang_names.get(source_lang, source_lang),
+            "target_lang_name": lang_names.get(target_lang, target_lang),
+            "preserved_terms": preserved_str,
+        },
+    )
+
+    result = generate(prompt, system_prompt=get_system_prompt("en"), temperature=0.3)
+    elapsed_ms = (time.time() - start) * 1000
+
+    if result["success"]:
+        translated = _restore_terms(result["response"], replacements)
+        return TranslationResult(
+            source_text=text,
+            translated_text=translated,
+            source_lang=source_lang,
+            target_lang=target_lang,
+            preserved_terms=found_terms,
+            ai_generated=True,
+            elapsed_ms=elapsed_ms,
+        )
+
+    return TranslationResult(
+        source_text=text,
+        translated_text=text,
+        source_lang=source_lang,
+        target_lang=target_lang,
+        preserved_terms=found_terms,
+        ai_generated=False,
+        elapsed_ms=elapsed_ms,
+    )
+
+
+# ════════════════════════════════════════════════════════════
 # Internal helpers
 # ════════════════════════════════════════════════════════════
 
