@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { DashboardStats } from "@/types";
 import { StatsCard } from "@/components/StatsCard";
+import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 
 interface StatsCardsProps {
   stats?: DashboardStats;
@@ -27,19 +28,8 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
 
   if (isLoading) {
     return (
-      <div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-        data-testid="stats-loading"
-      >
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div
-            key={i}
-            className="bg-nps-bg-card border border-nps-border rounded-lg p-4 animate-pulse"
-          >
-            <div className="h-3 w-20 bg-nps-bg-elevated rounded mb-2" />
-            <div className="h-7 w-12 bg-nps-bg-elevated rounded" />
-          </div>
-        ))}
+      <div data-testid="stats-loading">
+        <LoadingSkeleton variant="grid" />
       </div>
     );
   }

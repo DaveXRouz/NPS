@@ -11,6 +11,7 @@ import type {
   MultiUserFrameworkRequest,
 } from "@/types";
 import { useSubmitMultiUserReading } from "@/hooks/useOracleReadings";
+import { useToast } from "@/hooks/useToast";
 import TimeReadingForm from "./TimeReadingForm";
 import { NameReadingForm } from "./NameReadingForm";
 import { QuestionReadingForm } from "./QuestionReadingForm";
@@ -179,6 +180,7 @@ function MultiUserFlow({
   onLoadingChange,
 }: MultiUserFlowProps) {
   const { t, i18n } = useTranslation();
+  const { addToast } = useToast();
   const mutation = useSubmitMultiUserReading();
   const [multiResult, setMultiResult] = useState<
     import("@/types").MultiUserFrameworkResponse | null
@@ -206,8 +208,11 @@ function MultiUserFlow({
         setMultiResult(data);
         onLoadingChange(false);
       },
-      onError: () => {
+      onError: (err) => {
         onLoadingChange(false);
+        const errorMsg =
+          err instanceof Error ? err.message : t("oracle.error_submit");
+        addToast({ type: "error", message: errorMsg });
       },
     });
   }, [selectedUsers, totalUsers, i18n.language, mutation, onLoadingChange]);

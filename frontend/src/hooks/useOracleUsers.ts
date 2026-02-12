@@ -2,12 +2,26 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { oracleUsers as api } from "@/services/api";
 import type { OracleUserCreate, OracleUserUpdate } from "@/types";
 
+const retryConfig = {
+  retry: (failureCount: number, error: Error) => {
+    if (
+      "isClientError" in error &&
+      (error as { isClientError: boolean }).isClientError
+    )
+      return false;
+    return failureCount < 3;
+  },
+  retryDelay: (attemptIndex: number) =>
+    Math.min(1000 * 2 ** attemptIndex, 10000),
+};
+
 const QUERY_KEY = ["oracleUsers"] as const;
 
 export function useOracleUsers() {
   return useQuery({
     queryKey: QUERY_KEY,
     queryFn: () => api.list(),
+    ...retryConfig,
   });
 }
 
@@ -16,6 +30,7 @@ export function useOracleUser(id: number | null) {
     queryKey: [...QUERY_KEY, id],
     queryFn: () => api.get(id!),
     enabled: id !== null,
+    ...retryConfig,
   });
 }
 

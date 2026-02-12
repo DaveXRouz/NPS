@@ -48,6 +48,10 @@ vi.mock("../MultiUserReadingDisplay", () => ({
   ),
 }));
 
+vi.mock("@/hooks/useToast", () => ({
+  useToast: () => ({ addToast: vi.fn(), dismissToast: vi.fn(), toasts: [] }),
+}));
+
 vi.mock("@/hooks/useOracleReadings", () => ({
   useSubmitMultiUserReading: () => ({
     mutate: vi.fn(),

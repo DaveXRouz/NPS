@@ -2,6 +2,20 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { oracle } from "@/services/api";
 import type { ReadingSearchParams } from "@/types";
 
+/** Shared retry config: 3 retries with exponential backoff, skip client errors */
+const retryConfig = {
+  retry: (failureCount: number, error: Error) => {
+    if (
+      "isClientError" in error &&
+      (error as { isClientError: boolean }).isClientError
+    )
+      return false;
+    return failureCount < 3;
+  },
+  retryDelay: (attemptIndex: number) =>
+    Math.min(1000 * 2 ** attemptIndex, 10000),
+};
+
 const HISTORY_KEY = ["oracleReadings"] as const;
 const STATS_KEY = ["readingStats"] as const;
 
@@ -49,6 +63,7 @@ export function useDailyReading(userId: number | null, date?: string) {
     queryFn: () => oracle.getDailyReading(userId!, date),
     enabled: !!userId,
     staleTime: 5 * 60 * 1000, // 5 min — daily readings don't change often
+    ...retryConfig,
   });
 }
 
@@ -79,6 +94,7 @@ export function useReadingHistory(params?: ReadingSearchParams) {
   return useQuery({
     queryKey: [...HISTORY_KEY, params],
     queryFn: () => oracle.history(params),
+    ...retryConfig,
   });
 }
 
@@ -109,5 +125,6 @@ export function useReadingStats() {
     queryKey: [...STATS_KEY],
     queryFn: () => oracle.readingStats(),
     staleTime: 60 * 1000, // 1 min
+    ...retryConfig,
   });
 }
