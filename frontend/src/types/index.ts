@@ -554,6 +554,84 @@ export interface ReadingProgressEvent {
   reading_type: string;
 }
 
+// ─── Daily Reading (Session 16) ───
+
+export interface DailyReadingRequest {
+  user_id: number;
+  reading_type: "daily";
+  date?: string;
+  locale?: string;
+  numerology_system?: string;
+  force_regenerate?: boolean;
+}
+
+export interface DailyInsights {
+  suggested_activities: string[];
+  energy_forecast: string;
+  lucky_hours: number[];
+  focus_area: string;
+  element_of_day: string;
+}
+
+export interface DailyReadingCacheResponse {
+  user_id: number;
+  date: string;
+  reading:
+    | (FrameworkReadingResponse & { daily_insights?: DailyInsights })
+    | null;
+  cached: boolean;
+  generated_at: string | null;
+}
+
+// ─── Multi-User Framework Reading (Session 16) ───
+
+export interface MultiUserFrameworkRequest {
+  user_ids: number[];
+  primary_user_index: number;
+  reading_type: "multi";
+  date?: string;
+  locale?: string;
+  numerology_system?: string;
+  include_interpretation?: boolean;
+}
+
+export interface PairwiseCompatibilityResult {
+  user_a_name: string;
+  user_b_name: string;
+  user_a_id: number;
+  user_b_id: number;
+  overall_score: number;
+  overall_percentage: number;
+  classification: string;
+  dimensions: Record<string, number>;
+  strengths: string[];
+  challenges: string[];
+  description: string;
+}
+
+export interface GroupAnalysisResult {
+  group_harmony_score: number;
+  group_harmony_percentage: number;
+  element_balance: Record<string, number>;
+  animal_distribution: Record<string, number>;
+  dominant_element: string;
+  dominant_animal: string;
+  group_summary: string;
+}
+
+export interface MultiUserFrameworkResponse {
+  id: number | null;
+  user_count: number;
+  pair_count: number;
+  computation_ms: number;
+  individual_readings: FrameworkReadingResponse[];
+  pairwise_compatibility: PairwiseCompatibilityResult[];
+  group_analysis: GroupAnalysisResult | null;
+  ai_interpretation: AIInterpretationSections | null;
+  locale: string;
+  created_at: string;
+}
+
 // ─── Translation ───
 
 export interface TranslateResponse {

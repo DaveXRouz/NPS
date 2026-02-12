@@ -31,10 +31,12 @@ class ReadingOrchestrator:
     ):
         self.progress_callback = progress_callback
 
-    async def _send_progress(self, step: int, total: int, message: str) -> None:
+    async def _send_progress(
+        self, step: int, total: int, message: str, reading_type: str = "time"
+    ) -> None:
         """Send progress update via callback if registered."""
         if self.progress_callback:
-            await self.progress_callback(step, total, message)
+            await self.progress_callback(step, total, message, reading_type)
 
     async def generate_time_reading(
         self,
@@ -319,7 +321,7 @@ class ReadingOrchestrator:
     def _build_response(
         self,
         reading_result: ReadingResult,
-        ai_sections: Dict[str, Any],
+        ai_sections: Dict[str, Any] | None,
         locale: str,
     ) -> Dict[str, Any]:
         """Build response dict matching FrameworkReadingResponse."""
@@ -355,5 +357,229 @@ class ReadingOrchestrator:
             "numerology": fw.get("numerology"),
             "moon": fw.get("moon"),
             "ganzhi": fw.get("ganzhi"),
+            "locale": locale,
+        }
+
+    # ── Daily Reading (Session 16) ──
+
+    async def generate_daily_reading(
+        self,
+        user_profile: UserProfile,
+        target_date: Optional[datetime] = None,
+        locale: str = "en",
+    ) -> Dict[str, Any]:
+        """Full pipeline for daily reading.
+
+        Uses noon (12:00:00) as the reading time — neutral midday energy.
+        Returns dict matching FrameworkReadingResponse fields + daily_insights.
+        """
+        total_steps = 4
+        start = time.perf_counter()
+
+        # Step 1: Generate framework reading via bridge
+        await self._send_progress(1, total_steps, "Generating daily reading...", "daily")
+        reading_result = self._call_framework_daily(user_profile, target_date)
+
+        # Step 2: AI interpretation
+        await self._send_progress(2, total_steps, "Interpreting today's energy...", "daily")
+        ai_sections = self._call_ai_interpreter(reading_result.framework_output, locale)
+
+        # Step 3: Format response
+        await self._send_progress(3, total_steps, "Formatting response...", "daily")
+        response = self._build_daily_response(reading_result, ai_sections, locale)
+
+        # Step 4: Done
+        elapsed = (time.perf_counter() - start) * 1000
+        await self._send_progress(4, total_steps, "Done", "daily")
+        logger.info("Daily reading generated in %.1fms", elapsed)
+
+        return response
+
+    def _call_framework_daily(
+        self,
+        user: UserProfile,
+        target_date: Optional[datetime],
+    ) -> ReadingResult:
+        """Invoke framework_bridge.generate_daily_reading()."""
+        from oracle_service.framework_bridge import generate_daily_reading
+
+        return generate_daily_reading(user, target_date)
+
+    def _build_daily_response(
+        self,
+        reading_result: ReadingResult,
+        ai_sections: Dict[str, Any],
+        locale: str,
+    ) -> Dict[str, Any]:
+        """Build response dict for daily reading with daily_insights."""
+        fw = reading_result.framework_output
+        base = self._build_response(reading_result, ai_sections, locale)
+        base["reading_type"] = "daily"
+        base["sign_value"] = reading_result.sign_value or ""
+        base["daily_insights"] = getattr(reading_result, "daily_insights", None) or fw.get(
+            "daily_insights", {}
+        )
+        return base
+
+    # ── Multi-User Reading (Session 16) ──
+
+    async def generate_multi_user_reading(
+        self,
+        user_profiles: list[UserProfile],
+        primary_index: int = 0,
+        target_date: Optional[datetime] = None,
+        locale: str = "en",
+        include_interpretation: bool = True,
+    ) -> Dict[str, Any]:
+        """Full pipeline for multi-user compatibility reading.
+
+        Generates individual readings for each user, runs MultiUserAnalyzer
+        for pairwise compatibility + group analysis. Optionally invokes AI
+        for group interpretation.
+        """
+        total_steps = 5
+        start = time.perf_counter()
+        n_users = len(user_profiles)
+
+        # Step 1: Generate individual readings
+        await self._send_progress(
+            1, total_steps, f"Generating readings for {n_users} users...", "multi"
+        )
+        individual_results = self._call_framework_multi(user_profiles, target_date)
+
+        # Step 2: Run compatibility analysis
+        await self._send_progress(2, total_steps, "Analyzing compatibility...", "multi")
+        multi_result = self._call_multi_analyzer(individual_results)
+
+        # Step 3: AI group interpretation (optional)
+        ai_sections = None
+        if include_interpretation:
+            await self._send_progress(3, total_steps, "Generating group interpretation...", "multi")
+            ai_sections = self._call_ai_group_interpreter(individual_results, multi_result, locale)
+        else:
+            await self._send_progress(3, total_steps, "Skipping AI interpretation...", "multi")
+
+        # Step 4: Format response
+        await self._send_progress(4, total_steps, "Formatting response...", "multi")
+        response = self._build_multi_response(
+            user_profiles,
+            individual_results,
+            multi_result,
+            ai_sections,
+            primary_index,
+            locale,
+        )
+
+        # Step 5: Done
+        elapsed = (time.perf_counter() - start) * 1000
+        await self._send_progress(5, total_steps, "Done", "multi")
+        logger.info(
+            "Multi-user reading generated in %.1fms (users=%d, pairs=%d)",
+            elapsed,
+            n_users,
+            n_users * (n_users - 1) // 2,
+        )
+
+        response["computation_ms"] = elapsed
+        return response
+
+    def _call_framework_multi(
+        self,
+        users: list[UserProfile],
+        target_date: Optional[datetime],
+    ) -> list[ReadingResult]:
+        """Invoke framework_bridge.generate_multi_user_reading()."""
+        from oracle_service.framework_bridge import generate_multi_user_reading
+
+        return generate_multi_user_reading(users, target_date=target_date)
+
+    def _call_multi_analyzer(self, individual_results: list[ReadingResult]):
+        """Invoke MultiUserAnalyzer.analyze_group() for compatibility scoring."""
+        from oracle_service.multi_user_analyzer import MultiUserAnalyzer
+
+        return MultiUserAnalyzer.analyze_group(individual_results)
+
+    def _call_ai_group_interpreter(
+        self,
+        individual_results: list[ReadingResult],
+        multi_result,
+        locale: str,
+    ) -> Dict[str, Any]:
+        """Invoke AI interpreter with group context."""
+        try:
+            from oracle_service.engines.ai_interpreter import interpret_multi_user
+
+            context = {
+                "individual_readings": [r.framework_output for r in individual_results],
+                "compatibility": getattr(multi_result, "pairwise_scores", []),
+                "group_summary": getattr(multi_result, "group_summary", ""),
+            }
+            result = interpret_multi_user(context)
+            return result.to_dict() if hasattr(result, "to_dict") else result
+        except Exception:
+            logger.warning("AI group interpretation unavailable", exc_info=True)
+            summary = getattr(multi_result, "group_summary", "") or ""
+            return {"full_text": summary, "header": "", "ai_generated": False}
+
+    def _build_multi_response(
+        self,
+        profiles: list[UserProfile],
+        individual: list[ReadingResult],
+        multi_result,
+        ai_sections: Dict[str, Any] | None,
+        primary_idx: int,
+        locale: str,
+    ) -> Dict[str, Any]:
+        """Build response dict matching MultiUserFrameworkResponse fields."""
+        n = len(profiles)
+        individual_responses = []
+        for _user, reading in zip(profiles, individual):
+            resp = self._build_response(reading, None, locale)
+            resp["reading_type"] = "multi"
+            individual_responses.append(resp)
+
+        pairwise = []
+        pairwise_scores = getattr(multi_result, "pairwise_scores", [])
+        if not pairwise_scores:
+            pairwise_scores = getattr(multi_result, "pairwise_compatibility", [])
+        for pair_result in pairwise_scores:
+            overall = getattr(pair_result, "overall_score", 0.0)
+            pairwise.append(
+                {
+                    "user_a_name": getattr(pair_result, "user_a_name", ""),
+                    "user_b_name": getattr(pair_result, "user_b_name", ""),
+                    "user_a_id": getattr(pair_result, "user_a_id", 0),
+                    "user_b_id": getattr(pair_result, "user_b_id", 0),
+                    "overall_score": overall,
+                    "overall_percentage": int(overall * 100),
+                    "classification": getattr(pair_result, "classification", ""),
+                    "dimensions": getattr(pair_result, "dimension_scores", {}),
+                    "strengths": getattr(pair_result, "strengths", []),
+                    "challenges": getattr(pair_result, "challenges", []),
+                    "description": getattr(pair_result, "description", ""),
+                }
+            )
+
+        group_analysis = None
+        if n >= 3:
+            harmony = getattr(multi_result, "group_harmony_score", 0.0)
+            group_analysis = {
+                "group_harmony_score": harmony,
+                "group_harmony_percentage": int(harmony * 100),
+                "element_balance": getattr(multi_result, "group_element_balance", {}),
+                "animal_distribution": getattr(multi_result, "animal_distribution", {}),
+                "dominant_element": getattr(multi_result, "dominant_element", ""),
+                "dominant_animal": getattr(multi_result, "dominant_animal", ""),
+                "group_summary": getattr(multi_result, "group_summary", ""),
+            }
+
+        return {
+            "user_count": n,
+            "pair_count": n * (n - 1) // 2,
+            "computation_ms": 0,
+            "individual_readings": individual_responses,
+            "pairwise_compatibility": pairwise,
+            "group_analysis": group_analysis,
+            "ai_interpretation": ai_sections,
             "locale": locale,
         }

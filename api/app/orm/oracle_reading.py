@@ -1,8 +1,19 @@
-"""SQLAlchemy ORM models for oracle_readings and oracle_reading_users tables."""
+"""SQLAlchemy ORM models for oracle_readings, oracle_reading_users, and oracle_daily_readings tables."""
 
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, func
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -37,3 +48,23 @@ class OracleReadingUser(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("oracle_users.id"), primary_key=True)
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
+
+
+class OracleDailyReading(Base):
+    """Cache/lookup: maps (user_id, date) to an oracle reading."""
+
+    __tablename__ = "oracle_daily_readings"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("oracle_users.id", ondelete="CASCADE"), nullable=False
+    )
+    reading_date: Mapped[date] = mapped_column(Date, nullable=False)
+    reading_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("oracle_readings.id", ondelete="CASCADE"), nullable=False
+    )
+    generated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    __table_args__ = (UniqueConstraint("user_id", "reading_date", name="uq_daily_user_date"),)

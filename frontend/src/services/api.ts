@@ -124,6 +124,22 @@ export const oracle = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+  dailyReading: (data: import("@/types").DailyReadingRequest) =>
+    request<import("@/types").FrameworkReadingResponse>("/oracle/readings", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  getDailyReading: (userId: number, date?: string) =>
+    request<import("@/types").DailyReadingCacheResponse>(
+      `/oracle/daily/reading?user_id=${userId}${date ? `&date=${date}` : ""}`,
+    ),
+  multiUserFrameworkReading: (
+    data: import("@/types").MultiUserFrameworkRequest,
+  ) =>
+    request<import("@/types").MultiUserFrameworkResponse>("/oracle/readings", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };
 
 // ─── Oracle Users ───

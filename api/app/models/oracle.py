@@ -548,3 +548,121 @@ class StampValidateResponse(BaseModel):
     stamp: str
     decoded: StampDecodedResponse | None = None
     error: str | None = None
+
+
+# ─── Daily Reading Models (Session 16) ─────────────────────────────────────
+
+
+class DailyReadingRequest(BaseModel):
+    """Request for daily reading via POST /api/oracle/readings with reading_type='daily'."""
+
+    user_id: int
+    reading_type: str = "daily"
+    date: str | None = None  # "YYYY-MM-DD", defaults to today
+    locale: str = "en"
+    numerology_system: NumerologySystemType = "auto"
+    force_regenerate: bool = False
+
+    @field_validator("date")
+    @classmethod
+    def validate_date_format(cls, v: str | None) -> str | None:
+        """Validate YYYY-MM-DD format if provided."""
+        if v is None:
+            return v
+        parts = v.split("-")
+        if len(parts) != 3:
+            raise ValueError("Date must be YYYY-MM-DD format")
+        year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+        if not (1900 <= year <= 2100 and 1 <= month <= 12 and 1 <= day <= 31):
+            raise ValueError("Invalid date values")
+        return v
+
+
+class MultiUserFrameworkRequest(BaseModel):
+    """Request for multi-user reading via POST /api/oracle/readings with reading_type='multi'."""
+
+    user_ids: list[int]
+    primary_user_index: int = 0
+    reading_type: str = "multi"
+    date: str | None = None
+    locale: str = "en"
+    numerology_system: NumerologySystemType = "auto"
+    include_interpretation: bool = True
+
+    @field_validator("user_ids")
+    @classmethod
+    def validate_user_count(cls, v: list[int]) -> list[int]:
+        if len(v) < 2:
+            raise ValueError("At least 2 users are required")
+        if len(v) > 5:
+            raise ValueError("Maximum 5 users allowed")
+        if len(v) != len(set(v)):
+            raise ValueError("Duplicate user IDs not allowed")
+        return v
+
+    @field_validator("primary_user_index")
+    @classmethod
+    def validate_primary_index(cls, v: int, info) -> int:
+        user_ids = info.data.get("user_ids", [])
+        if user_ids and (v < 0 or v >= len(user_ids)):
+            raise ValueError(f"primary_user_index must be 0-{len(user_ids) - 1}")
+        return v
+
+
+class DailyReadingCacheResponse(BaseModel):
+    """Response for GET /api/oracle/daily/reading — cached daily reading."""
+
+    user_id: int
+    date: str
+    reading: FrameworkReadingResponse | None = None
+    cached: bool = False
+    generated_at: str | None = None
+
+
+class PairwiseCompatibilityResult(BaseModel):
+    """Individual pair compatibility result."""
+
+    user_a_name: str
+    user_b_name: str
+    user_a_id: int
+    user_b_id: int
+    overall_score: float
+    overall_percentage: int
+    classification: str
+    dimensions: dict[str, float] = {}
+    strengths: list[str] = []
+    challenges: list[str] = []
+    description: str = ""
+
+    model_config = ConfigDict(extra="allow")
+
+
+class GroupAnalysisResult(BaseModel):
+    """Group-level analysis for 3+ users."""
+
+    group_harmony_score: float
+    group_harmony_percentage: int
+    element_balance: dict[str, int] = {}
+    animal_distribution: dict[str, int] = {}
+    dominant_element: str = ""
+    dominant_animal: str = ""
+    group_summary: str = ""
+
+    model_config = ConfigDict(extra="allow")
+
+
+class MultiUserFrameworkResponse(BaseModel):
+    """Response for multi-user framework reading."""
+
+    id: int | None = None
+    user_count: int
+    pair_count: int
+    computation_ms: float = 0.0
+    individual_readings: list[FrameworkReadingResponse] = []
+    pairwise_compatibility: list[PairwiseCompatibilityResult] = []
+    group_analysis: GroupAnalysisResult | None = None
+    ai_interpretation: AIInterpretationSections | None = None
+    locale: str = "en"
+    created_at: str = ""
+
+    model_config = ConfigDict(extra="allow")

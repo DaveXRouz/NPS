@@ -19,9 +19,15 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.middleware.auth import get_current_user, require_scope
 from app.models.audit import AuditLogEntry, AuditLogResponse
+from pydantic import ValidationError
+
 from app.models.oracle import (
     DailyInsightResponse,
+    DailyReadingCacheResponse,
+    DailyReadingRequest,
     FrameworkReadingResponse,
+    MultiUserFrameworkRequest,
+    MultiUserFrameworkResponse,
     MultiUserReadingRequest,
     MultiUserReadingResponse,
     NameReadingRequest,
@@ -392,11 +398,9 @@ def create_multi_user_reading(
 
 @router.post(
     "/readings",
-    response_model=FrameworkReadingResponse,
     dependencies=[Depends(require_scope("oracle:write"))],
 )
 async def create_framework_reading(
-    body: TimeReadingRequest,
     request: Request,
     _user: dict = Depends(get_current_user),
     svc: OracleReadingService = Depends(get_oracle_reading_service),
@@ -404,34 +408,140 @@ async def create_framework_reading(
 ):
     """Create a reading using the numerology framework + AI interpretation.
 
-    This is the new unified reading endpoint. Session 14 supports reading_type='time'.
-    Sessions 15-18 add 'name', 'question', 'daily', 'multi_user'.
+    Unified endpoint for all 5 reading types. The `reading_type` field in the
+    request body determines the flow:
+    - "time"     -> TimeReadingRequest (Session 14)
+    - "name"     -> NameReadingRequest (Session 15)
+    - "question" -> QuestionReadingRequest (Session 15)
+    - "daily"    -> DailyReadingRequest (Session 16)
+    - "multi"    -> MultiUserFrameworkRequest (Session 16)
     """
+    body_raw = await request.json()
+    reading_type = body_raw.get("reading_type", "time")
 
-    async def progress_callback(step: int, total: int, message: str):
-        await oracle_progress.send_progress(step, total, message, reading_type=body.reading_type)
+    async def progress_callback(step: int, total: int, message: str, rt: str = "time"):
+        await oracle_progress.send_progress(step, total, message, reading_type=rt)
 
     try:
-        result = await svc.create_framework_reading(
-            user_id=body.user_id,
-            reading_type=body.reading_type,
-            sign_value=body.sign_value,
-            date_str=body.date,
-            locale=body.locale,
-            numerology_system=body.numerology_system,
-            progress_callback=progress_callback,
-        )
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
+        if reading_type == "daily":
+            body = DailyReadingRequest(**body_raw)
+            result = await svc.create_daily_reading(
+                user_id=body.user_id,
+                date_str=body.date,
+                locale=body.locale,
+                numerology_system=body.numerology_system,
+                force_regenerate=body.force_regenerate,
+                progress_callback=progress_callback,
+            )
+            audit.log_reading_created(
+                result["id"],
+                "daily",
+                ip=_get_client_ip(request),
+                key_hash=_user.get("api_key_hash"),
+            )
+            svc.db.commit()
+            return FrameworkReadingResponse(**result)
 
-    audit.log_reading_created(
-        result["id"],
-        "time",
-        ip=_get_client_ip(request),
-        key_hash=_user.get("api_key_hash"),
+        elif reading_type == "multi":
+            body = MultiUserFrameworkRequest(**body_raw)
+            result = await svc.create_multi_user_framework_reading(
+                user_ids=body.user_ids,
+                primary_user_index=body.primary_user_index,
+                date_str=body.date,
+                locale=body.locale,
+                numerology_system=body.numerology_system,
+                include_interpretation=body.include_interpretation,
+                progress_callback=progress_callback,
+            )
+            audit.log_reading_created(
+                result.get("id"),
+                "multi_user",
+                ip=_get_client_ip(request),
+                key_hash=_user.get("api_key_hash"),
+            )
+            svc.db.commit()
+            return MultiUserFrameworkResponse(**result)
+
+        else:
+            # Session 14 time reading (default)
+            body = TimeReadingRequest(**body_raw)
+
+            async def time_progress(step: int, total: int, message: str):
+                await oracle_progress.send_progress(
+                    step,
+                    total,
+                    message,
+                    reading_type=body.reading_type,
+                )
+
+            result = await svc.create_framework_reading(
+                user_id=body.user_id,
+                reading_type=body.reading_type,
+                sign_value=body.sign_value,
+                date_str=body.date,
+                locale=body.locale,
+                numerology_system=body.numerology_system,
+                progress_callback=time_progress,
+            )
+            audit.log_reading_created(
+                result["id"],
+                "time",
+                ip=_get_client_ip(request),
+                key_hash=_user.get("api_key_hash"),
+            )
+            svc.db.commit()
+            return FrameworkReadingResponse(**result)
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        )
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        )
+
+
+# ─── Daily Reading Cache Endpoint (Session 16) ──────────────────────────────
+
+
+@router.get(
+    "/daily/reading",
+    response_model=DailyReadingCacheResponse,
+    dependencies=[Depends(require_scope("oracle:read"))],
+)
+def get_daily_framework_reading(
+    user_id: int = Query(..., description="Oracle user ID"),
+    date: str | None = Query(None, description="YYYY-MM-DD, defaults to today"),
+    _user: dict = Depends(get_current_user),
+    svc: OracleReadingService = Depends(get_oracle_reading_service),
+):
+    """Get cached daily reading for a user (read-only, no generation).
+
+    Returns the cached reading if it exists, or null if not generated.
+    Use POST /readings with reading_type="daily" to generate one.
+    """
+    cached = svc.get_cached_daily_reading(user_id, date)
+    target_date = date or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    if cached:
+        filtered = {k: v for k, v in cached.items() if k != "_cached"}
+        return DailyReadingCacheResponse(
+            user_id=user_id,
+            date=target_date,
+            reading=FrameworkReadingResponse(**filtered),
+            cached=True,
+            generated_at=cached.get("created_at"),
+        )
+    return DailyReadingCacheResponse(
+        user_id=user_id,
+        date=target_date,
+        reading=None,
+        cached=False,
+        generated_at=None,
     )
-    svc.db.commit()
-    return FrameworkReadingResponse(**result)
 
 
 # ─── Reading History Endpoints ───────────────────────────────────────────────

@@ -23,6 +23,7 @@ from app.routers import (
     users,
     vault,
 )
+from app.database import SessionLocal
 from app.services.security import init_encryption
 from app.services.websocket_manager import websocket_endpoint
 
@@ -82,9 +83,23 @@ async def lifespan(app: FastAPI):
         logger.info("Oracle gRPC unavailable, using direct legacy imports: %s", exc)
         app.state.oracle_channel = None
 
+    # Start daily reading scheduler (graceful fallback)
+    daily_scheduler = None
+    try:
+        from services.oracle.oracle_service.daily_scheduler import DailyScheduler
+
+        daily_scheduler = DailyScheduler(db_session_factory=SessionLocal)
+        await daily_scheduler.start()
+    except Exception as exc:
+        logger.warning("Daily scheduler failed to start (non-fatal): %s", exc)
+        daily_scheduler = None
+
     yield
 
     # Cleanup
+    if daily_scheduler:
+        await daily_scheduler.stop()
+        logger.info("Daily scheduler stopped")
     if app.state.redis:
         await app.state.redis.close()
         logger.info("Redis connection closed")

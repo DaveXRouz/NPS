@@ -9,8 +9,8 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 15 of 45
-**Last session:** Session 15 — Reading Flow: Name & Question Readings
+**Sessions completed:** 16 of 45
+**Last session:** Session 16 — Reading Flow: Daily & Multi-User Readings
 **Current block:** AI & Reading Types (Sessions 13-18)
 
 ---
@@ -648,7 +648,66 @@ TEMPLATE — copy this for each new session:
 - Frontend forms use data-testid attributes for testability
 - QuestionReadingForm has client-side script detection for UX (badge + dir attribute), backend does authoritative detection
 
-**Next:** Session 16 — Daily Reading Flow & Multi-User Compatibility
+**Next:** Session 17 — AI Wisdom Engine (prompt builder, interpretation pipeline, learning loop)
+
+---
+
+### Session 16 — Reading Flow: Daily & Multi-User Readings
+
+**Date:** 2026-02-13
+**Block:** AI & Reading Types (Sessions 13-18)
+**Spec:** `.session-specs/SESSION_16_SPEC.md`
+**Status:** COMPLETE
+
+**Objectives:**
+
+1. Daily reading flow — auto-generate one reading per user per day, cached, with daily insights (energy forecast, lucky hours, activities, focus area, element of day)
+2. Multi-user compatibility flow — 2-5 users, individual readings + pairwise compatibility (5 dimensions) + group analysis (3+ users) + AI group interpretation
+3. Daily scheduler — background asyncio task for pre-generating readings at midnight
+4. Frontend components — DailyReadingCard, MultiUserReadingDisplay, CompatibilityMeter
+5. Full test coverage across all layers
+
+**Files created (14):**
+
+- `database/migrations/016_daily_readings_cache.sql` — `oracle_daily_readings` table (user_id, date, reading_id) with unique constraint
+- `services/oracle/oracle_service/daily_scheduler.py` — `DailyScheduler` class with asyncio loop, configurable hour/minute, iterates active users, graceful fallback
+- `frontend/src/components/oracle/CompatibilityMeter.tsx` — Circular gauge (lg) or horizontal bar (sm/md), color-coded (red/yellow/green), animated transitions, ARIA meter role
+- `frontend/src/components/oracle/DailyReadingCard.tsx` — Auto-fetch cached reading, generate button, date picker, daily insights display (energy, element badge, lucky hours, activities, focus), RTL support
+- `frontend/src/components/oracle/MultiUserReadingDisplay.tsx` — Tab navigation for individual readings, NxN compatibility grid with color-coded cells, pair detail modal with CompatibilityMeter dimensions, group analysis (3+ users) with harmony gauge + element/animal distribution, AI interpretation section
+- `services/oracle/tests/test_daily_orchestrator.py` — 12 tests: daily keys, insights, noon usage, default date, sign value format, progress callback, multi 2/3/5 users, group analysis 3+, multi progress, AI fallback
+- `api/tests/test_daily_reading.py` — 8 tests: create success, cached second call, force regenerate, user not found, stored in DB, cache entry, GET cached, GET not found
+- `api/tests/test_multi_user_framework_reading.py` — 8 tests: 2 users, 5 users, 1 user fails (422), 6 users fails (422), duplicate IDs (422), stored in DB, individual count, compatibility dimensions
+- `frontend/src/components/oracle/__tests__/DailyReadingCard.test.tsx` — 4 tests: title render, generate button, daily insights display, loading state
+- `frontend/src/components/oracle/__tests__/MultiUserReadingDisplay.test.tsx` — 4 tests: user tabs, compatibility grid, color coding, group analysis 3+
+
+**Files modified (10):**
+
+- `api/app/orm/oracle_reading.py` — Added `OracleDailyReading` ORM model mapped to `oracle_daily_readings`
+- `api/app/models/oracle.py` — Added 6 Pydantic models: DailyReadingRequest, DailyReadingCacheResponse, MultiUserFrameworkRequest (2-5 users validation, no duplicates), MultiUserFrameworkResponse, PairwiseCompatibility, GroupAnalysis
+- `services/oracle/oracle_service/reading_orchestrator.py` — Added `generate_daily_reading()` (noon time, target_date, daily_insights extraction) and `generate_multi_user_reading()` (framework bridge, multi-user analyzer, pairwise + group, AI group interpretation with fallback)
+- `api/app/services/oracle_reading.py` — Added `create_daily_reading()` (cache check, generate, store), `get_cached_daily_reading()`, `create_multi_user_framework_reading()` (profile resolution, orchestrator call, DB storage)
+- `api/app/routers/oracle.py` — Extended POST /readings with `reading_type: "daily"` and `"multi"` discriminator; Added GET /daily/reading endpoint
+- `api/app/main.py` — Added DailyScheduler startup/shutdown in lifespan context manager with graceful fallback
+- `frontend/src/types/index.ts` — Added 7 interfaces: DailyReadingRequest, DailyInsights, DailyReadingCacheResponse, MultiUserFrameworkRequest, PairwiseCompatibilityResult, GroupAnalysisResult, MultiUserFrameworkResponse
+- `frontend/src/services/api.ts` — Added 3 API methods: dailyReading, getDailyReading, multiUserFrameworkReading
+- `frontend/src/hooks/useOracleReadings.ts` — Added 3 hooks: useDailyReading, useGenerateDailyReading, useSubmitMultiUserReading
+- `frontend/src/locales/en.json` + `fa.json` — Added 16 i18n keys for daily/multi-user reading UI
+- `.env.example` — Added NPS_DAILY_SCHEDULER_ENABLED, NPS_DAILY_SCHEDULER_HOUR, NPS_DAILY_SCHEDULER_MINUTE
+- `services/oracle/tests/test_reading_orchestrator.py` — Updated progress callback signature to accept `reading_type` parameter (regression fix)
+
+**Tests:** 12 orchestrator pass | 8 regression pass (0 regressions) | 54 API pass (27×2 backends) | 235 frontend pass (0 regressions)
+**Commit:** TBD
+**Issues:** Fixed multi-user test mocks (dict→SimpleNamespace for getattr compatibility); Fixed daily_insights missing from framework output mock; Fixed progress callback signature regression in existing time-reading test
+**Decisions:**
+
+- Daily reading uses noon (12:00:00) as neutral birth time for daily calculations
+- Multi-user analyzer results accessed via `getattr()` (object attributes, not dict keys) — tests use `SimpleNamespace`
+- DailyScheduler is opt-in via `NPS_DAILY_SCHEDULER_ENABLED` env var, graceful fallback if import fails
+- CompatibilityMeter supports 3 sizes (sm/md/lg) with different visual treatments
+- Group analysis only appears for 3+ users (2 users = pairwise only)
+- Pairwise compatibility has 5 dimensions: life_path, element, animal, moon, pattern
+
+**Next:** Session 17 — AI Wisdom Engine (prompt builder, interpretation pipeline, learning loop)
 
 ---
 

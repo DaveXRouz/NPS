@@ -41,6 +41,38 @@ export function useSubmitTimeReading() {
   });
 }
 
+export function useDailyReading(userId: number | null, date?: string) {
+  return useQuery({
+    queryKey: ["dailyReading", userId, date],
+    queryFn: () => oracle.getDailyReading(userId!, date),
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 min — daily readings don't change often
+  });
+}
+
+export function useGenerateDailyReading() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: import("@/types").DailyReadingRequest) =>
+      oracle.dailyReading(data),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({
+        queryKey: ["dailyReading", variables.user_id],
+      });
+      qc.invalidateQueries({ queryKey: HISTORY_KEY });
+    },
+  });
+}
+
+export function useSubmitMultiUserReading() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: import("@/types").MultiUserFrameworkRequest) =>
+      oracle.multiUserFrameworkReading(data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
+  });
+}
+
 export function useReadingHistory(params?: {
   limit?: number;
   offset?: number;

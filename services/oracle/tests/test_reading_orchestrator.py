@@ -174,8 +174,8 @@ class TestProgressCallbackCalled:
 
         calls = []
 
-        async def track_progress(step, total, message):
-            calls.append((step, total, message))
+        async def track_progress(step, total, message, reading_type="time"):
+            calls.append((step, total, message, reading_type))
 
         orch = ReadingOrchestrator(progress_callback=track_progress)
         asyncio.get_event_loop().run_until_complete(

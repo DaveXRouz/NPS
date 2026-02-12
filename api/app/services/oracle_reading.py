@@ -444,6 +444,233 @@ class OracleReadingService:
         self.db.flush()
         return reading
 
+    # ── Daily reading (Session 16) ──
+
+    async def create_daily_reading(
+        self,
+        user_id: int,
+        date_str: str | None,
+        locale: str,
+        numerology_system: str,
+        force_regenerate: bool = False,
+        progress_callback=None,
+    ) -> dict:
+        """Create a daily reading (or return cached version).
+
+        1. Check oracle_daily_readings for existing (user_id, date)
+        2. If found and not force_regenerate: return cached reading
+        3. If not found: generate via orchestrator, store, create cache entry
+        """
+        target_date_str = date_str or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        target_date = datetime.strptime(target_date_str, "%Y-%m-%d")
+        reading_date = target_date.date()
+
+        # Check cache (unless force_regenerate)
+        if not force_regenerate:
+            cached = self._get_daily_cache(user_id, reading_date)
+            if cached:
+                return cached
+
+        # Load user, build profile, generate reading
+        oracle_user = self._get_oracle_user(user_id)
+        user_profile = self._build_user_profile(oracle_user, numerology_system)
+
+        from oracle_service.reading_orchestrator import ReadingOrchestrator
+
+        orchestrator = ReadingOrchestrator(progress_callback=progress_callback)
+        result = await orchestrator.generate_daily_reading(user_profile, target_date, locale)
+
+        # Store in oracle_readings
+        ai_text = ""
+        ai_interp = result.get("ai_interpretation")
+        if isinstance(ai_interp, dict):
+            ai_text = ai_interp.get("full_text", "")
+        elif isinstance(ai_interp, str):
+            ai_text = ai_interp
+
+        reading = self.store_reading(
+            user_id=user_id,
+            sign_type="daily",
+            sign_value=target_date_str,
+            question=None,
+            reading_result=result.get("framework_result"),
+            ai_interpretation=ai_text or None,
+        )
+
+        # Create cache entry in oracle_daily_readings
+        self._create_daily_cache(user_id, reading_date, reading.id)
+
+        result["id"] = reading.id
+        created_at = reading.created_at
+        result["created_at"] = (
+            created_at.isoformat() if isinstance(created_at, datetime) else str(created_at or "")
+        )
+
+        return result
+
+    def get_cached_daily_reading(self, user_id: int, date_str: str | None) -> dict | None:
+        """Get cached daily reading for a user and date. Returns None if not cached."""
+        target_date_str = date_str or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        target_date = datetime.strptime(target_date_str, "%Y-%m-%d").date()
+        return self._get_daily_cache(user_id, target_date)
+
+    def _get_daily_cache(self, user_id: int, reading_date) -> dict | None:
+        """Look up daily reading via oracle_daily_readings -> oracle_readings join."""
+        from app.orm.oracle_reading import OracleDailyReading
+
+        cache_row = (
+            self.db.query(OracleDailyReading)
+            .filter(
+                OracleDailyReading.user_id == user_id,
+                OracleDailyReading.reading_date == reading_date,
+            )
+            .first()
+        )
+        if not cache_row:
+            return None
+
+        reading = (
+            self.db.query(OracleReading)
+            .filter(
+                OracleReading.id == cache_row.reading_id,
+            )
+            .first()
+        )
+        if not reading:
+            return None
+
+        # Reconstruct response from stored reading
+        reading_result = None
+        if reading.reading_result:
+            try:
+                reading_result = (
+                    json.loads(reading.reading_result)
+                    if isinstance(reading.reading_result, str)
+                    else reading.reading_result
+                )
+            except (json.JSONDecodeError, TypeError):
+                reading_result = {}
+        reading_result = reading_result or {}
+
+        created_at = reading.created_at
+        created_str = (
+            created_at.isoformat() if isinstance(created_at, datetime) else str(created_at or "")
+        )
+
+        return {
+            "id": reading.id,
+            "reading_type": "daily",
+            "sign_value": reading.sign_value,
+            "framework_result": reading_result,
+            "ai_interpretation": {"full_text": reading.ai_interpretation or ""},
+            "confidence": reading_result.get("confidence", {}),
+            "patterns": (
+                reading_result.get("patterns", {}).get("detected", [])
+                if isinstance(reading_result.get("patterns"), dict)
+                else []
+            ),
+            "fc60_stamp": (
+                reading_result.get("fc60_stamp", {}).get("fc60", "")
+                if isinstance(reading_result.get("fc60_stamp"), dict)
+                else ""
+            ),
+            "numerology": reading_result.get("numerology"),
+            "moon": reading_result.get("moon"),
+            "ganzhi": reading_result.get("ganzhi"),
+            "daily_insights": reading_result.get("daily_insights", {}),
+            "locale": "en",
+            "created_at": created_str,
+            "_cached": True,
+        }
+
+    def _create_daily_cache(self, user_id: int, reading_date, reading_id: int) -> None:
+        """Insert row into oracle_daily_readings. Handles race condition via unique constraint."""
+        from app.orm.oracle_reading import OracleDailyReading
+        from sqlalchemy.exc import IntegrityError
+
+        try:
+            cache_entry = OracleDailyReading(
+                user_id=user_id,
+                reading_date=reading_date,
+                reading_id=reading_id,
+            )
+            self.db.add(cache_entry)
+            self.db.flush()
+        except IntegrityError:
+            self.db.rollback()
+
+    def _get_oracle_user(self, user_id: int):
+        """Load oracle user or raise ValueError."""
+        from app.orm.oracle_user import OracleUser
+
+        oracle_user = (
+            self.db.query(OracleUser)
+            .filter(
+                OracleUser.id == user_id,
+                OracleUser.deleted_at.is_(None),
+            )
+            .first()
+        )
+        if not oracle_user:
+            raise ValueError(f"Oracle user {user_id} not found")
+        return oracle_user
+
+    # ── Multi-user framework reading (Session 16) ──
+
+    async def create_multi_user_framework_reading(
+        self,
+        user_ids: list[int],
+        primary_user_index: int,
+        date_str: str | None,
+        locale: str,
+        numerology_system: str,
+        include_interpretation: bool,
+        progress_callback=None,
+    ) -> dict:
+        """Create multi-user compatibility reading using framework pipeline."""
+        user_profiles = []
+        for uid in user_ids:
+            oracle_user = self._get_oracle_user(uid)
+            profile = self._build_user_profile(oracle_user, numerology_system)
+            user_profiles.append(profile)
+
+        target_date = _parse_datetime(date_str) if date_str else None
+
+        from oracle_service.reading_orchestrator import ReadingOrchestrator
+
+        orchestrator = ReadingOrchestrator(progress_callback=progress_callback)
+        result = await orchestrator.generate_multi_user_reading(
+            user_profiles,
+            primary_user_index,
+            target_date,
+            locale,
+            include_interpretation,
+        )
+
+        # Store main reading
+        primary_uid = user_ids[primary_user_index]
+        reading = self.store_multi_user_reading(
+            primary_user_id=primary_uid,
+            user_ids=user_ids,
+            result_dict={
+                "individual_results": result.get("individual_readings"),
+                "compatibility_matrix": result.get("pairwise_compatibility"),
+                "combined_energy": result.get("group_analysis"),
+                "user_count": result["user_count"],
+                "pair_count": result["pair_count"],
+                "computation_ms": result["computation_ms"],
+            },
+            ai_interpretation=result.get("ai_interpretation"),
+        )
+
+        result["id"] = reading.id
+        created_at = reading.created_at
+        result["created_at"] = (
+            created_at.isoformat() if isinstance(created_at, datetime) else str(created_at or "")
+        )
+
+        return result
+
     # ── Framework reading pipeline (Session 14+) ──
 
     def _build_user_profile(
