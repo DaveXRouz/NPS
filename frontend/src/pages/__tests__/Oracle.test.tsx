@@ -4,25 +4,24 @@ import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "@/test/testUtils";
 import Oracle from "../Oracle";
 
-// Mock i18next
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string, params?: Record<string, unknown>) => {
+    t: (key: string) => {
       const map: Record<string, string> = {
-        "oracle.title": "Oracle",
-        "oracle.subtitle": "Cosmic Guidance & Numerology",
         "oracle.user_profile": "User Profile",
-        "oracle.current_reading": "Current Reading",
+        "oracle.reading_type": "Reading Type",
         "oracle.reading_results": "Reading Results",
         "oracle.select_profile": "Select profile",
         "oracle.no_profiles": "No profiles yet",
         "oracle.add_new_profile": "Add New Profile",
         "oracle.edit_profile": "Edit Profile",
         "oracle.select_to_begin": "Select a profile to begin readings.",
-        "oracle.results_placeholder":
-          "Results will appear here after a reading.",
-        "oracle.details_placeholder":
-          "Submit a reading to see detailed analysis.",
+        "oracle.type_time_title": "Time Reading",
+        "oracle.type_name_title": "Name Reading",
+        "oracle.type_question_title": "Question Reading",
+        "oracle.type_daily_title": "Daily Reading",
+        "oracle.type_multi_title": "Multi-User Reading",
+        "oracle.loading_generating": "Generating your reading…",
         "oracle.new_profile": "New Profile",
         "oracle.field_name": "Name",
         "oracle.field_name_persian": "Name (Persian)",
@@ -37,41 +36,93 @@ vi.mock("react-i18next", () => ({
           "Mother's name must be at least 2 characters",
         "oracle.delete_profile": "Delete",
         "oracle.delete_confirm": "Confirm Delete",
-        "oracle.primary_user": "Primary User",
-        "oracle.secondary_users": "Secondary Users",
-        "oracle.add_secondary": "Add User",
-        "oracle.remove_user": "Remove user",
-        "oracle.max_users_error": "Maximum 5 users allowed",
-        "oracle.duplicate_user_error": "This user has already been added",
-        "oracle.translate": "Translate to Persian",
         "oracle.tab_summary": "Summary",
         "oracle.tab_details": "Details",
         "oracle.tab_history": "History",
-        "oracle.filter_all": "All",
-        "oracle.filter_reading": "Readings",
-        "oracle.filter_question": "Questions",
-        "oracle.filter_name": "Names",
-        "oracle.history_empty": "No readings yet.",
-        "oracle.history_count": `${params?.count ?? 0} readings`,
-        "oracle.error_history": "Failed to load reading history.",
-        "common.loading": "Loading...",
+        "oracle.results_placeholder":
+          "Results will appear here after a reading.",
         "common.save": "Save",
         "common.cancel": "Cancel",
       };
       return map[key] ?? key;
     },
-    i18n: {
-      language: "en",
-      changeLanguage: vi.fn(),
-    },
+    i18n: { language: "en", changeLanguage: vi.fn() },
   }),
 }));
 
-vi.mock("@/services/api", () => ({
-  oracle: {
-    history: vi.fn().mockReturnValue(new Promise(() => {})),
-  },
-  translation: { translate: vi.fn() },
+vi.mock("@/components/oracle/ReadingTypeSelector", () => ({
+  ReadingTypeSelector: ({
+    value,
+    onChange,
+  }: {
+    value: string;
+    onChange: (v: string) => void;
+  }) => (
+    <div data-testid="reading-type-selector">
+      <span data-testid="active-type">{value}</span>
+      <button
+        type="button"
+        onClick={() => onChange("name")}
+        data-testid="switch-to-name"
+      >
+        Switch to name
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock("@/components/oracle/OracleConsultationForm", () => ({
+  OracleConsultationForm: ({ readingType }: { readingType: string }) => (
+    <div data-testid="consultation-form">Form: {readingType}</div>
+  ),
+}));
+
+vi.mock("@/components/oracle/LoadingAnimation", () => ({
+  LoadingAnimation: () => <div data-testid="loading-animation">Loading...</div>,
+}));
+
+vi.mock("@/components/oracle/ReadingResults", () => ({
+  ReadingResults: () => (
+    <div data-testid="reading-results">Results placeholder</div>
+  ),
+}));
+
+vi.mock("@/components/oracle/MultiUserSelector", () => ({
+  MultiUserSelector: () => (
+    <div data-testid="multi-user-selector">Multi selector</div>
+  ),
+}));
+
+vi.mock("@/components/oracle/UserForm", () => ({
+  UserForm: ({ onCancel }: { onCancel: () => void }) => (
+    <div data-testid="user-form">
+      <span>New Profile</span>
+      <button type="button" onClick={onCancel}>
+        Cancel
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock("@/hooks/useOracleUsers", () => ({
+  useOracleUsers: () => ({ data: [], isLoading: false }),
+  useCreateOracleUser: () => ({ mutate: vi.fn(), isPending: false }),
+  useUpdateOracleUser: () => ({ mutate: vi.fn(), isPending: false }),
+  useDeleteOracleUser: () => ({ mutate: vi.fn() }),
+}));
+
+vi.mock("@/hooks/useReadingProgress", () => ({
+  useReadingProgress: () => ({
+    progress: {
+      step: 0,
+      total: 0,
+      message: "",
+      readingType: "",
+      isActive: false,
+    },
+    startProgress: vi.fn(),
+    resetProgress: vi.fn(),
+  }),
 }));
 
 beforeEach(() => {
@@ -79,24 +130,28 @@ beforeEach(() => {
 });
 
 describe("Oracle Page", () => {
-  it("renders the page title and all sections", async () => {
+  it("renders the user profile section", async () => {
     renderWithProviders(<Oracle />);
     await waitFor(() => {
-      expect(screen.getByText(/Oracle/)).toBeInTheDocument();
-    });
-    expect(screen.getByText("User Profile")).toBeInTheDocument();
-    expect(screen.getByText("Current Reading")).toBeInTheDocument();
-    expect(screen.getByText("Reading Results")).toBeInTheDocument();
-  });
-
-  it("shows user selector with no profiles initially", async () => {
-    renderWithProviders(<Oracle />);
-    await waitFor(() => {
-      expect(screen.getByText("No profiles yet")).toBeInTheDocument();
+      expect(screen.getByText("User Profile")).toBeInTheDocument();
     });
   });
 
-  it("shows placeholder text when no user selected", async () => {
+  it("renders reading type selector", async () => {
+    renderWithProviders(<Oracle />);
+    await waitFor(() => {
+      expect(screen.getByTestId("reading-type-selector")).toBeInTheDocument();
+    });
+  });
+
+  it("defaults to time reading type", async () => {
+    renderWithProviders(<Oracle />);
+    await waitFor(() => {
+      expect(screen.getByTestId("active-type")).toHaveTextContent("time");
+    });
+  });
+
+  it("shows select-to-begin when no user is selected", async () => {
     renderWithProviders(<Oracle />);
     await waitFor(() => {
       expect(
@@ -105,37 +160,20 @@ describe("Oracle Page", () => {
     });
   });
 
-  it("opens create form when Add New Profile clicked", async () => {
+  it("renders reading results section", async () => {
+    renderWithProviders(<Oracle />);
+    await waitFor(() => {
+      expect(screen.getByText("Reading Results")).toBeInTheDocument();
+    });
+    expect(screen.getByTestId("reading-results")).toBeInTheDocument();
+  });
+
+  it("opens create form when Add New Profile is clicked", async () => {
     renderWithProviders(<Oracle />);
     await waitFor(() => {
       expect(screen.getByText(/Add New Profile/)).toBeInTheDocument();
     });
     await userEvent.click(screen.getByText(/Add New Profile/));
-    expect(screen.getByText("New Profile")).toBeInTheDocument();
-  });
-
-  it("shows tabbed results with Summary, Details, History", async () => {
-    renderWithProviders(<Oracle />);
-    await waitFor(() => {
-      expect(screen.getByText("Summary")).toBeInTheDocument();
-    });
-    expect(screen.getByText("Details")).toBeInTheDocument();
-    expect(screen.getByText("History")).toBeInTheDocument();
-  });
-
-  it("shows summary placeholder by default", async () => {
-    renderWithProviders(<Oracle />);
-    await waitFor(() => {
-      expect(
-        screen.getByText("Results will appear here after a reading."),
-      ).toBeInTheDocument();
-    });
-  });
-
-  it("shows primary user label", async () => {
-    renderWithProviders(<Oracle />);
-    await waitFor(() => {
-      expect(screen.getByText("Primary User")).toBeInTheDocument();
-    });
+    expect(screen.getByTestId("user-form")).toBeInTheDocument();
   });
 });

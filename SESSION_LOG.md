@@ -9,9 +9,9 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 19 of 45
-**Last session:** Session 19 — Frontend Layout & Navigation
-**Current block:** Frontend Core (Sessions 19-25) — First session complete
+**Sessions completed:** 20 of 45
+**Last session:** Session 20 — Oracle Main Page UI
+**Current block:** Frontend Core (Sessions 19-25) — Two sessions complete
 
 ---
 
@@ -867,7 +867,50 @@ TEMPLATE — copy this for each new session:
 - Mobile sidebar uses fixed overlay with backdrop click-to-close
 - isAdmin defaults to false — will be wired to auth context in later sessions
 
-**Next:** Session 20 — Oracle Main Page UI (rewrite Oracle page with new design system, reading type tabs, results display)
+**Next:** Session 21 — Reading History Page (reading history list with filtering, search, pagination, favorites)
+
+---
+
+## Session 20 — 2026-02-13
+
+**Terminal:** SINGLE
+**Block:** Frontend Core (second session in block)
+**Task:** Oracle Main Page UI — Two-column responsive layout, ReadingTypeSelector 5-tab control, OracleConsultationForm thin coordinator, LoadingAnimation with WebSocket progress, useReadingProgress hook, URL query parameter reading type, i18n translations
+**Spec:** .session-specs/SESSION_20_SPEC.md
+
+**Files created (5):**
+
+- `frontend/src/components/oracle/ReadingTypeSelector.tsx` — 5-tab segmented control (time/name/question/daily/multi) with inline SVG icons, role=tablist/tab, aria-selected, aria-controls, responsive flex-col(desktop)/flex-row(mobile), CSS var theming, disabled state
+- `frontend/src/components/oracle/LoadingAnimation.tsx` — Pulsing emerald orb (3 concentric circles: animate-ping, animate-pulse, solid), progress message, progress bar with width%, step counter, optional cancel button, aria-live="polite"
+- `frontend/src/hooks/useReadingProgress.ts` — WebSocket "reading_progress" event subscription via useWebSocket, activeRef guard, auto-deactivate after 500ms when step reaches total, returns { progress, startProgress, resetProgress }
+- `frontend/src/components/oracle/__tests__/ReadingTypeSelector.test.tsx` — 6 tests: 5 tabs render, aria-selected, onChange callback, disabled state, tablist role, aria-controls
+- `frontend/src/components/oracle/__tests__/LoadingAnimation.test.tsx` — 6 tests: progress message, progress bar width, step counter visible/hidden, cancel button visible/hidden + callback
+
+**Files modified (6):**
+
+- `frontend/src/pages/Oracle.tsx` — Full rewrite: two-column responsive layout (aside + main), URL-driven reading type via useSearchParams, ReadingTypeSelector in sidebar, LoadingAnimation during generation, scroll-to-results on completion, VALID_TYPES validation with "time" default
+- `frontend/src/components/oracle/OracleConsultationForm.tsx` — Full rewrite: thin coordinator with switch on readingType rendering TimeReadingForm/NameReadingForm/QuestionReadingForm/DailyReadingCard/MultiUserFlow, normalizeFrameworkResult() utility, internal MultiUserFlow component with useSubmitMultiUserReading
+- `frontend/src/types/index.ts` — Added "reading_progress" to EventType union
+- `frontend/src/locales/en.json` — Added 15 oracle.\* keys: reading_type, type_time, type_daily, type_multi, type\_\*\_title (5), loading_generating, loading_cancel, progress_step, multi_need_users, multi_select_hint
+- `frontend/src/locales/fa.json` — Added matching 15 Persian translation keys
+- `frontend/src/components/oracle/__tests__/OracleConsultationForm.test.tsx` — Full rewrite: 8 tests with mocked sub-components verifying thin coordinator dispatches to correct sub-form per reading type, multi-user flow states
+- `frontend/src/pages/__tests__/Oracle.test.tsx` — Full rewrite: 6 tests with mocked child components verifying two-column layout, reading type selector, select-to-begin, default time type, results section, create form modal
+
+**Tests:** 301 pass / 0 fail / 26 new (6 ReadingTypeSelector + 6 LoadingAnimation + 8 OracleConsultationForm + 6 Oracle) | 0 regressions across all 43 test files
+**Commit:** TBD
+**Issues:** None
+**Decisions:**
+
+- Oracle page uses two-column layout: aside (md:w-80 sticky) for user profile + reading type selector, main for form + results
+- Reading type is URL-driven via `?type=time|name|question|daily|multi`, validated against VALID_TYPES array, defaults to "time"
+- OracleConsultationForm is a thin coordinator — no form logic, just a switch dispatching to the correct sub-form component
+- normalizeFrameworkResult() bridges FrameworkReadingResponse → ConsultationResult for time/name/question types
+- MultiUserFlow is an internal component in OracleConsultationForm, not a separate file — keeps multi-user submission logic co-located
+- LoadingAnimation replaces form during generation, driven by isLoading state + useReadingProgress WebSocket hook
+- "reading_progress" added to EventType for WebSocket type safety
+- useReadingProgress auto-deactivates 500ms after step === total to allow smooth UI transition
+
+**Next:** Session 21 — Reading History Page (reading history list with filtering, search, pagination, favorites)
 
 ---
 

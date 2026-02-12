@@ -769,6 +769,7 @@ export type EventType =
   | "config_changed"
   | "shutdown"
   | "stats_update"
+  | "reading_progress"
   | "error";
 
 // ─── Health ───

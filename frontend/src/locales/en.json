@@ -397,7 +397,22 @@
     "second_label": "Second",
     "use_current_time": "Use current time",
     "generating_reading": "Generating reading...",
-    "time_reading_progress": "Step {{step}} of {{total}}"
+    "time_reading_progress": "Step {{step}} of {{total}}",
+
+    "reading_type": "Reading Type",
+    "type_time": "Time",
+    "type_daily": "Daily",
+    "type_multi": "Multi-User",
+    "type_time_title": "Time Reading",
+    "type_name_title": "Name Reading",
+    "type_question_title": "Question Reading",
+    "type_daily_title": "Daily Reading",
+    "type_multi_title": "Multi-User Reading",
+    "loading_generating": "Generating your reading…",
+    "loading_cancel": "Cancel",
+    "progress_step": "Step {{step}} of {{total}}",
+    "multi_need_users": "Select at least 2 users for a multi-user reading.",
+    "multi_select_hint": "Use the profile selector to add users."
   },
   "vault": {
     "title": "Vault",

@@ -1,191 +1,255 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import type { SignData, LocationData, ConsultationResult } from "@/types";
-import { validateSign } from "@/utils/signValidators";
-import { oracle } from "@/services/api";
-import type { NumerologySystem } from "@/utils/scriptDetector";
-import { PersianKeyboard } from "./PersianKeyboard";
-import { CalendarPicker } from "./CalendarPicker";
-import { SignTypeSelector } from "./SignTypeSelector";
-import { LocationSelector } from "./LocationSelector";
-import { NumerologySystemSelector } from "./NumerologySystemSelector";
-import { HeartbeatInput } from "./HeartbeatInput";
+import type { ReadingType } from "./ReadingTypeSelector";
+import type {
+  SelectedUsers,
+  ConsultationResult,
+  FrameworkReadingResponse,
+  NameReading,
+  QuestionReadingResult,
+  OracleReading,
+  MultiUserFrameworkRequest,
+} from "@/types";
+import { useSubmitMultiUserReading } from "@/hooks/useOracleReadings";
+import TimeReadingForm from "./TimeReadingForm";
+import { NameReadingForm } from "./NameReadingForm";
+import { QuestionReadingForm } from "./QuestionReadingForm";
+import DailyReadingCard from "./DailyReadingCard";
+import MultiUserReadingDisplay from "./MultiUserReadingDisplay";
 
 interface OracleConsultationFormProps {
+  readingType: ReadingType;
   userId: number;
   userName: string;
+  selectedUsers: SelectedUsers | null;
   onResult: (result: ConsultationResult) => void;
+  onLoadingChange: (isLoading: boolean) => void;
+}
+
+function normalizeFrameworkResult(
+  response: FrameworkReadingResponse,
+  type: "reading" | "name" | "question",
+): ConsultationResult {
+  if (type === "reading") {
+    const oracleReading: OracleReading = {
+      fc60: null,
+      numerology: response.numerology
+        ? {
+            life_path: response.numerology.life_path?.number ?? 0,
+            day_vibration: response.numerology.personal_day,
+            personal_year: response.numerology.personal_year,
+            personal_month: response.numerology.personal_month,
+            personal_day: response.numerology.personal_day,
+            interpretation: response.ai_interpretation?.core_identity ?? "",
+          }
+        : null,
+      zodiac: null,
+      chinese: null,
+      moon: response.moon as Record<string, string> | null,
+      angel: null,
+      chaldean: null,
+      ganzhi: response.ganzhi as Record<string, string> | null,
+      fc60_extended: null,
+      synchronicities: response.patterns.map((p) => p.message ?? p.type),
+      ai_interpretation: response.ai_interpretation?.full_text ?? null,
+      summary: response.ai_interpretation?.message ?? "",
+      generated_at: response.created_at,
+    };
+    return { type: "reading", data: oracleReading };
+  }
+  if (type === "name") {
+    const nameReading: NameReading = {
+      name: response.sign_value,
+      detected_script: "latin",
+      numerology_system: "pythagorean",
+      expression: response.numerology?.expression ?? 0,
+      soul_urge: response.numerology?.soul_urge ?? 0,
+      personality: response.numerology?.personality ?? 0,
+      life_path: response.numerology?.life_path?.number ?? null,
+      personal_year: response.numerology?.personal_year ?? null,
+      fc60_stamp: null,
+      moon: response.moon as Record<string, unknown> | null,
+      ganzhi: response.ganzhi as Record<string, unknown> | null,
+      patterns: null,
+      confidence: response.confidence
+        ? {
+            score: response.confidence.score,
+            level: response.confidence.level,
+          }
+        : null,
+      ai_interpretation: response.ai_interpretation?.full_text ?? null,
+      letter_breakdown: [],
+      reading_id: response.id,
+    };
+    return { type: "name", data: nameReading };
+  }
+  // question type
+  const questionResult: QuestionReadingResult = {
+    question: response.sign_value,
+    question_number: 0,
+    detected_script: "latin",
+    numerology_system: "auto",
+    raw_letter_sum: 0,
+    is_master_number: false,
+    fc60_stamp: null,
+    numerology: response.numerology as Record<string, unknown> | null,
+    moon: response.moon as Record<string, unknown> | null,
+    ganzhi: response.ganzhi as Record<string, unknown> | null,
+    patterns: null,
+    confidence: response.confidence
+      ? {
+          score: response.confidence.score,
+          level: response.confidence.level,
+        }
+      : null,
+    ai_interpretation: response.ai_interpretation?.full_text ?? null,
+    reading_id: response.id,
+  };
+  return { type: "question", data: questionResult };
 }
 
 export function OracleConsultationForm({
-  userId: _userId,
+  readingType,
+  userId,
   userName,
+  selectedUsers,
   onResult,
+  onLoadingChange,
 }: OracleConsultationFormProps) {
   const { t } = useTranslation();
 
-  const [question, setQuestion] = useState("");
-  const [date, setDate] = useState("");
-  const [sign, setSign] = useState<SignData>({ type: "time", value: "" });
-  const [location, setLocation] = useState<LocationData | null>(null);
-  const [showKeyboard, setShowKeyboard] = useState(false);
-  const [signError, setSignError] = useState<string | undefined>();
-  const [numerologySystem, setNumerologySystem] =
-    useState<NumerologySystem>("auto");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [consultationBpm, setConsultationBpm] = useState<number | null>(null);
+  switch (readingType) {
+    case "time":
+      return (
+        <TimeReadingForm
+          userId={userId}
+          userName={userName}
+          onResult={(response) => {
+            onResult(normalizeFrameworkResult(response, "reading"));
+            onLoadingChange(false);
+          }}
+        />
+      );
+    case "name":
+      return (
+        <NameReadingForm
+          userId={userId}
+          userName={userName}
+          onResult={(data: NameReading) => {
+            onResult({ type: "name", data });
+            onLoadingChange(false);
+          }}
+        />
+      );
+    case "question":
+      return (
+        <QuestionReadingForm
+          userId={userId}
+          onResult={(data: QuestionReadingResult) => {
+            onResult({ type: "question", data });
+            onLoadingChange(false);
+          }}
+        />
+      );
+    case "daily":
+      return <DailyReadingCard userId={userId} userName={userName} />;
+    case "multi":
+      return (
+        <MultiUserFlow
+          userId={userId}
+          selectedUsers={selectedUsers}
+          onResult={onResult}
+          onLoadingChange={onLoadingChange}
+        />
+      );
+  }
+}
 
-  function handleKeyboardChar(char: string) {
-    setQuestion((prev) => prev + char);
+interface MultiUserFlowProps {
+  userId: number;
+  selectedUsers: SelectedUsers | null;
+  onResult: (result: ConsultationResult) => void;
+  onLoadingChange: (isLoading: boolean) => void;
+}
+
+function MultiUserFlow({
+  userId,
+  selectedUsers,
+  onResult,
+  onLoadingChange,
+}: MultiUserFlowProps) {
+  const { t, i18n } = useTranslation();
+  const mutation = useSubmitMultiUserReading();
+  const [multiResult, setMultiResult] = useState<
+    import("@/types").MultiUserFrameworkResponse | null
+  >(null);
+
+  const totalUsers = selectedUsers ? 1 + selectedUsers.secondary.length : 0;
+
+  const handleSubmit = useCallback(() => {
+    if (!selectedUsers || totalUsers < 2) return;
+    const allIds = [
+      selectedUsers.primary.id,
+      ...selectedUsers.secondary.map((u) => u.id),
+    ];
+    const request: MultiUserFrameworkRequest = {
+      user_ids: allIds,
+      primary_user_index: 0,
+      reading_type: "multi",
+      locale: i18n.language,
+      numerology_system: "auto",
+      include_interpretation: true,
+    };
+    onLoadingChange(true);
+    mutation.mutate(request, {
+      onSuccess: (data) => {
+        setMultiResult(data);
+        onLoadingChange(false);
+      },
+      onError: () => {
+        onLoadingChange(false);
+      },
+    });
+  }, [selectedUsers, totalUsers, i18n.language, mutation, onLoadingChange]);
+
+  if (multiResult) {
+    return <MultiUserReadingDisplay result={multiResult} />;
   }
 
-  function handleKeyboardBackspace() {
-    setQuestion((prev) => prev.slice(0, -1));
-  }
-
-  function handleSignChange(data: SignData) {
-    setSign(data);
-    if (signError) setSignError(undefined);
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    // Validate sign
-    const result = validateSign(sign);
-    if (!result.valid) {
-      setSignError(result.error ? t(result.error) : undefined);
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-
-    try {
-      if (question.trim()) {
-        const data = await oracle.question(question);
-        onResult({ type: "question", data });
-      } else {
-        const data = await oracle.reading(date || undefined);
-        onResult({ type: "reading", data });
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("oracle.error_submit"));
-    } finally {
-      setIsSubmitting(false);
-    }
+  if (totalUsers < 2) {
+    return (
+      <div className="text-center py-6" data-testid="multi-need-users">
+        <p className="text-sm text-[var(--nps-text-dim)]">
+          {t("oracle.multi_need_users")}
+        </p>
+        <p className="text-xs text-[var(--nps-text-dim)] mt-1">
+          {t("oracle.multi_select_hint")}
+        </p>
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <p className="text-xs text-nps-text-dim">
-        {t("oracle.consulting_for", { name: userName })}
+    <div className="text-center py-6">
+      <p className="text-sm text-[var(--nps-text-dim)] mb-4">
+        {t("oracle.multi_user_title")} ({totalUsers} users)
       </p>
-
-      {/* Question with keyboard toggle */}
-      <div className="relative">
-        <label className="block text-sm text-nps-text-dim mb-1">
-          {t("oracle.question_label")}
-        </label>
-        <div className="relative">
-          <textarea
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            placeholder={t("oracle.question_placeholder")}
-            dir="rtl"
-            rows={3}
-            className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent resize-none pr-10"
-          />
-          <button
-            type="button"
-            onClick={() => setShowKeyboard(!showKeyboard)}
-            className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-nps-text-dim hover:text-nps-oracle-accent transition-colors rounded"
-            aria-label={t("oracle.keyboard_toggle")}
-            title={t("oracle.keyboard_persian")}
-          >
-            ⌨
-          </button>
-        </div>
-        {showKeyboard && (
-          <PersianKeyboard
-            onCharacterClick={handleKeyboardChar}
-            onBackspace={handleKeyboardBackspace}
-            onClose={() => setShowKeyboard(false)}
-          />
-        )}
-      </div>
-
-      {/* Date picker */}
-      <CalendarPicker
-        value={date}
-        onChange={setDate}
-        label={t("oracle.date_label")}
-      />
-
-      {/* Sign type selector */}
-      <SignTypeSelector
-        value={sign}
-        onChange={handleSignChange}
-        error={signError}
-      />
-
-      {/* Numerology system selector */}
-      <NumerologySystemSelector
-        value={numerologySystem}
-        onChange={setNumerologySystem}
-        userName={userName}
-      />
-
-      {/* Location selector */}
-      <LocationSelector value={location} onChange={setLocation} />
-
-      {/* Advanced Options — expandable */}
-      <div className="border border-nps-border/30 rounded">
-        <button
-          type="button"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="w-full flex items-center justify-between px-3 py-2 text-xs text-nps-text-dim hover:text-nps-text transition-colors"
-          aria-expanded={showAdvanced}
-          data-testid="advanced-options-toggle"
-        >
-          <span>{t("oracle.advanced_options")}</span>
-          <span className="text-[10px]">{showAdvanced ? "▲" : "▼"}</span>
-        </button>
-        {showAdvanced && (
-          <div
-            className="px-3 pb-3 space-y-2"
-            data-testid="advanced-options-content"
-          >
-            <p className="text-[10px] text-nps-text-dim">
-              {t("oracle.advanced_options_hint")}
-            </p>
-            <HeartbeatInput
-              value={consultationBpm}
-              onChange={setConsultationBpm}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Submit */}
       <button
-        type="submit"
-        disabled={isSubmitting}
-        aria-busy={isSubmitting}
-        className="w-full px-4 py-2 text-sm bg-nps-oracle-accent text-nps-bg font-medium rounded hover:bg-nps-oracle-accent/80 transition-colors disabled:opacity-50"
+        type="button"
+        onClick={handleSubmit}
+        disabled={mutation.isPending}
+        className="px-4 py-2 text-sm bg-[var(--nps-accent)] text-[var(--nps-bg)] font-medium rounded hover:bg-[var(--nps-accent)]/80 transition-colors disabled:opacity-50"
+        data-testid="submit-multi-reading"
       >
-        {isSubmitting ? t("common.loading") : t("oracle.submit_reading")}
+        {mutation.isPending
+          ? t("oracle.generating_reading")
+          : t("oracle.submit_reading")}
       </button>
-
-      <div aria-live="polite">
-        {error && (
-          <p className="text-xs text-nps-bg-danger" role="alert">
-            {error}
-          </p>
-        )}
-      </div>
-    </form>
+      {mutation.error && (
+        <p className="text-xs text-red-500 mt-2" role="alert">
+          {t("oracle.error_submit")}
+        </p>
+      )}
+    </div>
   );
 }

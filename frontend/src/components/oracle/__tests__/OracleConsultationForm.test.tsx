@@ -1,45 +1,20 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { renderWithProviders } from "@/test/testUtils";
 import { OracleConsultationForm } from "../OracleConsultationForm";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string, params?: Record<string, string>) => {
+    t: (key: string) => {
       const map: Record<string, string> = {
-        "oracle.consulting_for": `Consulting for ${params?.name ?? ""}`,
-        "oracle.question_label": "Question",
-        "oracle.question_placeholder": "Type your question here...",
-        "oracle.date_label": "Date",
+        "oracle.multi_need_users":
+          "Select at least 2 users for a multi-user reading.",
+        "oracle.multi_select_hint": "Use the profile selector to add users.",
+        "oracle.multi_user_title": "Multi-User Compatibility",
+        "oracle.generating_reading": "Generating reading...",
         "oracle.submit_reading": "Submit Reading",
-        "oracle.keyboard_toggle": "Toggle Persian keyboard",
-        "oracle.keyboard_persian": "Persian Keyboard",
-        "oracle.keyboard_close": "Close keyboard",
-        "oracle.keyboard_space": "Space",
-        "oracle.keyboard_backspace": "Backspace",
-        "oracle.calendar_select_date": "Select a date",
-        "oracle.calendar_gregorian": "Gregorian",
-        "oracle.calendar_jalaali": "Solar Hijri",
-        "oracle.sign_label": "Sign",
-        "oracle.sign_type_label": "Sign type",
-        "oracle.sign_type_time": "Time",
-        "oracle.sign_type_number": "Number",
-        "oracle.sign_type_carplate": "Car Plate",
-        "oracle.sign_type_custom": "Custom",
-        "oracle.sign_placeholder_number": "Enter a number",
-        "oracle.sign_placeholder_carplate": "12A345-67",
-        "oracle.sign_placeholder_custom": "Enter your sign",
-        "oracle.location_label": "Location",
-        "oracle.location_auto_detect": "Auto-Detect Location",
-        "oracle.location_detecting": "Detecting...",
-        "oracle.location_detect_error":
-          "Could not detect location. Please select manually.",
-        "oracle.location_country": "Country",
-        "oracle.location_city": "City",
-        "oracle.location_coordinates": "Coordinates",
-        "oracle.error_sign_required": "Sign value is required",
-        "oracle.error_time_format": "Invalid time format (HH:MM)",
-        "common.loading": "Loading...",
+        "oracle.error_submit": "Failed to submit reading. Please try again.",
       };
       return map[key] ?? key;
     },
@@ -47,60 +22,148 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
-vi.mock("@/utils/geolocationHelpers", () => ({
-  getCurrentPosition: vi.fn(),
-  fetchCountries: vi.fn().mockResolvedValue([]),
-  fetchCities: vi.fn().mockResolvedValue([]),
+vi.mock("../TimeReadingForm", () => ({
+  default: () => <div data-testid="time-reading-form">TimeReadingForm</div>,
 }));
 
+vi.mock("../NameReadingForm", () => ({
+  NameReadingForm: () => (
+    <div data-testid="name-reading-form">NameReadingForm</div>
+  ),
+}));
+
+vi.mock("../QuestionReadingForm", () => ({
+  QuestionReadingForm: () => (
+    <div data-testid="question-reading-form">QuestionReadingForm</div>
+  ),
+}));
+
+vi.mock("../DailyReadingCard", () => ({
+  default: () => <div data-testid="daily-reading-card">DailyReadingCard</div>,
+}));
+
+vi.mock("../MultiUserReadingDisplay", () => ({
+  default: () => (
+    <div data-testid="multi-user-display">MultiUserReadingDisplay</div>
+  ),
+}));
+
+vi.mock("@/hooks/useOracleReadings", () => ({
+  useSubmitMultiUserReading: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+    error: null,
+  }),
+}));
+
+const defaultProps = {
+  userId: 1,
+  userName: "Alice",
+  selectedUsers: null,
+  onResult: vi.fn(),
+  onLoadingChange: vi.fn(),
+};
+
 describe("OracleConsultationForm", () => {
-  it("renders all form fields", () => {
-    render(
-      <OracleConsultationForm userId={1} userName="Alice" onResult={vi.fn()} />,
+  it("renders TimeReadingForm for type=time", () => {
+    renderWithProviders(
+      <OracleConsultationForm {...defaultProps} readingType="time" />,
     );
-    expect(screen.getByText("Consulting for Alice")).toBeInTheDocument();
-    expect(screen.getByText("Question")).toBeInTheDocument();
-    expect(screen.getByText("Sign")).toBeInTheDocument();
-    expect(screen.getByText("Location")).toBeInTheDocument();
+    expect(screen.getByTestId("time-reading-form")).toBeInTheDocument();
+  });
+
+  it("renders NameReadingForm for type=name", () => {
+    renderWithProviders(
+      <OracleConsultationForm {...defaultProps} readingType="name" />,
+    );
+    expect(screen.getByTestId("name-reading-form")).toBeInTheDocument();
+  });
+
+  it("renders QuestionReadingForm for type=question", () => {
+    renderWithProviders(
+      <OracleConsultationForm {...defaultProps} readingType="question" />,
+    );
+    expect(screen.getByTestId("question-reading-form")).toBeInTheDocument();
+  });
+
+  it("renders DailyReadingCard for type=daily", () => {
+    renderWithProviders(
+      <OracleConsultationForm {...defaultProps} readingType="daily" />,
+    );
+    expect(screen.getByTestId("daily-reading-card")).toBeInTheDocument();
+  });
+
+  it("shows need-users message for type=multi with no users", () => {
+    renderWithProviders(
+      <OracleConsultationForm {...defaultProps} readingType="multi" />,
+    );
+    expect(screen.getByTestId("multi-need-users")).toBeInTheDocument();
+    expect(
+      screen.getByText("Select at least 2 users for a multi-user reading."),
+    ).toBeInTheDocument();
+  });
+
+  it("shows submit button for multi with enough users", () => {
+    const users = {
+      primary: {
+        id: 1,
+        name: "Alice",
+        birthday: "1990-01-01",
+        mother_name: "Eve",
+      },
+      secondary: [
+        {
+          id: 2,
+          name: "Bob",
+          birthday: "1991-02-02",
+          mother_name: "Grace",
+        },
+      ],
+    };
+    renderWithProviders(
+      <OracleConsultationForm
+        {...defaultProps}
+        readingType="multi"
+        selectedUsers={users}
+      />,
+    );
+    expect(screen.getByTestId("submit-multi-reading")).toBeInTheDocument();
     expect(screen.getByText("Submit Reading")).toBeInTheDocument();
   });
 
-  it("toggles Persian keyboard on icon click", async () => {
-    render(
-      <OracleConsultationForm userId={1} userName="Alice" onResult={vi.fn()} />,
+  it("shows user count in multi mode", () => {
+    const users = {
+      primary: {
+        id: 1,
+        name: "Alice",
+        birthday: "1990-01-01",
+        mother_name: "Eve",
+      },
+      secondary: [
+        {
+          id: 2,
+          name: "Bob",
+          birthday: "1991-02-02",
+          mother_name: "Grace",
+        },
+      ],
+    };
+    renderWithProviders(
+      <OracleConsultationForm
+        {...defaultProps}
+        readingType="multi"
+        selectedUsers={users}
+      />,
     );
-    const toggleBtn = screen.getByLabelText("Toggle Persian keyboard");
-    await userEvent.click(toggleBtn);
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-    // Click close
-    await userEvent.click(screen.getByLabelText("Close keyboard"));
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByText(/2 users/)).toBeInTheDocument();
   });
 
-  it("types via Persian keyboard into question field", async () => {
-    render(
-      <OracleConsultationForm userId={1} userName="Alice" onResult={vi.fn()} />,
+  it("shows hint text in multi need-users view", () => {
+    renderWithProviders(
+      <OracleConsultationForm {...defaultProps} readingType="multi" />,
     );
-    // Open keyboard
-    await userEvent.click(screen.getByLabelText("Toggle Persian keyboard"));
-    // Click a character
-    await userEvent.click(screen.getByLabelText("ض"));
-    const textarea = screen.getByPlaceholderText("Type your question here...");
-    expect(textarea).toHaveValue("ض");
-  });
-
-  it("shows submit button", () => {
-    render(
-      <OracleConsultationForm userId={1} userName="Alice" onResult={vi.fn()} />,
-    );
-    expect(screen.getByText("Submit Reading")).toBeInTheDocument();
-  });
-
-  it("shows sign validation error on submit with empty sign", async () => {
-    render(
-      <OracleConsultationForm userId={1} userName="Alice" onResult={vi.fn()} />,
-    );
-    await userEvent.click(screen.getByText("Submit Reading"));
-    expect(screen.getByText("Sign value is required")).toBeInTheDocument();
+    expect(
+      screen.getByText("Use the profile selector to add users."),
+    ).toBeInTheDocument();
   });
 });
