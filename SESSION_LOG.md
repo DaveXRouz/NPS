@@ -696,7 +696,7 @@ TEMPLATE — copy this for each new session:
 - `services/oracle/tests/test_reading_orchestrator.py` — Updated progress callback signature to accept `reading_type` parameter (regression fix)
 
 **Tests:** 12 orchestrator pass | 8 regression pass (0 regressions) | 54 API pass (27×2 backends) | 235 frontend pass (0 regressions)
-**Commit:** TBD
+**Commit:** 1451116 — [oracle][api][frontend] daily & multi-user reading flows: scheduler, orchestrator, API endpoints, components (#session-16)
 **Issues:** Fixed multi-user test mocks (dict→SimpleNamespace for getattr compatibility); Fixed daily_insights missing from framework output mock; Fixed progress callback signature regression in existing time-reading test
 **Decisions:**
 
