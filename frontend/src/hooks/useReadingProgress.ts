@@ -1,75 +1,85 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useWebSocket } from "./useWebSocket";
-import type { EventType } from "@/types";
+import type {
+  ReadingProgressData,
+  ReadingCompleteData,
+  ReadingErrorData,
+} from "@/types";
 
 interface ReadingProgress {
-  step: number;
-  total: number;
-  message: string;
-  readingType: string;
   isActive: boolean;
+  step: string;
+  progress: number; // 0-100
+  message: string;
+  error: string | null;
+  lastReading: ReadingCompleteData | null;
 }
 
-const INITIAL_PROGRESS: ReadingProgress = {
-  step: 0,
-  total: 0,
-  message: "",
-  readingType: "",
-  isActive: false,
-};
-
-export function useReadingProgress(): {
-  progress: ReadingProgress;
-  startProgress: (readingType: string) => void;
-  resetProgress: () => void;
-} {
-  const [progress, setProgress] = useState<ReadingProgress>(INITIAL_PROGRESS);
-  const activeRef = useRef(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useWebSocket("reading_progress" as EventType, (data) => {
-    if (!activeRef.current) return;
-    setProgress((prev) => ({
-      ...prev,
-      step: (data.step as number) ?? prev.step,
-      total: (data.total as number) ?? prev.total,
-      message: (data.message as string) ?? prev.message,
-    }));
+export function useReadingProgress(): ReadingProgress {
+  const [state, setState] = useState<ReadingProgress>({
+    isActive: false,
+    step: "",
+    progress: 0,
+    message: "",
+    error: null,
+    lastReading: null,
   });
 
-  // Auto-deactivate when step reaches total
-  useEffect(() => {
-    if (
-      progress.isActive &&
-      progress.step === progress.total &&
-      progress.total > 0
-    ) {
-      timeoutRef.current = setTimeout(() => {
-        setProgress(INITIAL_PROGRESS);
-        activeRef.current = false;
-      }, 500);
-    }
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, [progress.step, progress.total, progress.isActive]);
+  useWebSocket(
+    "reading_started",
+    useCallback((data) => {
+      setState({
+        isActive: true,
+        step: "started",
+        progress: 0,
+        message:
+          (data as unknown as ReadingProgressData).message || "Starting...",
+        error: null,
+        lastReading: null,
+      });
+    }, []),
+  );
 
-  const startProgress = useCallback((readingType: string) => {
-    activeRef.current = true;
-    setProgress({
-      step: 0,
-      total: 0,
-      message: "",
-      readingType,
-      isActive: true,
-    });
-  }, []);
+  useWebSocket(
+    "reading_progress",
+    useCallback((data) => {
+      const d = data as unknown as ReadingProgressData;
+      setState((prev) => ({
+        ...prev,
+        step: d.step,
+        progress: d.progress,
+        message: d.message,
+      }));
+    }, []),
+  );
 
-  const resetProgress = useCallback(() => {
-    activeRef.current = false;
-    setProgress(INITIAL_PROGRESS);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-  }, []);
+  useWebSocket(
+    "reading_complete",
+    useCallback((data) => {
+      const d = data as unknown as ReadingCompleteData;
+      setState({
+        isActive: false,
+        step: "complete",
+        progress: 100,
+        message: "Reading complete",
+        error: null,
+        lastReading: d,
+      });
+    }, []),
+  );
 
-  return { progress, startProgress, resetProgress };
+  useWebSocket(
+    "reading_error",
+    useCallback((data) => {
+      const d = data as unknown as ReadingErrorData;
+      setState((prev) => ({
+        ...prev,
+        isActive: false,
+        step: "error",
+        error: d.error,
+      }));
+    }, []),
+  );
+
+  return state;
 }

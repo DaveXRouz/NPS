@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { wsClient } from "@/services/websocket";
-import type { EventType } from "@/types";
+import type { EventType, ConnectionStatus } from "@/types";
 
 /**
  * React hook for subscribing to WebSocket events.
@@ -24,10 +24,19 @@ export function useWebSocket(
 /**
  * Connect WebSocket on mount, disconnect on unmount.
  * Call once in the root Layout component.
+ * Returns the current connection status.
  */
-export function useWebSocketConnection() {
+export function useWebSocketConnection(): ConnectionStatus {
+  const [status, setStatus] = useState<ConnectionStatus>("disconnected");
+
   useEffect(() => {
     wsClient.connect();
-    return () => wsClient.disconnect();
+    const unsub = wsClient.onStatus(setStatus);
+    return () => {
+      unsub();
+      wsClient.disconnect();
+    };
   }, []);
+
+  return status;
 }

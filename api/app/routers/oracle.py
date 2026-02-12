@@ -9,8 +9,6 @@ from fastapi import (
     HTTPException,
     Query,
     Request,
-    WebSocket,
-    WebSocketDisconnect,
     status,
 )
 from sqlalchemy import func, text
@@ -59,8 +57,8 @@ from app.services.audit import AuditService, get_audit_service
 from app.services.oracle_reading import (
     OracleReadingService,
     get_oracle_reading_service,
-    oracle_progress,
 )
+from app.services.websocket_manager import ws_manager
 from app.services.security import EncryptionService, get_encryption_service
 
 logger = logging.getLogger(__name__)
@@ -424,7 +422,29 @@ async def create_framework_reading(
     reading_type = body_raw.get("reading_type", "time")
 
     async def progress_callback(step: int, total: int, message: str, rt: str = "time"):
-        await oracle_progress.send_progress(step, total, message, reading_type=rt)
+        progress_pct = int((step / total) * 100) if total > 0 else 0
+        step_name = (
+            "calculating"
+            if progress_pct < 75
+            else "ai_generating"
+            if progress_pct < 90
+            else "combining"
+        )
+        if progress_pct == 0:
+            await ws_manager.broadcast(
+                "reading_started",
+                {"step": "started", "progress": 0, "message": message},
+            )
+        elif progress_pct >= 100:
+            await ws_manager.broadcast(
+                "reading_complete",
+                {"step": "complete", "progress": 100, "message": message},
+            )
+        else:
+            await ws_manager.broadcast(
+                "reading_progress",
+                {"step": step_name, "progress": progress_pct, "message": message},
+            )
 
     try:
         if reading_type == "daily":
@@ -471,12 +491,33 @@ async def create_framework_reading(
             body = TimeReadingRequest(**body_raw)
 
             async def time_progress(step: int, total: int, message: str):
-                await oracle_progress.send_progress(
-                    step,
-                    total,
-                    message,
-                    reading_type=body.reading_type,
+                progress_pct = int((step / total) * 100) if total > 0 else 0
+                step_name = (
+                    "calculating"
+                    if progress_pct < 75
+                    else "ai_generating"
+                    if progress_pct < 90
+                    else "combining"
                 )
+                if progress_pct == 0:
+                    await ws_manager.broadcast(
+                        "reading_started",
+                        {"step": "started", "progress": 0, "message": message},
+                    )
+                elif progress_pct >= 100:
+                    await ws_manager.broadcast(
+                        "reading_complete",
+                        {"step": "complete", "progress": 100, "message": message},
+                    )
+                else:
+                    await ws_manager.broadcast(
+                        "reading_progress",
+                        {
+                            "step": step_name,
+                            "progress": progress_pct,
+                            "message": message,
+                        },
+                    )
 
             result = await svc.create_framework_reading(
                 user_id=body.user_id,
@@ -700,20 +741,6 @@ def toggle_reading_favorite(
     )
     svc.db.commit()
     return StoredReadingResponse(**data)
-
-
-# ─── Oracle WebSocket ────────────────────────────────────────────────────────
-
-
-@router.websocket("/ws")
-async def oracle_ws(websocket: WebSocket):
-    """WebSocket endpoint for oracle progress updates."""
-    await oracle_progress.connect(websocket)
-    try:
-        while True:
-            await websocket.receive_text()
-    except WebSocketDisconnect:
-        oracle_progress.disconnect(websocket)
 
 
 # ─── Oracle User Management ─────────────────────────────────────────────────

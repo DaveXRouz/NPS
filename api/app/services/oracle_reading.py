@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from fastapi import Depends, WebSocket
+from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -1206,37 +1206,3 @@ def get_oracle_reading_service(
 ) -> OracleReadingService:
     """FastAPI dependency — returns an OracleReadingService."""
     return OracleReadingService(db, enc)
-
-
-# ─── WebSocket progress manager ─────────────────────────────────────────────
-
-
-class OracleProgressManager:
-    """Lightweight WS manager for oracle-specific progress events."""
-
-    def __init__(self):
-        self.connections: list[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.connections.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        if websocket in self.connections:
-            self.connections.remove(websocket)
-
-    async def send_progress(self, step: int, total: int, message: str, reading_type: str = "time"):
-        payload = {
-            "step": step,
-            "total": total,
-            "message": message,
-            "reading_type": reading_type,
-        }
-        for ws in list(self.connections):
-            try:
-                await ws.send_json(payload)
-            except Exception:
-                self.disconnect(ws)
-
-
-oracle_progress = OracleProgressManager()

@@ -113,15 +113,12 @@ vi.mock("@/hooks/useOracleUsers", () => ({
 
 vi.mock("@/hooks/useReadingProgress", () => ({
   useReadingProgress: () => ({
-    progress: {
-      step: 0,
-      total: 0,
-      message: "",
-      readingType: "",
-      isActive: false,
-    },
-    startProgress: vi.fn(),
-    resetProgress: vi.fn(),
+    isActive: false,
+    step: "",
+    progress: 0,
+    message: "",
+    error: null,
+    lastReading: null,
   }),
 }));
 

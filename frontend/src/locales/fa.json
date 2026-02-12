@@ -511,7 +511,17 @@
     "star_count": "{{count}} ستاره",
     "star_count_plural": "{{count}} ستاره",
     "export_reading_title": "خوانش اوراکل {{type}}",
-    "export_generated_by": "تولید شده توسط فریمورک عددشناسی NPS"
+    "export_generated_by": "تولید شده توسط فریمورک عددشناسی NPS",
+
+    "progress_started": "شروع خوانش...",
+    "progress_calculating": "محاسبه عددشناسی...",
+    "progress_ai": "تولید تفسیر هوش مصنوعی...",
+    "progress_combining": "ترکیب نتایج...",
+    "progress_complete": "خوانش کامل شد",
+    "progress_error": "خطا در خوانش",
+    "ws_connected": "متصل",
+    "ws_disconnected": "قطع شده",
+    "ws_reconnecting": "در حال اتصال مجدد..."
   },
   "vault": {
     "title": "گاوصندوق",

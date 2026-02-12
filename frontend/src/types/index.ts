@@ -769,8 +769,45 @@ export type EventType =
   | "config_changed"
   | "shutdown"
   | "stats_update"
+  | "reading_started"
   | "reading_progress"
+  | "reading_complete"
+  | "reading_error"
+  | "daily_reading"
   | "error";
+
+export type ConnectionStatus =
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "error";
+
+export interface ReadingProgressData {
+  reading_id: number | null;
+  step: "calculating" | "ai_generating" | "combining" | "complete" | "started";
+  progress: number;
+  message: string;
+  user_id: number | null;
+}
+
+export interface ReadingCompleteData {
+  reading_id: number;
+  sign_type: string;
+  summary: string;
+  user_id: number | null;
+}
+
+export interface ReadingErrorData {
+  error: string;
+  sign_type: string | null;
+  user_id: number | null;
+}
+
+export interface DailyReadingData {
+  date: string;
+  insight: string;
+  lucky_numbers: string[];
+}
 
 // ─── Oracle Reading Types ───
 

@@ -9,9 +9,9 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 24 of 45
-**Last session:** Session 24 — Translation Service & i18n Completion
-**Current block:** Frontend Core (Sessions 19-25) — Six sessions complete
+**Sessions completed:** 25 of 45
+**Last session:** Session 25 — WebSocket & Real-Time Updates
+**Current block:** Frontend Core (Sessions 19-25) — COMPLETE (7 sessions)
 
 ---
 
@@ -1133,7 +1133,55 @@ TEMPLATE — copy this for each new session:
 - formatPersianGrouped uses Persian thousands separator ٬ (U+066C) not Western comma
 - toPersianOrdinal has hardcoded ordinals for 1-10 (irregular forms in Persian), generic suffix م for 11+
 
-**Next:** Session 25 — Results Display & Reading Flow Polish (reading results page layout, reading flow UX, loading states, error boundaries)
+**Next:** Session 25 — WebSocket & Real-Time Updates
+
+---
+
+## Session 25 — 2026-02-13
+
+**Terminal:** SINGLE
+**Block:** Frontend Core (seventh/final session in block)
+**Task:** WebSocket & Real-Time Updates — JWT-authenticated WebSocket connections, heartbeat ping/pong, oracle reading progress events, useReadingProgress hook, Vite proxy update
+**Spec:** .session-specs/SESSION_25_SPEC.md
+
+**Files created (4):**
+
+- `api/tests/test_websocket.py` — 18 tests: auth unit (3), manager unit (2), async broadcast/send_to_user/broken_conn/pong (4), integration connect/reject/ping (3), event model validation (5), EVENT_TYPES check (1)
+- `frontend/src/services/__tests__/websocket.test.ts` — 7 tests: JWT URL append, no-token error, no-reconnect on 4001, reconnect on normal close, pong on ping, event dispatch, exponential backoff
+- `frontend/src/hooks/__tests__/useReadingProgress.test.ts` — 5 tests: initial state, reading_started, reading_progress, reading_complete, reading_error
+- `frontend/src/hooks/useReadingProgress.ts` — Rewritten: typed hook returning isActive/step/progress/message/error/lastReading, listens to 4 event types via useWebSocket
+
+**Files modified (11):**
+
+- `api/app/models/events.py` — Added 5 oracle event types to EVENT_TYPES dict (READING_STARTED through DAILY_READING), 4 new Pydantic models (ReadingProgressEvent, ReadingCompleteEvent, ReadingErrorEvent, DailyReadingEvent)
+- `api/app/services/websocket_manager.py` — REWRITTEN: AuthenticatedConnection class wrapping WebSocket+user context, WebSocketManager with JWT auth via query param, heartbeat loop (30s ping / 10s pong timeout), broadcast/send_to_user/disconnect, singleton ws_manager
+- `api/app/main.py` — Replaced old `/ws` route with authenticated `/ws/oracle` endpoint using ws_manager, added heartbeat start/stop to lifespan, pong handling in WS loop
+- `api/app/routers/oracle.py` — Removed standalone `/ws` websocket endpoint (moved to main.py), replaced oracle_progress.send_progress calls with ws_manager.broadcast using reading_started/reading_progress/reading_complete events with percentage-based progress
+- `api/app/services/oracle_reading.py` — Removed OracleProgressManager class and oracle_progress singleton (consolidated into ws_manager)
+- `frontend/src/services/websocket.ts` — REWRITTEN: JWT token from localStorage appended to WS URL as query param, ping/pong heartbeat response, ConnectionStatus tracking via onStatus callback, exponential backoff (1s→30s cap), no reconnect on code 4001
+- `frontend/src/hooks/useWebSocket.ts` — useWebSocketConnection now returns ConnectionStatus, uses ws_manager.onStatus for status tracking
+- `frontend/src/types/index.ts` — Added reading_started/reading_complete/reading_error/daily_reading to EventType union, ConnectionStatus type, ReadingProgressData/ReadingCompleteData/ReadingErrorData/DailyReadingData interfaces
+- `frontend/src/components/Layout.tsx` — Added useWebSocketConnection() call to wire WS connection on mount
+- `frontend/vite.config.ts` — Updated WS proxy from `/ws` to `/ws/oracle`
+- `frontend/src/locales/en.json` — Added 9 oracle progress/WS translation keys (progress_started through ws_reconnecting)
+- `frontend/src/locales/fa.json` — Added matching 9 Persian oracle progress/WS translation keys
+- `frontend/src/pages/Oracle.tsx` — Updated to use new useReadingProgress interface (percentage-based progress instead of step/total)
+- `frontend/src/pages/__tests__/Oracle.test.tsx` — Updated useReadingProgress mock to match new interface
+
+**Tests:** 18 API pass / 0 fail / 18 new | 465 frontend pass / 0 fail / 12 new (7 WS client + 5 hook) | 10 pre-existing failures in test_multi_user_reading.py (CompatibilityAnalyzer NoneType, unrelated) | 0 regressions
+**Commit:** PENDING
+**Issues:** 10 pre-existing test failures in test_multi_user_reading.py (CompatibilityAnalyzer import is None) — not caused by Session 25, existed before changes
+**Decisions:**
+
+- Consolidated OracleProgressManager into ws_manager singleton — single WS manager handles all connections
+- JWT auth via query param (`?token=xxx`) since browsers don't support custom WebSocket headers
+- Heartbeat: server sends "ping" every 30s, client responds "pong", stale connections closed after 10s timeout
+- Close code 4001 = auth failure, triggers error status (no reconnect); normal close triggers exponential backoff reconnect
+- Progress events use percentage (0-100) instead of step/total for simpler frontend consumption
+- Vite proxy updated from `/ws` to `/ws/oracle` to match the new authenticated endpoint path
+- useReadingProgress rewritten to be a pure event consumer (no imperative startProgress/resetProgress) — progress state driven entirely by WS events
+
+**Next:** Session 26 — RTL Layout System (comprehensive RTL support, bidirectional layout, component RTL testing)
 
 ---
 

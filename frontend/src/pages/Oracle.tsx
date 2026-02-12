@@ -55,7 +55,7 @@ export default function Oracle() {
   // Reading state
   const [consultationResult, setConsultationResult] =
     useState<ConsultationResult | null>(null);
-  const { progress, startProgress, resetProgress } = useReadingProgress();
+  const readingProgress = useReadingProgress();
   const [isLoading, setIsLoading] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -138,7 +138,6 @@ export default function Oracle() {
   function handleResult(result: ConsultationResult) {
     setConsultationResult(result);
     setIsLoading(false);
-    resetProgress();
     requestAnimationFrame(() => {
       resultsRef.current?.scrollIntoView({
         behavior: "smooth",
@@ -149,11 +148,6 @@ export default function Oracle() {
 
   function handleLoadingChange(loading: boolean) {
     setIsLoading(loading);
-    if (loading) {
-      startProgress(readingType);
-    } else {
-      resetProgress();
-    }
   }
 
   return (
@@ -260,12 +254,13 @@ export default function Oracle() {
           </h3>
           {isLoading ? (
             <LoadingAnimation
-              step={progress.step}
-              total={progress.total}
-              message={progress.message || t("oracle.loading_generating")}
+              step={readingProgress.progress}
+              total={100}
+              message={
+                readingProgress.message || t("oracle.loading_generating")
+              }
               onCancel={() => {
                 setIsLoading(false);
-                resetProgress();
               }}
             />
           ) : primaryUser || readingType === "daily" ? (

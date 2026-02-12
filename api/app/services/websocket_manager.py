@@ -1,58 +1,136 @@
-"""WebSocket manager — broadcasts events to connected frontend clients.
+"""WebSocket manager — authenticated connections with heartbeat and room routing.
 
-Replaces legacy tkinter.after() polling with real-time push.
-Maps legacy event types to typed WebSocket messages.
+Supports JWT auth via query param, heartbeat ping/pong, and per-user messaging.
 """
 
+import asyncio
 import json
 import logging
+import time
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 
 
-class ConnectionManager:
-    """Manages active WebSocket connections and broadcasts events."""
+class AuthenticatedConnection:
+    """Wraps a WebSocket with user context."""
 
-    def __init__(self):
-        self.active_connections: list[WebSocket] = []
+    def __init__(self, websocket: WebSocket, user_ctx: dict):
+        self.websocket = websocket
+        self.user_id: str | None = user_ctx.get("user_id")
+        self.role: str = user_ctx.get("role", "user")
+        self.scopes: list[str] = user_ctx.get("scopes", [])
+        self.connected_at: float = time.time()
+        self.last_pong: float = time.time()
 
-    async def connect(self, websocket: WebSocket):
+
+class WebSocketManager:
+    """Authenticated WebSocket manager with heartbeat and room routing."""
+
+    def __init__(self) -> None:
+        self.connections: list[AuthenticatedConnection] = []
+        self._heartbeat_task: asyncio.Task | None = None
+        self._heartbeat_interval: int = 30  # seconds
+        self._pong_timeout: int = 10  # seconds
+
+    def authenticate(self, websocket: WebSocket) -> dict | None:
+        """Extract JWT from query params and verify."""
+        token = websocket.query_params.get("token")
+        if not token:
+            return None
+        from app.middleware.auth import _try_jwt_auth
+
+        return _try_jwt_auth(token)
+
+    async def connect(self, websocket: WebSocket) -> AuthenticatedConnection | None:
+        """Authenticate and accept a WebSocket connection."""
+        user_ctx = self.authenticate(websocket)
+        if not user_ctx:
+            await websocket.close(code=4001, reason="Authentication required")
+            return None
         await websocket.accept()
-        self.active_connections.append(websocket)
-        logger.info(f"WebSocket client connected ({len(self.active_connections)} total)")
+        conn = AuthenticatedConnection(websocket, user_ctx)
+        self.connections.append(conn)
+        logger.info(
+            "WebSocket client connected (user=%s, total=%d)",
+            conn.user_id,
+            len(self.connections),
+        )
+        return conn
 
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
-        logger.info(f"WebSocket client disconnected ({len(self.active_connections)} total)")
+    def disconnect(self, conn: AuthenticatedConnection) -> None:
+        """Remove a connection from the active list."""
+        if conn in self.connections:
+            self.connections.remove(conn)
+            logger.info(
+                "WebSocket client disconnected (user=%s, total=%d)",
+                conn.user_id,
+                len(self.connections),
+            )
 
-    async def broadcast(self, event: str, data: dict):
+    async def broadcast(self, event: str, data: dict) -> None:
         """Broadcast an event to all connected clients."""
         message = json.dumps({"event": event, "data": data})
-        disconnected = []
-        for connection in self.active_connections:
+        disconnected: list[AuthenticatedConnection] = []
+        for conn in self.connections:
             try:
-                await connection.send_text(message)
+                await conn.websocket.send_text(message)
             except Exception:
-                disconnected.append(connection)
-
+                disconnected.append(conn)
         for conn in disconnected:
-            self.active_connections.remove(conn)
+            self.disconnect(conn)
+
+    async def send_to_user(self, user_id: str, event: str, data: dict) -> None:
+        """Send an event to all connections belonging to a specific user."""
+        message = json.dumps({"event": event, "data": data})
+        disconnected: list[AuthenticatedConnection] = []
+        for conn in self.connections:
+            if conn.user_id == user_id:
+                try:
+                    await conn.websocket.send_text(message)
+                except Exception:
+                    disconnected.append(conn)
+        for conn in disconnected:
+            self.disconnect(conn)
+
+    async def _heartbeat_loop(self) -> None:
+        """Send ping to all clients every interval, close stale ones."""
+        while True:
+            await asyncio.sleep(self._heartbeat_interval)
+            now = time.time()
+            stale: list[AuthenticatedConnection] = []
+            for conn in list(self.connections):
+                # Check if pong timed out
+                if now - conn.last_pong > self._heartbeat_interval + self._pong_timeout:
+                    stale.append(conn)
+                    continue
+                try:
+                    await conn.websocket.send_text("ping")
+                except Exception:
+                    stale.append(conn)
+            for conn in stale:
+                try:
+                    await conn.websocket.close(code=1000, reason="Heartbeat timeout")
+                except Exception:
+                    pass
+                self.disconnect(conn)
+
+    async def start_heartbeat(self) -> None:
+        """Start the heartbeat background task."""
+        if self._heartbeat_task is None or self._heartbeat_task.done():
+            self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
+
+    async def stop_heartbeat(self) -> None:
+        """Stop the heartbeat background task."""
+        if self._heartbeat_task and not self._heartbeat_task.done():
+            self._heartbeat_task.cancel()
+            try:
+                await self._heartbeat_task
+            except asyncio.CancelledError:
+                pass
+            self._heartbeat_task = None
 
 
 # Singleton
-manager = ConnectionManager()
-
-
-async def websocket_endpoint(websocket: WebSocket):
-    """WebSocket endpoint handler."""
-    await manager.connect(websocket)
-    try:
-        while True:
-            # Listen for client messages (e.g., subscription filters)
-            await websocket.receive_text()
-            # TODO: Handle client subscription messages
-            # e.g., {"subscribe": ["finding", "stats_update", "high_score"]}
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
+ws_manager = WebSocketManager()

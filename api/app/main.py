@@ -2,11 +2,12 @@
 
 import logging
 import os
+import time
 from pathlib import Path
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -26,7 +27,7 @@ from app.routers import (
 )
 from app.database import SessionLocal
 from app.services.security import init_encryption
-from app.services.websocket_manager import websocket_endpoint
+from app.services.websocket_manager import ws_manager
 
 # Import ORM models so Base.metadata knows all tables
 import app.orm.oracle_user  # noqa: F401
@@ -97,9 +98,15 @@ async def lifespan(app: FastAPI):
         logger.warning("Daily scheduler failed to start (non-fatal): %s", exc)
         daily_scheduler = None
 
+    # Start WebSocket heartbeat
+    await ws_manager.start_heartbeat()
+    logger.info("WebSocket heartbeat started")
+
     yield
 
     # Cleanup
+    await ws_manager.stop_heartbeat()
+    logger.info("WebSocket heartbeat stopped")
     if daily_scheduler:
         await daily_scheduler.stop()
         logger.info("Daily scheduler stopped")
@@ -142,8 +149,22 @@ app.include_router(translation.router, prefix="/api/translation", tags=["transla
 app.include_router(location.router, prefix="/api/location", tags=["location"])
 app.include_router(settings_router.router, prefix="/api", tags=["settings"])
 
-# WebSocket
-app.add_api_websocket_route("/ws", websocket_endpoint)
+
+# WebSocket — authenticated oracle endpoint
+@app.websocket("/ws/oracle")
+async def oracle_websocket(websocket: WebSocket):
+    """Authenticated WebSocket endpoint for oracle real-time events."""
+    conn = await ws_manager.connect(websocket)
+    if not conn:
+        return
+    try:
+        while True:
+            data = await websocket.receive_text()
+            if data == "pong":
+                conn.last_pong = time.time()
+    except WebSocketDisconnect:
+        ws_manager.disconnect(conn)
+
 
 # Serve frontend build (must be LAST — catches all unmatched routes)
 frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"

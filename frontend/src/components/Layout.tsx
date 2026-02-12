@@ -4,9 +4,11 @@ import { useTranslation } from "react-i18next";
 import { Navigation } from "./Navigation";
 import { LanguageToggle } from "./LanguageToggle";
 import { ThemeToggle } from "./ThemeToggle";
+import { useWebSocketConnection } from "@/hooks/useWebSocket";
 
 export function Layout() {
   const { t } = useTranslation();
+  useWebSocketConnection();
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
