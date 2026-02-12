@@ -796,6 +796,23 @@ export interface MoonPhaseInfo {
   age_days: number;
 }
 
+// ─── Settings ───
+
+export interface SettingsResponse {
+  settings: Record<string, string>;
+}
+
+export interface ApiKeyDisplay {
+  id: string;
+  name: string;
+  scopes: string[];
+  created_at: string;
+  expires_at: string | null;
+  last_used: string | null;
+  is_active: boolean;
+  key?: string;
+}
+
 // ─── Health ───
 
 export interface HealthStatus {

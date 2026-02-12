@@ -1,26 +1,55 @@
+import { useTranslation } from "react-i18next";
+import { SettingsSection } from "@/components/settings/SettingsSection";
+import { ProfileSection } from "@/components/settings/ProfileSection";
+import { PreferencesSection } from "@/components/settings/PreferencesSection";
+import { OracleSettingsSection } from "@/components/settings/OracleSettingsSection";
+import { ApiKeySection } from "@/components/settings/ApiKeySection";
+import { AboutSection } from "@/components/settings/AboutSection";
+
 export default function Settings() {
-  // TODO: Telegram configuration
-  // TODO: Scanner defaults
-  // TODO: Security settings (encryption, password change)
-  // TODO: API key management
-  // TODO: Theme preferences
-  // TODO: Language selector (i18n)
+  const { t } = useTranslation();
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-bold text-nps-text-bright">Settings</h2>
+    <div className="space-y-4 max-w-3xl">
+      <h2 className="text-xl font-bold text-nps-text-bright">
+        {t("settings.title")}
+      </h2>
 
-      {/* TODO: Telegram config section */}
-      {/* TODO: Scanner defaults section */}
-      {/* TODO: Security section */}
-      {/* TODO: API keys section */}
-      {/* TODO: Language selector */}
+      <SettingsSection
+        title={t("settings.profile")}
+        description={t("settings.profile_desc")}
+        defaultOpen
+      >
+        <ProfileSection />
+      </SettingsSection>
 
-      <div className="bg-nps-bg-card border border-nps-border rounded-lg p-4">
-        <p className="text-nps-text-dim text-sm">
-          Settings management connects to the API service.
-        </p>
-      </div>
+      <SettingsSection
+        title={t("settings.preferences")}
+        description={t("settings.preferences_desc")}
+      >
+        <PreferencesSection />
+      </SettingsSection>
+
+      <SettingsSection
+        title={t("settings.oracle")}
+        description={t("settings.oracle_desc")}
+      >
+        <OracleSettingsSection />
+      </SettingsSection>
+
+      <SettingsSection
+        title={t("settings.api_keys")}
+        description={t("settings.api_keys_desc")}
+      >
+        <ApiKeySection />
+      </SettingsSection>
+
+      <SettingsSection
+        title={t("settings.about")}
+        description={t("settings.about_desc")}
+      >
+        <AboutSection />
+      </SettingsSection>
     </div>
   );
 }

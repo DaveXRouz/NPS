@@ -25,6 +25,7 @@ from app.middleware.auth import (
 from app.models.auth import (
     APIKeyCreate,
     APIKeyResponse,
+    ChangePasswordRequest,
     LoginRequest,
     RefreshRequest,
     RefreshResponse,
@@ -253,6 +254,56 @@ def register(
         role=new_user.role,
         created_at=new_user.created_at,
     )
+
+
+@router.post("/change-password")
+def change_password(
+    request_body: ChangePasswordRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+    user: dict = Depends(get_current_user),
+):
+    """Change the current user's password."""
+    ip = request.client.host if request.client else None
+    audit = AuditService(db)
+    user_id = user.get("user_id")
+
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+        )
+
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    if not _bcrypt.checkpw(
+        request_body.current_password.encode("utf-8"),
+        db_user.password_hash.encode("utf-8"),
+    ):
+        audit.log_auth_failed(
+            ip=ip,
+            details={"user_id": user_id, "reason": "password_change_wrong_current"},
+        )
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+
+    new_hash = _bcrypt.hashpw(request_body.new_password.encode("utf-8"), _bcrypt.gensalt()).decode(
+        "utf-8"
+    )
+    db_user.password_hash = new_hash
+
+    audit.log_auth_login(user_id, ip=ip, username=db_user.username)
+    db.commit()
+
+    return {"detail": "Password changed successfully"}
 
 
 @router.post("/api-keys", response_model=APIKeyResponse)

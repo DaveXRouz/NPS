@@ -19,6 +19,7 @@ from app.routers import (
     location,
     oracle,
     scanner,
+    settings as settings_router,
     translation,
     users,
     vault,
@@ -35,6 +36,7 @@ import app.orm.user  # noqa: F401
 import app.orm.api_key  # noqa: F401
 import app.orm.oracle_settings  # noqa: F401
 import app.orm.oracle_feedback  # noqa: F401
+import app.orm.user_settings  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +140,7 @@ app.include_router(vault.router, prefix="/api/vault", tags=["vault"])
 app.include_router(learning.router, prefix="/api/learning", tags=["learning"])
 app.include_router(translation.router, prefix="/api/translation", tags=["translation"])
 app.include_router(location.router, prefix="/api/location", tags=["location"])
+app.include_router(settings_router.router, prefix="/api", tags=["settings"])
 
 # WebSocket
 app.add_api_websocket_route("/ws", websocket_endpoint)

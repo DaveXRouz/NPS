@@ -9,9 +9,9 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 22 of 45
-**Last session:** Session 22 — Dashboard Page
-**Current block:** Frontend Core (Sessions 19-25) — Four sessions complete
+**Sessions completed:** 23 of 45
+**Last session:** Session 23 — Settings Page
+**Current block:** Frontend Core (Sessions 19-25) — Five sessions complete
 
 ---
 
@@ -1031,6 +1031,58 @@ TEMPLATE — copy this for each new session:
 - Jalali date in WelcomeBanner uses existing `jalaali-js` dependency — no new packages
 
 **Next:** Session 23 — Settings Page (user preferences, language toggle, theme, numerology system defaults, profile management)
+
+## Session 23 — 2026-02-13
+
+**Terminal:** SINGLE
+**Block:** Frontend Core (fifth session in block)
+**Task:** Settings Page — Rewrite placeholder into full 5-section settings page with Profile, Preferences, Oracle Settings, API Keys, About; add backend settings API (GET/PUT /settings with key-value user_settings table); add change-password endpoint; create useSettings hooks; full bilingual i18n (55+ new keys)
+**Spec:** .session-specs/SESSION_23_SPEC.md
+
+**Files created (14):**
+
+- `database/migrations/018_user_settings.sql` — Key-value user_settings table with unique constraint on (user_id, setting_key), updated_at trigger
+- `database/migrations/018_user_settings_rollback.sql` — Clean rollback for migration 018
+- `api/app/orm/user_settings.py` — SQLAlchemy ORM model for user_settings table (user_id FK to users.id)
+- `api/app/models/settings.py` — Pydantic SettingsResponse, SettingsBulkUpdate models + VALID_SETTING_KEYS set
+- `api/app/routers/settings.py` — GET /settings + PUT /settings endpoints with key validation and upsert
+- `frontend/src/components/settings/SettingsSection.tsx` — Reusable collapsible section wrapper with chevron animation
+- `frontend/src/components/settings/ProfileSection.tsx` — Display name + password change form with validation
+- `frontend/src/components/settings/PreferencesSection.tsx` — Language (EN/FA), theme (dark/light), timezone dropdown, numerology system selector; auto-save with debounce
+- `frontend/src/components/settings/OracleSettingsSection.tsx` — Default reading type dropdown + auto-daily toggle switch
+- `frontend/src/components/settings/ApiKeySection.tsx` — API key list, create form with expiry options, copy-once banner, revoke with confirmation
+- `frontend/src/components/settings/AboutSection.tsx` — Static app info: version, framework, author, repo link, credits
+- `frontend/src/hooks/useSettings.ts` — React Query hooks: useSettings, useUpdateSettings, useApiKeys, useCreateApiKey, useRevokeApiKey
+- `frontend/src/components/settings/__tests__/Settings.test.tsx` — 6 tests: all sections render, collapse/expand, password form, language selector, reading type, about info
+- `frontend/src/components/settings/__tests__/ApiKeySection.test.tsx` — 4 tests: empty state, existing keys, create form, revoke with confirmation
+
+**Files modified (7):**
+
+- `frontend/src/pages/Settings.tsx` — Full rewrite: 27-line placeholder → 5-section settings page with SettingsSection wrappers
+- `frontend/src/types/index.ts` — Added SettingsResponse, ApiKeyDisplay interfaces
+- `frontend/src/locales/en.json` — Replaced 4 settings keys with 55+ keys (profile, preferences, oracle, api keys, about)
+- `frontend/src/locales/fa.json` — Added matching 55+ Persian translation keys
+- `api/app/main.py` — Registered settings router at /api prefix, added user_settings ORM import
+- `api/app/routers/auth.py` — Added POST /auth/change-password endpoint with bcrypt verification
+- `api/app/models/auth.py` — Added ChangePasswordRequest Pydantic model
+
+**Backend tests:** `api/tests/test_settings.py` — 5 tests (get empty, update, get after update, invalid key, upsert)
+
+**Tests:** 353 frontend pass / 0 fail / 10 new (6 Settings + 4 ApiKeySection) | 354 backend pass / 10 fail (pre-existing multi_user_reading CompatibilityAnalyzer issue) / 5 new settings | 0 regressions
+**Commit:** PENDING
+**Issues:** None — adapted spec's oracle_settings table name to user_settings to avoid conflict with existing oracle_settings ORM (Session 1); used migration 018 since 015-017 were taken
+**Decisions:**
+
+- Created `user_settings` key-value table (not `oracle_settings`) because `oracle_settings` already exists from Session 1 with a columnar schema referencing `oracle_users.id` — the settings page needs a key-value store for auth `users.id`
+- Used migration 018 (015-017 already taken by feedback_learning, daily_readings_cache, reading_search)
+- Settings hooks use standalone fetch helpers (not api.ts request()) to avoid circular dependency and keep hooks self-contained
+- ProfileSection uses direct fetch for password change (not React Query mutation) since it's a one-off action with form state
+- PreferencesSection auto-saves with 500ms debounce — no explicit save button needed
+- Language change in PreferencesSection also calls i18n.changeLanguage() and sets document.dir for immediate RTL switch
+- ApiKeySection shows key value only once after creation (copy-once banner) — matches API behavior where key hash is stored, not plaintext
+- SettingsSection uses simple isOpen state toggle (no animation library) — CSS transition on chevron only
+
+**Next:** Session 24 — Translation Service & i18n Completion (audit all .tsx files for hardcoded strings, complete en.json/fa.json, Persian numeral formatting)
 
 ---
 

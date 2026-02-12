@@ -41,6 +41,11 @@ class RefreshResponse(BaseModel):
     expires_in: int  # seconds
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+
 class APIKeyCreate(BaseModel):
     name: str
     scopes: list[str] = []
