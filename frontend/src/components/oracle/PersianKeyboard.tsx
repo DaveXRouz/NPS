@@ -58,7 +58,7 @@ export function PersianKeyboard({
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-1 left-1 w-6 h-6 flex items-center justify-center text-nps-text-dim hover:text-nps-text text-xs rounded"
+          className="absolute top-1 start-1 w-6 h-6 flex items-center justify-center text-nps-text-dim hover:text-nps-text text-xs rounded"
           aria-label={t("oracle.keyboard_close")}
         >
           ✕

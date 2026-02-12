@@ -99,7 +99,7 @@ export function RecentReadings({
             <button
               key={reading.id}
               onClick={() => navigate(`/oracle?reading=${reading.id}`)}
-              className="bg-nps-bg-card border border-nps-border rounded-lg p-4 text-left hover:border-nps-oracle-accent transition-colors"
+              className="bg-nps-bg-card border border-nps-border rounded-lg p-4 text-start hover:border-nps-oracle-accent transition-colors"
               data-testid="reading-card"
             >
               <div className="flex items-center justify-between mb-2">

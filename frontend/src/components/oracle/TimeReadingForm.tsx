@@ -90,7 +90,7 @@ export default function TimeReadingForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`space-y-4 ${isRTL ? "text-right" : "text-left"}`}
+      className="space-y-4 text-start"
       dir={isRTL ? "rtl" : "ltr"}
     >
       <div className="text-sm text-gray-500">

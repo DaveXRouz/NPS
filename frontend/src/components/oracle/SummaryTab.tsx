@@ -112,7 +112,9 @@ function ReadingSummary({
             )}
             {data.moon && (
               <div>
-                <span className="text-xs text-nps-text-dim">Moon</span>
+                <span className="text-xs text-nps-text-dim">
+                  {t("oracle.details_moon_phase")}
+                </span>
                 <p className="text-nps-text">
                   {data.moon.emoji} {data.moon.phase_name} (
                   {data.moon.illumination}%)
@@ -121,7 +123,9 @@ function ReadingSummary({
             )}
             {data.ganzhi && (
               <div>
-                <span className="text-xs text-nps-text-dim">Ganzhi</span>
+                <span className="text-xs text-nps-text-dim">
+                  {t("oracle.details_chinese_cosmology")}
+                </span>
                 <p className="text-nps-text">
                   {data.ganzhi.year_animal} &middot; {data.ganzhi.stem_element}
                 </p>
@@ -167,7 +171,7 @@ function ReadingSummary({
 
       {/* Section 7: Today's Advice */}
       <ReadingSection title={t("oracle.section_advice")} icon="\uD83D\uDCA1">
-        <div className="pt-2 border-l-2 border-nps-oracle-accent/30 pl-3">
+        <div className="pt-2 border-s-2 border-nps-oracle-accent/30 ps-3">
           <TranslatedReading reading={data.summary} />
         </div>
       </ReadingSection>
@@ -299,17 +303,17 @@ function NameSummary({
           <table className="w-full text-xs mt-2">
             <thead>
               <tr className="text-nps-text-dim border-b border-nps-border">
-                <th className="text-left py-1">Letter</th>
-                <th className="text-right py-1">Value</th>
-                <th className="text-right py-1">{t("oracle.element")}</th>
+                <th className="text-start py-1">{t("oracle.letter_column")}</th>
+                <th className="text-end py-1">{t("oracle.details_value")}</th>
+                <th className="text-end py-1">{t("oracle.element")}</th>
               </tr>
             </thead>
             <tbody>
               {data.letter_breakdown.map((l, i) => (
                 <tr key={i} className="border-b border-nps-border/30">
                   <td className="py-1 text-nps-text">{l.letter}</td>
-                  <td className="py-1 text-right text-nps-text">{l.value}</td>
-                  <td className="py-1 text-right text-nps-text">{l.element}</td>
+                  <td className="py-1 text-end text-nps-text">{l.value}</td>
+                  <td className="py-1 text-end text-nps-text">{l.element}</td>
                 </tr>
               ))}
             </tbody>

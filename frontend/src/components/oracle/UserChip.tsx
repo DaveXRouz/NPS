@@ -21,7 +21,7 @@ export function UserChip({ name, isPrimary, onRemove }: UserChipProps) {
       {onRemove && (
         <button
           onClick={onRemove}
-          className="ml-1 hover:text-nps-bg-danger transition-colors"
+          className="ms-1 hover:text-nps-bg-danger transition-colors"
           aria-label={`${t("oracle.remove_user")} ${name}`}
         >
           &times;

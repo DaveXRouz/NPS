@@ -215,7 +215,7 @@ export default function FC60StampDisplay({
         <button
           type="button"
           onClick={handleCopy}
-          className="ml-2 p-1 text-gray-400 hover:text-gray-200 transition-colors"
+          className="ms-2 p-1 text-gray-400 hover:text-gray-200 transition-colors"
           aria-label={t("oracle.fc60_copy")}
           title={t("oracle.fc60_copy")}
         >

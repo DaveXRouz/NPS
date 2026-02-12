@@ -171,7 +171,7 @@ export function ReadingFeedback({
           data-testid="feedback-text"
         />
         <p
-          className="text-xs text-nps-text-dim text-right"
+          className="text-xs text-nps-text-dim text-end"
           data-testid="feedback-counter"
         >
           {t("feedback.text_counter", { count: textFeedback.length })}

@@ -98,7 +98,7 @@ export function NameReadingForm({
           <button
             type="button"
             onClick={() => setShowKeyboard(!showKeyboard)}
-            className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center text-nps-text-dim hover:text-nps-oracle-accent transition-colors rounded"
+            className="absolute top-2 end-2 w-7 h-7 flex items-center justify-center text-nps-text-dim hover:text-nps-oracle-accent transition-colors rounded"
             aria-label={t("oracle.keyboard_toggle")}
             title={t("oracle.keyboard_persian")}
             data-testid="keyboard-toggle"

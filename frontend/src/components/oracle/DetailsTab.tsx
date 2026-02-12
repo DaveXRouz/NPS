@@ -88,11 +88,23 @@ function ReadingDetails({
       )}
 
       {fc60_extended && (
-        <DetailSection title="FC60 Stamp">
-          <DataRow label="Stamp" value={fc60_extended.stamp} />
-          <DataRow label="Weekday" value={fc60_extended.weekday_name} />
-          <DataRow label="Planet" value={fc60_extended.weekday_planet} />
-          <DataRow label="Domain" value={fc60_extended.weekday_domain} />
+        <DetailSection title={t("oracle.fc60_stamp")}>
+          <DataRow
+            label={t("oracle.details_stamp")}
+            value={fc60_extended.stamp}
+          />
+          <DataRow
+            label={t("oracle.fc60_weekday")}
+            value={fc60_extended.weekday_name}
+          />
+          <DataRow
+            label={t("oracle.details_planet")}
+            value={fc60_extended.weekday_planet}
+          />
+          <DataRow
+            label={t("oracle.details_domain")}
+            value={fc60_extended.weekday_domain}
+          />
         </DetailSection>
       )}
 
@@ -130,11 +142,20 @@ function ReadingDetails({
       )}
 
       {moon && (
-        <DetailSection title="Moon Phase">
-          <DataRow label="Phase" value={`${moon.emoji} ${moon.phase_name}`} />
-          <DataRow label="Illumination" value={`${moon.illumination}%`} />
-          <DataRow label="Age" value={`${moon.age_days} days`} />
-          <DataRow label="Energy" value={moon.meaning} />
+        <DetailSection title={t("oracle.details_moon_phase")}>
+          <DataRow
+            label={t("oracle.details_phase")}
+            value={`${moon.emoji} ${moon.phase_name}`}
+          />
+          <DataRow
+            label={t("oracle.details_illumination")}
+            value={`${moon.illumination}%`}
+          />
+          <DataRow
+            label={t("oracle.details_age")}
+            value={`${moon.age_days} ${t("oracle.cosmic.days")}`}
+          />
+          <DataRow label={t("oracle.energy")} value={moon.meaning} />
         </DetailSection>
       )}
 
@@ -147,16 +168,25 @@ function ReadingDetails({
       )}
 
       {ganzhi && (
-        <DetailSection title="Chinese Cosmology">
-          <DataRow label="Year" value={ganzhi.year_name} />
-          <DataRow label="Year Animal" value={ganzhi.year_animal} />
-          <DataRow label="Element" value={ganzhi.stem_element} />
-          <DataRow label="Polarity" value={ganzhi.stem_polarity} />
+        <DetailSection title={t("oracle.details_chinese_cosmology")}>
+          <DataRow label={t("oracle.details_year")} value={ganzhi.year_name} />
+          <DataRow
+            label={t("oracle.details_year_animal")}
+            value={ganzhi.year_animal}
+          />
+          <DataRow label={t("oracle.element")} value={ganzhi.stem_element} />
+          <DataRow label={t("oracle.polarity")} value={ganzhi.stem_polarity} />
           {ganzhi.hour_animal && (
-            <DataRow label="Hour Animal" value={ganzhi.hour_animal} />
+            <DataRow
+              label={t("oracle.details_hour_animal")}
+              value={ganzhi.hour_animal}
+            />
           )}
           {ganzhi.hour_branch && (
-            <DataRow label="Hour Branch" value={ganzhi.hour_branch} />
+            <DataRow
+              label={t("oracle.details_hour_branch")}
+              value={ganzhi.hour_branch}
+            />
           )}
         </DetailSection>
       )}
@@ -170,7 +200,7 @@ function ReadingDetails({
       )}
 
       {angel && angel.matches.length > 0 && (
-        <DetailSection title="Angel Numbers">
+        <DetailSection title={t("oracle.details_angel_numbers")}>
           {angel.matches.map((m, i) => (
             <DataRow key={i} label={String(m.number)} value={m.meaning} />
           ))}
@@ -178,15 +208,21 @@ function ReadingDetails({
       )}
 
       {chaldean && (
-        <DetailSection title="Chaldean Numerology">
-          <DataRow label="Value" value={chaldean.value} />
-          <DataRow label="Meaning" value={chaldean.meaning} />
-          <DataRow label="Letters" value={chaldean.letter_values} />
+        <DetailSection title={t("oracle.details_chaldean")}>
+          <DataRow label={t("oracle.details_value")} value={chaldean.value} />
+          <DataRow
+            label={t("oracle.details_meaning")}
+            value={chaldean.meaning}
+          />
+          <DataRow
+            label={t("oracle.details_letters")}
+            value={chaldean.letter_values}
+          />
         </DetailSection>
       )}
 
       {synchronicities && synchronicities.length > 0 && (
-        <DetailSection title="Synchronicities">
+        <DetailSection title={t("oracle.details_synchronicities")}>
           {synchronicities.map((s, i) => (
             <div key={i} className="py-1 text-xs text-nps-text">
               {s}
@@ -225,7 +261,7 @@ function QuestionDetails({
         label={t("oracle.numerology_system")}
         value={numerology_system}
       />
-      <DataRow label="Raw Sum" value={raw_letter_sum} />
+      <DataRow label={t("oracle.details_raw_sum")} value={raw_letter_sum} />
       {is_master_number && (
         <DataRow label={t("oracle.master_number_badge")} value="Yes" />
       )}
@@ -268,9 +304,9 @@ function NameDetails({
         <table className="w-full text-xs mt-1">
           <thead>
             <tr className="text-nps-text-dim border-b border-nps-border">
-              <th className="text-left py-1">Letter</th>
-              <th className="text-right py-1">Value</th>
-              <th className="text-right py-1">{t("oracle.element")}</th>
+              <th className="text-start py-1">{t("oracle.letter_column")}</th>
+              <th className="text-end py-1">{t("oracle.details_value")}</th>
+              <th className="text-end py-1">{t("oracle.element")}</th>
             </tr>
           </thead>
           <tbody>
@@ -281,8 +317,8 @@ function NameDetails({
               ) => (
                 <tr key={i} className="border-b border-nps-border/30">
                   <td className="py-1 text-nps-text">{l.letter}</td>
-                  <td className="py-1 text-right text-nps-text">{l.value}</td>
-                  <td className="py-1 text-right text-nps-text">{l.element}</td>
+                  <td className="py-1 text-end text-nps-text">{l.value}</td>
+                  <td className="py-1 text-end text-nps-text">{l.element}</td>
                 </tr>
               ),
             )}

@@ -1,14 +1,20 @@
 /* RTL-specific overrides that Tailwind cannot handle */
 
 /* Fix icon positioning in RTL */
-[dir="rtl"] .icon-left {
+[dir="rtl"] .icon-flip {
   transform: scaleX(-1);
 }
 
-/* Fix text alignment for mixed LTR/RTL content */
-[dir="rtl"] .ltr-numbers {
+/* Monospace / code content always stays LTR */
+[dir="rtl"] .font-mono {
   direction: ltr;
-  unicode-bidi: embed;
+  unicode-bidi: isolate;
+}
+
+/* Technical values (numbers, hashes, addresses) always LTR */
+.technical-value {
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 /* Fix input field text direction for English input in RTL context */
@@ -45,4 +51,16 @@
 .monospace {
   direction: ltr;
   unicode-bidi: embed;
+}
+
+/* Smooth direction transition — prevents layout jump on locale switch */
+[dir] .transition-dir * {
+  transition:
+    margin 0.15s ease,
+    padding 0.15s ease;
+}
+
+/* Disable transition on initial page load */
+.no-transition * {
+  transition: none !important;
 }

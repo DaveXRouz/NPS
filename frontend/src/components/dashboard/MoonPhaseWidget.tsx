@@ -35,7 +35,7 @@ export function MoonPhaseWidget({ moonData, isLoading }: MoonPhaseWidgetProps) {
       </span>
       <div className="text-sm">
         <span className="text-nps-text-bright">{moonData.phase_name}</span>
-        <span className="text-nps-text-dim ml-2">
+        <span className="text-nps-text-dim ms-2">
           {t("dashboard.moon_illumination", {
             percent: Math.round(moonData.illumination * 100),
           })}

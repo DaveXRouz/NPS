@@ -135,7 +135,7 @@ export function Navigation({
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-2 mx-2 rounded text-sm transition-colors ${
                 isActive
-                  ? "bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border-l-2 rtl:border-l-0 rtl:border-r-2 border-[var(--nps-accent)]"
+                  ? "bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border-s-2 border-[var(--nps-accent)]"
                   : "text-[var(--nps-text-dim)] hover:bg-[var(--nps-bg-hover)] hover:text-[var(--nps-text)]"
               }`
             }

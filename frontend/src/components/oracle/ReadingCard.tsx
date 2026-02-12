@@ -70,7 +70,7 @@ export function ReadingCard({
       <button
         type="button"
         onClick={() => onSelect(reading.id)}
-        className="w-full text-left"
+        className="w-full text-start"
       >
         <p className="text-xs text-nps-text truncate">{displayText}</p>
         {reading.ai_interpretation && (

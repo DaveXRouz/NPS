@@ -430,7 +430,7 @@ export function UserForm({
                     setConfirmDelete(true);
                   }
                 }}
-                className={`ml-auto px-4 py-2 text-sm rounded transition-colors ${
+                className={`ms-auto px-4 py-2 text-sm rounded transition-colors ${
                   confirmDelete
                     ? "bg-nps-bg-danger text-white"
                     : "text-nps-error border border-nps-error/30 hover:border-nps-error"
@@ -472,7 +472,7 @@ function Field({
     <div>
       <label htmlFor={fieldId} className="block text-sm text-nps-text-dim mb-1">
         {label}
-        {required && <span className="text-nps-error ml-1">*</span>}
+        {required && <span className="text-nps-error ms-1">*</span>}
       </label>
       <input
         id={fieldId}

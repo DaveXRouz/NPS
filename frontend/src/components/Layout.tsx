@@ -38,7 +38,7 @@ export function Layout() {
           fixed md:static inset-y-0 z-40
           ${mobileSidebarOpen ? "ltr:left-0 rtl:right-0" : "ltr:-left-64 rtl:-right-64 md:ltr:left-0 md:rtl:right-0"}
           ${sidebarCollapsed ? "md:w-16" : "md:w-64"} w-64
-          bg-[var(--nps-bg-sidebar)] border-r rtl:border-r-0 rtl:border-l border-[var(--nps-border)]
+          bg-[var(--nps-bg-sidebar)] border-e border-[var(--nps-border)]
           flex flex-col transition-all duration-200
         `}
       >

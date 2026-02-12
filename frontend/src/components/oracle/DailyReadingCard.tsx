@@ -155,7 +155,7 @@ export default function DailyReadingCard({
               <p className="text-sm font-medium text-gray-700">
                 {t("oracle.daily_activities")}
               </p>
-              <ul className="list-disc list-inside text-sm text-gray-600 ml-1">
+              <ul className="list-disc list-inside text-sm text-gray-600 ms-1">
                 {dailyInsights.suggested_activities.map((activity, i) => (
                   <li key={i}>{activity}</li>
                 ))}

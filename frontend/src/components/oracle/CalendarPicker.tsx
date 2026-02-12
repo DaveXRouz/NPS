@@ -133,7 +133,7 @@ export function CalendarPicker({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full text-left bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
+        className={`w-full text-start bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
           error ? "border-nps-error" : "border-nps-border"
         }`}
       >
@@ -144,7 +144,7 @@ export function CalendarPicker({
 
       {/* Dropdown calendar */}
       {isOpen && (
-        <div className="absolute left-0 top-full mt-1 z-50 bg-nps-bg-card border border-nps-oracle-border rounded-lg p-3 shadow-lg w-72">
+        <div className="absolute start-0 top-full mt-1 z-50 bg-nps-bg-card border border-nps-oracle-border rounded-lg p-3 shadow-lg w-72">
           {/* Calendar mode toggle */}
           <div className="flex gap-1 mb-3">
             <button

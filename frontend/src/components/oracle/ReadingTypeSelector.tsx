@@ -146,7 +146,7 @@ export function ReadingTypeSelector({
             onClick={() => onChange(type)}
             className={`flex items-center gap-2 px-3 py-2 text-sm rounded transition-colors whitespace-nowrap ${
               isActive
-                ? "bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border-l-0 md:border-l-2 border-b-2 md:border-b-0 border-[var(--nps-accent)] rtl:md:border-l-0 rtl:md:border-r-2"
+                ? "bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border-s-0 md:border-s-2 border-b-2 md:border-b-0 border-[var(--nps-accent)]"
                 : "text-[var(--nps-text-dim)] hover:bg-[var(--nps-bg-hover)]"
             } ${disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}
           >

@@ -28,7 +28,7 @@ export function SignTypeSelector({
     <div>
       <label className="block text-sm text-nps-text-dim mb-1">
         {t("oracle.sign_label")}
-        <span className="text-nps-error ml-1">*</span>
+        <span className="text-nps-error ms-1">*</span>
       </label>
 
       {/* Type selector */}

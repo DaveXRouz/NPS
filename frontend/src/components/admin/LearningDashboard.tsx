@@ -109,9 +109,7 @@ export function LearningDashboard() {
             const pct = (count / maxRatingCount) * 100;
             return (
               <div key={star} className="flex items-center gap-2 text-xs">
-                <span className="w-8 text-nps-text-dim text-right">
-                  {star}★
-                </span>
+                <span className="w-8 text-nps-text-dim text-end">{star}★</span>
                 <div className="flex-1 h-3 bg-nps-bg rounded-full overflow-hidden">
                   <div
                     className="h-full bg-yellow-400 rounded-full transition-all"
