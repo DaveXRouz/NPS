@@ -1,4 +1,4 @@
-export function Scanner() {
+export default function Scanner() {
   // TODO: Scan config form (mode, chains, batch_size, threads, puzzle)
   // TODO: Terminal list with start/stop/pause controls
   // TODO: Live stats display

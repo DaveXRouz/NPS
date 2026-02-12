@@ -1,6 +1,6 @@
 import { StatsCard } from "@/components/StatsCard";
 
-export function Dashboard() {
+export default function Dashboard() {
   // TODO: Fetch real data from API
   // TODO: Subscribe to WebSocket events for live updates
 

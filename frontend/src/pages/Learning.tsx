@@ -1,4 +1,4 @@
-export function Learning() {
+export default function Learning() {
   // TODO: XP bar and level display
   // TODO: Capabilities list
   // TODO: AI insights feed

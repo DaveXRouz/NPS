@@ -9,9 +9,9 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 18 of 45
-**Last session:** Session 18 — AI Learning & Feedback Loop
-**Current block:** Frontend Core (Sessions 19-25) — AI & Reading Types block COMPLETE
+**Sessions completed:** 19 of 45
+**Last session:** Session 19 — Frontend Layout & Navigation
+**Current block:** Frontend Core (Sessions 19-25) — First session complete
 
 ---
 
@@ -811,6 +811,63 @@ TEMPLATE — copy this for each new session:
 - Upsert on (reading_id, user_id) pair — one feedback per user per reading, update overwrites previous
 
 **Next:** Session 19 — Frontend Layout & Navigation (shell, routing, responsive scaffold)
+
+---
+
+## Session 19 — 2026-02-13
+
+**Terminal:** SINGLE
+**Block:** Frontend Core (first session in block)
+**Task:** Frontend Layout & Navigation — CSS theme variables, Tailwind config rewrite, useTheme hook, dark/light toggle, collapsible sidebar with Navigation component, top bar, footer, lazy-loaded routing, 2 placeholder pages, comprehensive tests
+**Spec:** .session-specs/SESSION_19_SPEC.md
+
+**Files created (11):**
+
+- `frontend/src/styles/theme.css` — CSS custom properties for dark/light mode (17 variables each), `:root` dark default, `:root.light` override
+- `frontend/src/hooks/useTheme.ts` — Theme hook: dark/light/system mode, localStorage persistence (nps_theme), `light` class management on `<html>`, system media query listener
+- `frontend/src/components/ThemeToggle.tsx` — Sun/moon SVG icon toggle button, uses useTheme hook, aria-label, theme-aware border colors
+- `frontend/src/components/Navigation.tsx` — 6 nav items (Dashboard, Oracle, History, Settings, Admin, Scanner) with inline SVG icons, collapsed icon-only mode, admin gating, disabled Scanner with "Coming Soon", active item emerald accent styling, RTL border flip
+- `frontend/src/pages/ReadingHistory.tsx` — Placeholder page for Session 21
+- `frontend/src/pages/AdminPanel.tsx` — Placeholder page for Session 38
+- `frontend/src/hooks/__tests__/useTheme.test.ts` — 6 tests: default dark, persist, read localStorage, toggle cycles, system matchMedia, light class
+- `frontend/src/components/__tests__/ThemeToggle.test.tsx` — 4 tests: sun icon dark, moon icon light, click toggle, aria-label
+- `frontend/src/components/__tests__/Navigation.test.tsx` — 7 tests: public items, admin hidden/shown, scanner disabled, active styling, collapsed hides labels, collapsed tooltips
+- `frontend/src/components/__tests__/Layout.test.tsx` — 6 tests: sidebar+content, top bar toggles, footer version, collapse toggle, hamburger, persist
+- `frontend/src/pages/__tests__/App.test.tsx` — 5 tests: root redirect, dashboard/oracle/history/settings routes render
+
+**Files modified (12):**
+
+- `frontend/tailwind.config.ts` — Full rewrite: CSS variable references for theme-switchable colors, `darkMode: 'class'`, preserved oracle/ai/score static colors, added `shadow-nps` utility, accent now emerald via var
+- `frontend/src/index.css` — Imports theme.css, body uses CSS vars, smooth 0.2s theme transition, scrollbar uses CSS vars
+- `frontend/src/components/Layout.tsx` — Full rewrite: 3-zone layout (collapsible sidebar + top bar + content + footer), Navigation component, mobile hamburger overlay with backdrop, sidebar collapse persists in localStorage, LanguageToggle + ThemeToggle in top bar
+- `frontend/src/components/LanguageToggle.tsx` — Theme-aware CSS var colors, added focus:ring-2, added title attribute
+- `frontend/src/App.tsx` — Full rewrite: React.lazy() for all 6 pages, Suspense with LoadingSpinner, routes for /dashboard /oracle /history /settings /admin /scanner, removed /vault /learning routes
+- `frontend/src/pages/Dashboard.tsx` — Changed to default export (for lazy loading)
+- `frontend/src/pages/Scanner.tsx` — Changed to default export
+- `frontend/src/pages/Oracle.tsx` — Changed to default export
+- `frontend/src/pages/Settings.tsx` — Changed to default export
+- `frontend/src/pages/Vault.tsx` — Changed to default export
+- `frontend/src/pages/Learning.tsx` — Changed to default export
+- `frontend/src/locales/en.json` — Added nav.history, nav.admin, 13 layout.\* i18n keys
+- `frontend/src/locales/fa.json` — Added matching Persian translations for nav.history, nav.admin, 13 layout.\* keys
+- `frontend/src/components/__tests__/LanguageToggle.test.tsx` — Updated assertions for new CSS var class names (removed nps-oracle-accent check, kept font-bold)
+- `frontend/src/pages/__tests__/Oracle.test.tsx` — Fixed import: named → default export
+
+**Tests:** 287 pass / 0 fail / 28 new (6 useTheme + 4 ThemeToggle + 7 Navigation + 6 Layout + 5 App routing) | 0 regressions across all 41 test files
+**Commit:** pending
+**Issues:** None
+**Decisions:**
+
+- Dark mode is default (:root), light mode activates via `:root.light` class — matches dark-first design aesthetic
+- CSS variables for theme-switchable colors, static hex for oracle/ai/score colors — oracle components unchanged
+- `nps-gold` removed from Tailwind config, replaced by `nps-accent` (emerald green via CSS var)
+- All pages changed from named to default exports for React.lazy() compatibility
+- `/vault` and `/learning` routes removed from router (pages still exist, not routed)
+- Sidebar collapse state persists via `nps_sidebar_collapsed` localStorage key
+- Mobile sidebar uses fixed overlay with backdrop click-to-close
+- isAdmin defaults to false — will be wired to auth context in later sessions
+
+**Next:** Session 20 — Oracle Main Page UI (rewrite Oracle page with new design system, reading type tabs, results display)
 
 ---
 

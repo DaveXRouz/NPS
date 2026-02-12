@@ -18,7 +18,7 @@ import type {
 
 const SELECTED_USER_KEY = "nps_selected_oracle_user";
 
-export function Oracle() {
+export default function Oracle() {
   const { t } = useTranslation();
   const { data: users = [], isLoading } = useOracleUsers();
   const createUser = useCreateOracleUser();

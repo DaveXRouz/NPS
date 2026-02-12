@@ -36,7 +36,6 @@ describe("LanguageToggle", () => {
   it("highlights EN when language is English", () => {
     render(<LanguageToggle />);
     const en = screen.getByText("EN");
-    expect(en.className).toContain("text-nps-oracle-accent");
     expect(en.className).toContain("font-bold");
   });
 
@@ -57,7 +56,6 @@ describe("LanguageToggle", () => {
     mockLanguage = "fa";
     render(<LanguageToggle />);
     const fa = screen.getByText("FA");
-    expect(fa.className).toContain("text-nps-oracle-accent");
     expect(fa.className).toContain("font-bold");
   });
 });

@@ -1,4 +1,4 @@
-export function Vault() {
+export default function Vault() {
   // TODO: Findings table with pagination and filtering
   // TODO: Summary stats
   // TODO: Search

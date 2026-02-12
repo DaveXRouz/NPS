@@ -1,3 +1,5 @@
+@import "./styles/theme.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,6 +7,8 @@
 /* NPS global styles */
 body {
   font-family: "Inter", "Segoe UI", "Helvetica", sans-serif;
+  background-color: var(--nps-bg);
+  color: var(--nps-text);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -18,21 +22,31 @@ html[dir="rtl"] {
   text-align: right;
 }
 
-/* Scrollbar styling for dark theme */
+/* Smooth theme transition (disabled during initial load via no-transition class) */
+*:not(.no-transition),
+*:not(.no-transition)::before,
+*:not(.no-transition)::after {
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0d1117;
+  background: var(--nps-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #30363d;
+  background: var(--nps-border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #484f58;
+  background: var(--nps-text-dim);
 }

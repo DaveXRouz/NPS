@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "@/test/testUtils";
-import { Oracle } from "../Oracle";
+import Oracle from "../Oracle";
 
 // Mock i18next
 vi.mock("react-i18next", () => ({

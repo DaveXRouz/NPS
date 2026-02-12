@@ -1,4 +1,4 @@
-export function Settings() {
+export default function Settings() {
   // TODO: Telegram configuration
   // TODO: Scanner defaults
   // TODO: Security settings (encryption, password change)

@@ -1,0 +1,36 @@
+/* NPS Theme Variables — Dark/Light mode switching via CSS custom properties */
+/* Dark mode is the default (:root). Light mode activates via :root.light class. */
+
+:root {
+  --nps-bg: #0a0a0a;
+  --nps-bg-card: #111111;
+  --nps-bg-sidebar: #0d0d0d;
+  --nps-bg-input: #1a1a1a;
+  --nps-bg-hover: #1a1a1a;
+  --nps-border: #1f1f1f;
+  --nps-border-active: #10b981;
+  --nps-text: #d1d5db;
+  --nps-text-bright: #f9fafb;
+  --nps-text-dim: #6b7280;
+  --nps-accent: #10b981;
+  --nps-accent-hover: #059669;
+  --nps-accent-dim: #065f46;
+  --nps-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1);
+}
+
+:root.light {
+  --nps-bg: #ffffff;
+  --nps-bg-card: #f9fafb;
+  --nps-bg-sidebar: #f3f4f6;
+  --nps-bg-input: #f3f4f6;
+  --nps-bg-hover: #e5e7eb;
+  --nps-border: #e5e7eb;
+  --nps-border-active: #059669;
+  --nps-text: #1f2937;
+  --nps-text-bright: #111827;
+  --nps-text-dim: #6b7280;
+  --nps-accent: #059669;
+  --nps-accent-hover: #047857;
+  --nps-accent-dim: #d1fae5;
+  --nps-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
