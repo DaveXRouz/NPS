@@ -552,7 +552,7 @@ TEMPLATE — copy this for each new session:
 - `services/oracle/tests/test_ai_integration.py` — Complete rewrite: 8 test classes (TestPromptBuilder 5, TestSystemPrompt 4, TestAIClientRetry 4, TestResponseParsing 4, TestInterpreter 5, TestFallback 3, TestCacheKey 2, TestIntegrationPipeline 7) = 34 tests; framework output fixtures; all AI calls mocked
 
 **Tests:** 247 oracle pass (1 pre-existing Docker path fail) | 34 new AI integration tests all pass | 0 regressions
-**Commit:** pending
+**Commit:** 7178bdf — [oracle] AI interpretation engine: Anthropic integration, 9-section parsing, bilingual EN/FA (#session-13)
 **Issues:** None
 **Decisions:**
 
