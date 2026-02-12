@@ -323,7 +323,15 @@
     "advanced_options_hint": "BPM measurement for this reading",
     "details_heartbeat": "Heartbeat Analysis",
     "details_location_element": "Location Element",
-    "section_confidence": "Confidence"
+    "section_confidence": "Confidence",
+
+    "time_reading_title": "Time Reading",
+    "hour_label": "Hour",
+    "minute_label": "Minute",
+    "second_label": "Second",
+    "use_current_time": "Use current time",
+    "generating_reading": "Generating reading...",
+    "time_reading_progress": "Step {{step}} of {{total}}"
   },
   "vault": {
     "title": "Vault",

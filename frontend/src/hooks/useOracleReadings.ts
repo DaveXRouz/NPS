@@ -27,6 +27,15 @@ export function useSubmitName() {
   });
 }
 
+export function useSubmitTimeReading() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: import("@/types").TimeReadingRequest) =>
+      oracle.timeReading(data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
+  });
+}
+
 export function useReadingHistory(params?: {
   limit?: number;
   offset?: number;

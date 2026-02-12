@@ -1,10 +1,147 @@
 """Oracle request/response models."""
 
+import re
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 NumerologySystemType = Literal["pythagorean", "chaldean", "abjad", "auto"]
+
+
+# ─── Framework Reading Models (Session 14+) ─────────────────────────────────
+
+
+class TimeReadingRequest(BaseModel):
+    """Unified reading creation request for time readings."""
+
+    user_id: int
+    reading_type: str = "time"
+    sign_value: str  # "HH:MM:SS"
+    date: str | None = None  # "YYYY-MM-DD", defaults to today
+    locale: str = "en"
+    numerology_system: NumerologySystemType = "auto"
+
+    @field_validator("sign_value")
+    @classmethod
+    def validate_time_format(cls, v: str) -> str:
+        """Validate HH:MM:SS format with valid ranges."""
+        match = re.match(r"^(\d{1,2}):(\d{2}):(\d{2})$", v)
+        if not match:
+            raise ValueError(f"Invalid time format: '{v}'. Expected HH:MM:SS")
+        h, m, s = int(match.group(1)), int(match.group(2)), int(match.group(3))
+        if not (0 <= h <= 23):
+            raise ValueError(f"Hour must be 0-23, got {h}")
+        if not (0 <= m <= 59):
+            raise ValueError(f"Minute must be 0-59, got {m}")
+        if not (0 <= s <= 59):
+            raise ValueError(f"Second must be 0-59, got {s}")
+        return v
+
+    @field_validator("date")
+    @classmethod
+    def validate_date_format(cls, v: str | None) -> str | None:
+        """Validate YYYY-MM-DD format if provided."""
+        if v is None:
+            return v
+        match = re.match(r"^(\d{4})-(\d{2})-(\d{2})$", v)
+        if not match:
+            raise ValueError(f"Invalid date format: '{v}'. Expected YYYY-MM-DD")
+        _y, m, d = int(match.group(1)), int(match.group(2)), int(match.group(3))
+        if not (1 <= m <= 12):
+            raise ValueError(f"Month must be 1-12, got {m}")
+        if not (1 <= d <= 31):
+            raise ValueError(f"Day must be 1-31, got {d}")
+        return v
+
+
+class FrameworkNumerologyData(BaseModel):
+    """Maps to framework reading['numerology']."""
+
+    life_path: dict | None = None
+    expression: int = 0
+    soul_urge: int = 0
+    personality: int = 0
+    personal_year: int = 0
+    personal_month: int = 0
+    personal_day: int = 0
+    gender_polarity: dict | None = None
+    mother_influence: int | None = None
+
+    model_config = ConfigDict(extra="allow")
+
+
+class FrameworkConfidence(BaseModel):
+    """Maps to framework reading['confidence']."""
+
+    score: int = 50
+    level: str = "low"
+    factors: str = ""
+
+    model_config = ConfigDict(extra="allow")
+
+
+class PatternDetected(BaseModel):
+    """Maps to framework reading['patterns']['detected'] items."""
+
+    type: str = ""
+    strength: str = ""
+    message: str = ""
+    animal: str | None = None
+    number: int | None = None
+    occurrences: int | None = None
+
+    model_config = ConfigDict(extra="allow")
+
+
+class AIInterpretationSections(BaseModel):
+    """Parsed AI response (from Session 13)."""
+
+    header: str = ""
+    universal_address: str = ""
+    core_identity: str = ""
+    right_now: str = ""
+    patterns: str = ""
+    message: str = ""
+    advice: str = ""
+    caution: str = ""
+    footer: str = ""
+    full_text: str = ""
+    ai_generated: bool = False
+    locale: str = "en"
+    elapsed_ms: float = 0.0
+    cached: bool = False
+    confidence_score: int = 0
+
+    model_config = ConfigDict(extra="allow")
+
+
+class FrameworkReadingResponse(BaseModel):
+    """Unified reading response for all framework reading types."""
+
+    id: int = 0
+    reading_type: str = "time"
+    sign_value: str = ""
+    framework_result: dict = {}
+    ai_interpretation: AIInterpretationSections | None = None
+    confidence: FrameworkConfidence = FrameworkConfidence()
+    patterns: list[PatternDetected] = []
+    fc60_stamp: str = ""
+    numerology: FrameworkNumerologyData | None = None
+    moon: dict | None = None
+    ganzhi: dict | None = None
+    locale: str = "en"
+    created_at: str = ""
+
+    model_config = ConfigDict(extra="allow")
+
+
+class ReadingProgressEvent(BaseModel):
+    """WebSocket progress message."""
+
+    step: int
+    total: int
+    message: str
+    reading_type: str = "time"
 
 
 class ReadingRequest(BaseModel):

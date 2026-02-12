@@ -21,6 +21,7 @@ from app.middleware.auth import get_current_user, require_scope
 from app.models.audit import AuditLogEntry, AuditLogResponse
 from app.models.oracle import (
     DailyInsightResponse,
+    FrameworkReadingResponse,
     MultiUserReadingRequest,
     MultiUserReadingResponse,
     NameReadingRequest,
@@ -35,6 +36,7 @@ from app.models.oracle import (
     StampValidateResponse,
     StoredReadingListResponse,
     StoredReadingResponse,
+    TimeReadingRequest,
 )
 from app.models.oracle_user import (
     OracleUserCreate,
@@ -363,6 +365,53 @@ def create_multi_user_reading(
 
     result["reading_id"] = reading.id
     return MultiUserReadingResponse(**result)
+
+
+# ─── Framework Reading Endpoint (Session 14+) ───────────────────────────────
+
+
+@router.post(
+    "/readings",
+    response_model=FrameworkReadingResponse,
+    dependencies=[Depends(require_scope("oracle:write"))],
+)
+async def create_framework_reading(
+    body: TimeReadingRequest,
+    request: Request,
+    _user: dict = Depends(get_current_user),
+    svc: OracleReadingService = Depends(get_oracle_reading_service),
+    audit: AuditService = Depends(get_audit_service),
+):
+    """Create a reading using the numerology framework + AI interpretation.
+
+    This is the new unified reading endpoint. Session 14 supports reading_type='time'.
+    Sessions 15-18 add 'name', 'question', 'daily', 'multi_user'.
+    """
+
+    async def progress_callback(step: int, total: int, message: str):
+        await oracle_progress.send_progress(step, total, message, reading_type=body.reading_type)
+
+    try:
+        result = await svc.create_framework_reading(
+            user_id=body.user_id,
+            reading_type=body.reading_type,
+            sign_value=body.sign_value,
+            date_str=body.date,
+            locale=body.locale,
+            numerology_system=body.numerology_system,
+            progress_callback=progress_callback,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
+
+    audit.log_reading_created(
+        result["id"],
+        "time",
+        ip=_get_client_ip(request),
+        key_hash=_user.get("api_key_hash"),
+    )
+    svc.db.commit()
+    return FrameworkReadingResponse(**result)
 
 
 # ─── Reading History Endpoints ───────────────────────────────────────────────

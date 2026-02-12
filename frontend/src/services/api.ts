@@ -109,6 +109,11 @@ export const oracle = {
       method: "POST",
       body: JSON.stringify({ stamp }),
     }),
+  timeReading: (data: import("@/types").TimeReadingRequest) =>
+    request<import("@/types").FrameworkReadingResponse>("/oracle/readings", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };
 
 // ─── Oracle Users ───

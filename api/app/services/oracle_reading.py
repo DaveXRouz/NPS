@@ -1,10 +1,13 @@
 """Oracle reading service — computation via legacy engines + DB persistence."""
 
+from __future__ import annotations
+
 import json
 import logging
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from fastapi import Depends, WebSocket
 from sqlalchemy.orm import Session
@@ -12,6 +15,10 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.orm.oracle_reading import OracleReading, OracleReadingUser
 from app.services.security import EncryptionService, get_encryption_service
+
+if TYPE_CHECKING:
+    from app.orm.oracle_user import OracleUser
+    from oracle_service.models.reading_types import UserProfile
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +63,13 @@ from engines.timing_advisor import (  # noqa: E402
     get_current_quality,
 )
 from engines.multi_user_service import MultiUserFC60Service  # noqa: E402
-from engines.ai_interpreter import interpret_group, interpret_reading  # noqa: E402
+from engines.ai_interpreter import (  # noqa: E402
+    interpret_multi_user,
+    interpret_reading,
+)
+
+# Backward-compatible alias — interpret_group was renamed to interpret_multi_user in Session 13
+interpret_group = interpret_multi_user
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -431,6 +444,123 @@ class OracleReadingService:
         self.db.flush()
         return reading
 
+    # ── Framework reading pipeline (Session 14+) ──
+
+    def _build_user_profile(
+        self,
+        oracle_user: "OracleUser",
+        numerology_system: str = "pythagorean",
+    ) -> "UserProfile":
+        """Convert OracleUser ORM to UserProfile dataclass for framework bridge."""
+        from oracle_service.models.reading_types import (
+            UserProfile as FrameworkUserProfile,
+        )
+
+        # Parse birthday to components
+        bday = oracle_user.birthday
+        if isinstance(bday, str):
+            parts = bday.split("-")
+            birth_year, birth_month, birth_day = (
+                int(parts[0]),
+                int(parts[1]),
+                int(parts[2]),
+            )
+        elif hasattr(bday, "year"):
+            birth_year, birth_month, birth_day = bday.year, bday.month, bday.day
+        else:
+            birth_year, birth_month, birth_day = 2000, 1, 1
+
+        # Decrypt mother_name if encrypted
+        mother_name = oracle_user.mother_name
+        if self.enc and mother_name:
+            mother_name = self.enc.decrypt_field(mother_name)
+
+        return FrameworkUserProfile(
+            user_id=oracle_user.id,
+            full_name=oracle_user.name,
+            birth_day=birth_day,
+            birth_month=birth_month,
+            birth_year=birth_year,
+            mother_name=mother_name,
+            gender=getattr(oracle_user, "gender", None),
+            heart_rate_bpm=getattr(oracle_user, "heart_rate_bpm", None),
+            timezone_hours=getattr(oracle_user, "timezone_hours", 0) or 0,
+            timezone_minutes=getattr(oracle_user, "timezone_minutes", 0) or 0,
+            numerology_system=numerology_system,
+        )
+
+    async def create_framework_reading(
+        self,
+        user_id: int,
+        reading_type: str,
+        sign_value: str,
+        date_str: str | None,
+        locale: str,
+        numerology_system: str,
+        progress_callback=None,
+    ) -> dict:
+        """Create a reading using the framework pipeline.
+
+        Returns dict ready for FrameworkReadingResponse + the OracleReading DB row.
+        """
+        from app.orm.oracle_user import OracleUser
+
+        # 1. Load oracle_user
+        oracle_user = (
+            self.db.query(OracleUser)
+            .filter(
+                OracleUser.id == user_id,
+                OracleUser.deleted_at.is_(None),
+            )
+            .first()
+        )
+        if not oracle_user:
+            raise ValueError(f"Oracle user {user_id} not found")
+
+        # 2. Build UserProfile
+        user_profile = self._build_user_profile(oracle_user, numerology_system)
+        if numerology_system != "auto":
+            user_profile.numerology_system = numerology_system
+
+        # 3. Parse sign_value for time reading
+        parts = sign_value.split(":")
+        hour, minute, second = int(parts[0]), int(parts[1]), int(parts[2])
+        target_date = _parse_datetime(date_str) if date_str else None
+
+        # 4. Orchestrate reading
+        from oracle_service.reading_orchestrator import ReadingOrchestrator
+
+        orchestrator = ReadingOrchestrator(progress_callback=progress_callback)
+        result = await orchestrator.generate_time_reading(
+            user_profile, hour, minute, second, target_date, locale
+        )
+
+        # 5. Store in database
+        ai_text = ""
+        ai_interp = result.get("ai_interpretation")
+        if isinstance(ai_interp, dict):
+            ai_text = ai_interp.get("full_text", "")
+        elif isinstance(ai_interp, str):
+            ai_text = ai_interp
+
+        reading = self.store_reading(
+            user_id=user_id,
+            sign_type="time",
+            sign_value=sign_value,
+            question=None,
+            reading_result=result.get("framework_result"),
+            ai_interpretation=ai_text or None,
+        )
+
+        result["id"] = reading.id
+        created_at = reading.created_at
+        if isinstance(created_at, datetime):
+            result["created_at"] = created_at.isoformat()
+        else:
+            result["created_at"] = str(created_at) if created_at else ""
+
+        return result
+
     # ── DB storage methods ──
 
     def store_reading(
@@ -548,8 +678,13 @@ class OracleProgressManager:
         if websocket in self.connections:
             self.connections.remove(websocket)
 
-    async def send_progress(self, step: int, total: int, message: str):
-        payload = {"step": step, "total": total, "message": message}
+    async def send_progress(self, step: int, total: int, message: str, reading_type: str = "time"):
+        payload = {
+            "step": step,
+            "total": total,
+            "message": message,
+            "reading_type": reading_type,
+        }
         for ws in list(self.connections):
             try:
                 await ws.send_json(payload)

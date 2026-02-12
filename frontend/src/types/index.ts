@@ -430,6 +430,89 @@ export interface ConfidenceBoost {
   filled: boolean;
 }
 
+// ─── Framework Reading (Session 14+) ───
+
+export interface TimeReadingRequest {
+  user_id: number;
+  reading_type: "time";
+  sign_value: string; // "HH:MM:SS"
+  date?: string; // "YYYY-MM-DD"
+  locale?: string; // "en" | "fa"
+  numerology_system?: string; // "pythagorean" | "chaldean" | "abjad" | "auto"
+}
+
+export interface FrameworkConfidence {
+  score: number;
+  level: string;
+  factors?: string;
+}
+
+export interface PatternDetected {
+  type: string;
+  strength: string;
+  message?: string;
+  animal?: string;
+  number?: number;
+  occurrences?: number;
+}
+
+export interface AIInterpretationSections {
+  header: string;
+  universal_address: string;
+  core_identity: string;
+  right_now: string;
+  patterns: string;
+  message: string;
+  advice: string;
+  caution: string;
+  footer: string;
+  full_text: string;
+  ai_generated: boolean;
+  locale: string;
+  elapsed_ms: number;
+  cached: boolean;
+  confidence_score: number;
+}
+
+export interface FrameworkNumerologyData {
+  life_path: { number: number; title: string; message: string } | null;
+  expression: number;
+  soul_urge: number;
+  personality: number;
+  personal_year: number;
+  personal_month: number;
+  personal_day: number;
+  gender_polarity?: {
+    gender: string;
+    polarity: number;
+    label: string;
+  } | null;
+  mother_influence?: number | null;
+}
+
+export interface FrameworkReadingResponse {
+  id: number;
+  reading_type: string;
+  sign_value: string;
+  framework_result: Record<string, unknown>;
+  ai_interpretation: AIInterpretationSections | null;
+  confidence: FrameworkConfidence;
+  patterns: PatternDetected[];
+  fc60_stamp: string;
+  numerology: FrameworkNumerologyData | null;
+  moon: Record<string, unknown> | null;
+  ganzhi: Record<string, unknown> | null;
+  locale: string;
+  created_at: string;
+}
+
+export interface ReadingProgressEvent {
+  step: number;
+  total: number;
+  message: string;
+  reading_type: string;
+}
+
 // ─── Translation ───
 
 export interface TranslateResponse {

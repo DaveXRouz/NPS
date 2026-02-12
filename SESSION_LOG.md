@@ -9,8 +9,8 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 13 of 45
-**Last session:** Session 13 — AI Interpretation Engine: Anthropic Integration
+**Sessions completed:** 14 of 45
+**Last session:** Session 14 — Reading Flow: Time Reading (end-to-end)
 **Current block:** AI & Reading Types (Sessions 13-18)
 
 ---
@@ -564,7 +564,46 @@ TEMPLATE — copy this for each new session:
 - Translation templates moved into translation_service.py — they're translation-specific, not reading prompt templates
 - Kept translation_service.py intact — may be useful for non-reading translation needs in later sessions
 
-**Next:** Session 14 — Daily Reading Flow (uses interpret_reading() for the daily reading endpoint, connects API→Oracle→AI pipeline)
+**Next:** Session 14 — Reading Flow: Time Reading
+
+---
+
+## Session 14 — 2026-02-13
+
+**Terminal:** SINGLE
+**Block:** AI & Reading Types
+**Task:** Reading Flow: Time Reading — first complete end-to-end reading pipeline (Frontend form → API endpoint → ReadingOrchestrator → Framework Bridge → AI Interpreter → Response)
+**Spec:** .session-specs/SESSION_14_SPEC.md
+
+**Files changed:**
+
+- `api/app/models/oracle.py` — Added 7 Pydantic models: TimeReadingRequest (with HH:MM:SS + YYYY-MM-DD field validators), FrameworkReadingResponse, AIInterpretationSections, FrameworkConfidence, PatternDetected, FrameworkNumerologyData, ReadingProgressEvent
+- `api/app/routers/oracle.py` — Added POST /readings endpoint (create_framework_reading) with WebSocket progress callback binding
+- `api/app/services/oracle_reading.py` — Added \_build_user_profile() (ORM→UserProfile dataclass), async create_framework_reading() pipeline method, updated send_progress() with reading_type param; fixed import: interpret_group→interpret_multi_user (renamed in Session 13); added TYPE_CHECKING imports
+- `services/oracle/oracle_service/reading_orchestrator.py` — NEW: Central reading pipeline coordinator; async generate_time_reading() with 4-step pipeline (framework→AI→format→done); \_call_framework_time(), \_call_ai_interpreter() with synthesis fallback, \_build_response(); progress callback support
+- `frontend/src/types/index.ts` — Added 7 TypeScript interfaces: TimeReadingRequest, FrameworkConfidence, PatternDetected, AIInterpretationSections, FrameworkNumerologyData, FrameworkReadingResponse, ReadingProgressEvent
+- `frontend/src/services/api.ts` — Added oracle.timeReading() method (POST /oracle/readings)
+- `frontend/src/hooks/useOracleReadings.ts` — Added useSubmitTimeReading() hook (React Query useMutation)
+- `frontend/src/components/oracle/TimeReadingForm.tsx` — NEW: Time reading input form with H/M/S dropdowns (24/60/60), "Use current time" button, WebSocket progress bar, RTL support, submit with loading state
+- `frontend/src/locales/en.json` — Added 7 i18n keys for time reading UI
+- `frontend/src/locales/fa.json` — Added 7 matching Persian translation keys
+- `services/oracle/tests/test_reading_orchestrator.py` — NEW: 8 tests (instantiation, required keys, sign_value, framework output, AI fallback, progress callback, optional callback)
+- `api/tests/test_time_reading.py` — NEW: 11 tests (validation 3, endpoint success/stamps/confidence/date/locale/AI/created_at 8)
+- `frontend/src/components/oracle/__tests__/TimeReadingForm.test.tsx` — NEW: 6 tests (renders dropdowns, option counts, use current time, submit format)
+
+**Tests:** 22 API pass (11×2 backends) | 8 orchestrator pass | 6 frontend pass | 0 regressions | 10 pre-existing multi_user failures (CompatibilityAnalyzer=None)
+**Commit:** pending
+**Issues:** Fixed import rename (interpret_group→interpret_multi_user) from Session 13; fixed ruff lint warnings (unused var, TYPE_CHECKING forward refs)
+**Decisions:**
+
+- ReadingOrchestrator as central coordinator pattern — all reading types will use this (time, daily, multi-user, etc.)
+- Async orchestrator calling sync framework_bridge — asyncio.to_thread() not needed since framework is CPU-bound but fast
+- AI fallback uses framework synthesis/translation dict to populate all 9 interpretation sections when AI unavailable
+- WebSocket progress: 4 steps (initializing→framework→AI→done) with reading_type in event payload
+- POST /readings shares path with GET /readings (list) — FastAPI differentiates by HTTP method
+- from \_\_future\_\_ import annotations + TYPE_CHECKING for forward refs in oracle_reading.py
+
+**Next:** Session 15 — Daily Reading Flow (daily reading endpoint using ReadingOrchestrator, auto-generation, caching in oracle_daily_readings)
 
 ---
 
