@@ -1514,7 +1514,7 @@ TEMPLATE — copy this for each new session:
 - `frontend/src/components/dashboard/__tests__/StatsCards.test.tsx` — mock useReducedMotion for CountUp compatibility
 
 **Tests:** 601 pass / 0 fail / 23 new tests (2 useReducedMotion + 5 FadeIn + 3 SlideIn + 3 CountUp + 2 StaggerChildren + 4 LoadingOrb + 4 PageTransition)
-**Commit:** PENDING
+**Commit:** c38592c
 **Issues:** None
 **Decisions:**
 
