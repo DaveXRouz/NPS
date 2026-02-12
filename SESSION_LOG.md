@@ -1227,7 +1227,7 @@ TEMPLATE — copy this for each new session:
 - `frontend/src/components/oracle/__tests__/SummaryTab.test.tsx`
 
 **Tests:** 478 frontend pass / 0 fail / 14 new RTL tests | 0 regressions
-**Commit:** PENDING_HASH
+**Commit:** 1be9ad7
 **Issues:** None — all pre-existing tsc errors unchanged
 **Decisions:**
 
