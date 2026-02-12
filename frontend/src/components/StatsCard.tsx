@@ -1,3 +1,4 @@
+import React from "react";
 import { CountUp } from "./common/CountUp";
 
 interface StatsCardProps {
@@ -41,7 +42,7 @@ function parseNumericValue(value: string | number): {
   return { numeric: null, suffix: "", prefix: "" };
 }
 
-export function StatsCard({
+export const StatsCard = React.memo(function StatsCard({
   label,
   value,
   subtitle,
@@ -87,4 +88,4 @@ export function StatsCard({
       {subtitle && <p className="text-xs text-nps-text-dim mt-1">{subtitle}</p>}
     </div>
   );
-}
+});

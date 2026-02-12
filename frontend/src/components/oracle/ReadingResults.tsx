@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useArrowNavigation } from "@/hooks/useArrowNavigation";
 import { SummaryTab } from "./SummaryTab";
@@ -30,7 +30,7 @@ interface ReadingResultsProps {
 
 const TABS: ResultsTab[] = ["summary", "details", "history"];
 
-export function ReadingResults({
+export const ReadingResults = React.memo(function ReadingResults({
   result,
   readingId,
   heartbeat,
@@ -138,4 +138,4 @@ export function ReadingResults({
       </div>
     </div>
   );
-}
+});

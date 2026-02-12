@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { PageTransition } from "./common/PageTransition";
@@ -11,7 +11,7 @@ import { OfflineBanner } from "./common/OfflineBanner";
 import { ToastContainer } from "./common/Toast";
 import { useWebSocketConnection } from "@/hooks/useWebSocket";
 
-export function Layout() {
+export const Layout = React.memo(function Layout() {
   const { t } = useTranslation();
   useWebSocketConnection();
   const location = useLocation();
@@ -140,4 +140,4 @@ export function Layout() {
       <ToastContainer />
     </>
   );
-}
+});

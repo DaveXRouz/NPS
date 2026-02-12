@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import type { NameReading } from "@/types";
 import { oracle } from "@/services/api";
-import { PersianKeyboard } from "./PersianKeyboard";
 import { NumerologySystemSelector } from "./NumerologySystemSelector";
+
+const PersianKeyboard = lazy(() =>
+  import("./PersianKeyboard").then((m) => ({ default: m.PersianKeyboard })),
+);
 import type { NumerologySystem } from "@/utils/scriptDetector";
 
 interface NameReadingFormProps {
@@ -107,11 +110,17 @@ export function NameReadingForm({
           </button>
         </div>
         {showKeyboard && (
-          <PersianKeyboard
-            onCharacterClick={handleKeyboardChar}
-            onBackspace={handleKeyboardBackspace}
-            onClose={() => setShowKeyboard(false)}
-          />
+          <Suspense
+            fallback={
+              <div className="h-32 animate-pulse bg-nps-bg-input rounded mt-1" />
+            }
+          >
+            <PersianKeyboard
+              onCharacterClick={handleKeyboardChar}
+              onBackspace={handleKeyboardBackspace}
+              onClose={() => setShowKeyboard(false)}
+            />
+          </Suspense>
         )}
       </div>
 

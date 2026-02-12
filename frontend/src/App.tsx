@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Layout } from "./components/Layout";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
+import { PageLoadingFallback } from "./components/common/PageLoadingFallback";
 import "./styles/rtl.css";
 import "./styles/animations.css";
 
@@ -12,14 +13,6 @@ const ReadingHistory = lazy(() => import("./pages/ReadingHistory"));
 const Settings = lazy(() => import("./pages/Settings"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const Scanner = lazy(() => import("./pages/Scanner"));
-
-function LoadingSpinner() {
-  return (
-    <div className="flex items-center justify-center h-64">
-      <div className="w-8 h-8 border-2 border-[var(--nps-accent)] border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
-}
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -31,7 +24,7 @@ export default function App() {
   }, [i18n.language]);
 
   return (
-    <Suspense fallback={<LoadingSpinner />}>
+    <Suspense fallback={<PageLoadingFallback />}>
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

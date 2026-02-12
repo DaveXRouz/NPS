@@ -9,9 +9,9 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 30 of 45
-**Last session:** Session 30 — Animations & Micro-interactions
-**Current block:** Frontend Advanced (Sessions 26-31) — 5 of 6 sessions complete
+**Sessions completed:** 31 of 45
+**Last session:** Session 31 — Frontend Polish & Performance
+**Current block:** Frontend Advanced (Sessions 26-31) — COMPLETE
 
 ---
 
@@ -1527,6 +1527,92 @@ TEMPLATE — copy this for each new session:
 - StatsCards test mocks useReducedMotion to true so CountUp renders final values immediately in test environment
 
 **Next:** Session 31 — Frontend Polish & Performance (Lighthouse audit, bundle analysis, animation perf on low-end devices, final UX polish)
+
+---
+
+## Session 31 — 2026-02-13
+
+**Terminal:** SINGLE
+**Block:** Frontend Advanced (Sessions 26-31) — Session 6 of 6 (BLOCK COMPLETE)
+**Task:** Frontend Polish & Performance — bundle analysis, vendor splitting, route/component lazy loading, React.memo, meta tags, performance tests
+**Spec:** `.session-specs/SESSION_31_SPEC.md`
+
+**What was built:**
+
+1. **Vendor chunk splitting** — vite.config.ts: manualChunks splits vendor-react (53.7KB gz), vendor-query (12.6KB gz), vendor-i18n (18.9KB gz), vendor-calendar (0.97KB gz) into cacheable chunks
+2. **Bundle visualizer** — rollup-plugin-visualizer generates dist/stats.html; `npm run analyze` script added
+3. **PageLoadingFallback** — skeleton shimmer placeholder for lazy-loaded pages (title + 4 cards + content block)
+4. **LazyPage wrapper** — Suspense + PageLoadingFallback wrapper for lazy routes
+5. **App.tsx upgrade** — replaced inline LoadingSpinner with PageLoadingFallback; pages already had React.lazy (kept)
+6. **PersianKeyboard lazy loading** — UserForm.tsx, NameReadingForm.tsx, QuestionReadingForm.tsx all use lazy() + Suspense for PersianKeyboard; own chunk (2.05KB gz)
+7. **CalendarPicker lazy loading** — UserForm.tsx uses lazy() + Suspense for CalendarPicker; own chunk (1.51KB gz)
+8. **React.memo** — applied to StatsCard (rendered 4+ times on Dashboard), ReadingResults (Oracle page), Layout (wrapping component)
+9. **SEO meta tags** — index.html: description, theme-color, og:title, og:description, og:type
+10. **Dependency cleanup** — moved @testing-library/jest-dom, @testing-library/user-event, jsdom from dependencies to devDependencies
+11. **TypeScript build fix** — tsconfig.json: excluded test files from tsc build (tests use vitest types not available to tsc)
+12. **Pre-existing TS error fixes** — persian-formatting.test.ts (missing vitest import), OracleConsultationForm.test.tsx (unused import), ReadingFeedback.test.tsx (missing beforeEach import), OracleConsultationForm.tsx (type errors for MoonData/GanzhiData, unused vars)
+13. **Playwright Firefox** — playwright.config.ts: added Firefox browser project
+14. **Bundle size tests** — 4 tests: total JS < 500KB gz, no chunk > 200KB gz, CSS < 20KB gz, 5+ JS chunks
+15. **Lighthouse meta tests** — 5 tests: viewport, description, theme-color, og:title, lang attribute
+16. **E2E performance tests** — 5 tests: Dashboard load < 3s, Oracle load < 3s, language switch < 500ms, no CLS, SPA navigation
+17. **Test fixes for lazy loading** — UserForm.test.tsx and NameReadingForm.test.tsx updated to use waitFor() for lazy PersianKeyboard
+
+**Files created (5):**
+
+- `frontend/src/components/common/PageLoadingFallback.tsx`
+- `frontend/src/components/common/LazyPage.tsx`
+- `frontend/src/__tests__/bundle-size.test.ts`
+- `frontend/src/__tests__/lighthouse-meta.test.ts`
+- `frontend/e2e/performance.spec.ts`
+
+**Files modified (17):**
+
+- `frontend/src/App.tsx` — replaced LoadingSpinner with PageLoadingFallback
+- `frontend/vite.config.ts` — vendor chunk splitting + rollup-plugin-visualizer
+- `frontend/package.json` — analyze script, moved test deps to devDependencies
+- `frontend/index.html` — SEO meta tags (description, theme-color, og:title, og:description, og:type)
+- `frontend/tsconfig.json` — excluded test files from tsc build
+- `frontend/playwright.config.ts` — added Firefox project
+- `frontend/src/components/Layout.tsx` — React.memo
+- `frontend/src/components/StatsCard.tsx` — React.memo
+- `frontend/src/components/oracle/ReadingResults.tsx` — React.memo
+- `frontend/src/components/oracle/UserForm.tsx` — lazy-load PersianKeyboard + CalendarPicker with Suspense
+- `frontend/src/components/oracle/NameReadingForm.tsx` — lazy-load PersianKeyboard with Suspense
+- `frontend/src/components/oracle/QuestionReadingForm.tsx` — lazy-load PersianKeyboard with Suspense
+- `frontend/src/components/oracle/OracleConsultationForm.tsx` — fix TS types (MoonData/GanzhiData), remove unused vars
+- `frontend/src/__tests__/persian-formatting.test.ts` — add missing vitest imports
+- `frontend/src/components/oracle/__tests__/OracleConsultationForm.test.tsx` — remove unused import
+- `frontend/src/components/oracle/__tests__/ReadingFeedback.test.tsx` — add missing beforeEach import
+- `frontend/src/components/oracle/__tests__/UserForm.test.tsx` — add waitFor for lazy PersianKeyboard
+- `frontend/src/components/oracle/__tests__/NameReadingForm.test.tsx` — add waitFor for lazy PersianKeyboard
+
+**Bundle metrics (final):**
+
+| Metric           | Before (Session 30)              | After (Session 31)                                 | Target   |
+| ---------------- | -------------------------------- | -------------------------------------------------- | -------- |
+| Total JS gzipped | ~146 KB (1 main + 5 page chunks) | ~148 KB (4 vendor + app + 8 page/component chunks) | < 500 KB |
+| Largest chunk    | 105.5 KB (index)                 | 53.7 KB (vendor-react)                             | < 200 KB |
+| CSS gzipped      | 9.2 KB                           | 9.2 KB                                             | < 20 KB  |
+| JS chunk count   | 8                                | 16                                                 | >= 5     |
+| Vendor cacheable | No                               | Yes (4 chunks)                                     | —        |
+
+**Tests:** 612 pass / 0 fail / 14 new tests (4 bundle-size + 5 lighthouse-meta + 5 e2e performance)
+**Commit:** (pending)
+**Issues:**
+
+- Multiple oracle sub-components (MultiUserReadingDisplay, DailyReadingCard, CosmicCyclePanel, MoonPhaseDisplay, GanzhiDisplay, etc.) use hardcoded gray-\*/white/black Tailwind classes instead of NPS design tokens. These were written in earlier sessions and need a dedicated cleanup pass to migrate to NPS tokens.
+- Lighthouse audit cannot run in headless CLI environment (requires browser + local server). Scores should be verified manually via `npm run preview` + Chrome DevTools Lighthouse tab.
+
+**Decisions:**
+
+- Vendor chunk splitting chosen over tree-shaking analysis — vendor libs (react, i18n, query) are already optimized; splitting gives better long-term caching since vendor code changes rarely
+- PersianKeyboard fully lazy-loaded across all 3 consumers (UserForm, NameReadingForm, QuestionReadingForm) — eliminates build warning and reduces Oracle chunk by 6KB
+- CalendarPicker lazy-loaded in UserForm only (already in its own chunk from page-level splitting)
+- Test files excluded from tsc build via tsconfig.json exclude — cleaner than adding vitest/globals types to the main config
+- Moved @testing-library/jest-dom, @testing-library/user-event, jsdom from production to dev dependencies — they were incorrectly in dependencies and could theoretically increase install size for production builds
+- React.memo applied conservatively to 3 components (StatsCard, ReadingResults, Layout) — all are pure or near-pure with primitive/stable props; avoids over-memoization complexity
+
+**Next:** Session 32 — Export & Share (PDF export, image export, text export for reading results). Begins Features & Integration block (Sessions 32-37).
 
 ---
 

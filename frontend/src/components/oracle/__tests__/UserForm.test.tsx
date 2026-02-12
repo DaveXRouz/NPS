@@ -1,5 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, within, fireEvent } from "@testing-library/react";
+import {
+  render,
+  screen,
+  within,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { UserForm } from "../UserForm";
 import type { OracleUser } from "@/types";
@@ -420,7 +426,9 @@ describe("UserForm", () => {
 
     // Click toggle for name_persian
     await userEvent.click(screen.getByTestId("keyboard-toggle-name_persian"));
-    expect(screen.getByTestId("persian-keyboard")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId("persian-keyboard")).toBeInTheDocument();
+    });
 
     // Click a character
     await userEvent.click(screen.getByTestId("kb-char"));

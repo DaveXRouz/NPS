@@ -1,10 +1,15 @@
-import { useState, useRef } from "react";
+import { useState, useRef, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import type { OracleUser, OracleUserCreate, LocationData } from "@/types";
-import { PersianKeyboard } from "./PersianKeyboard";
-import { CalendarPicker } from "./CalendarPicker";
 import { LocationSelector } from "./LocationSelector";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+
+const PersianKeyboard = lazy(() =>
+  import("./PersianKeyboard").then((m) => ({ default: m.PersianKeyboard })),
+);
+const CalendarPicker = lazy(() =>
+  import("./CalendarPicker").then((m) => ({ default: m.CalendarPicker })),
+);
 
 interface UserFormProps {
   user?: OracleUser;
@@ -198,21 +203,33 @@ export function UserForm({
                 </button>
               </div>
               {activeKeyboard === "name_persian" && (
-                <PersianKeyboard
-                  onCharacterClick={handleKeyboardChar}
-                  onBackspace={handleKeyboardBackspace}
-                  onClose={() => setActiveKeyboard(null)}
-                />
+                <Suspense
+                  fallback={
+                    <div className="h-32 animate-pulse bg-nps-bg-input rounded mt-1" />
+                  }
+                >
+                  <PersianKeyboard
+                    onCharacterClick={handleKeyboardChar}
+                    onBackspace={handleKeyboardBackspace}
+                    onClose={() => setActiveKeyboard(null)}
+                  />
+                </Suspense>
               )}
             </div>
 
             {/* Birthday via CalendarPicker */}
-            <CalendarPicker
-              value={form.birthday}
-              onChange={(isoDate) => handleFieldChange("birthday", isoDate)}
-              label={t("oracle.field_birthday")}
-              error={errors.birthday}
-            />
+            <Suspense
+              fallback={
+                <div className="h-10 animate-pulse bg-nps-bg-input rounded" />
+              }
+            >
+              <CalendarPicker
+                value={form.birthday}
+                onChange={(isoDate) => handleFieldChange("birthday", isoDate)}
+                label={t("oracle.field_birthday")}
+                error={errors.birthday}
+              />
+            </Suspense>
           </fieldset>
 
           {/* ─── Section 2: Family ─── */}
@@ -261,11 +278,17 @@ export function UserForm({
                 </button>
               </div>
               {activeKeyboard === "mother_name_persian" && (
-                <PersianKeyboard
-                  onCharacterClick={handleKeyboardChar}
-                  onBackspace={handleKeyboardBackspace}
-                  onClose={() => setActiveKeyboard(null)}
-                />
+                <Suspense
+                  fallback={
+                    <div className="h-32 animate-pulse bg-nps-bg-input rounded mt-1" />
+                  }
+                >
+                  <PersianKeyboard
+                    onCharacterClick={handleKeyboardChar}
+                    onBackspace={handleKeyboardBackspace}
+                    onClose={() => setActiveKeyboard(null)}
+                  />
+                </Suspense>
               )}
             </div>
           </fieldset>

@@ -9,6 +9,8 @@ import type {
   QuestionReadingResult,
   OracleReading,
   MultiUserFrameworkRequest,
+  MoonData,
+  GanzhiData,
 } from "@/types";
 import { useSubmitMultiUserReading } from "@/hooks/useOracleReadings";
 import { useToast } from "@/hooks/useToast";
@@ -48,10 +50,10 @@ function normalizeFrameworkResult(
         : null,
       zodiac: null,
       chinese: null,
-      moon: response.moon as Record<string, string> | null,
+      moon: response.moon as MoonData | null,
       angel: null,
       chaldean: null,
-      ganzhi: response.ganzhi as Record<string, string> | null,
+      ganzhi: response.ganzhi as GanzhiData | null,
       fc60_extended: null,
       synchronicities: response.patterns.map((p) => p.message ?? p.type),
       ai_interpretation: response.ai_interpretation?.full_text ?? null,
@@ -119,8 +121,6 @@ export function OracleConsultationForm({
   onResult,
   onLoadingChange,
 }: OracleConsultationFormProps) {
-  const { t } = useTranslation();
-
   switch (readingType) {
     case "time":
       return (
@@ -187,12 +187,7 @@ interface MultiUserFlowProps {
   onLoadingChange: (isLoading: boolean) => void;
 }
 
-function MultiUserFlow({
-  userId,
-  selectedUsers,
-  onResult,
-  onLoadingChange,
-}: MultiUserFlowProps) {
+function MultiUserFlow({ selectedUsers, onLoadingChange }: MultiUserFlowProps) {
   const { t, i18n } = useTranslation();
   const { addToast } = useToast();
   const mutation = useSubmitMultiUserReading();

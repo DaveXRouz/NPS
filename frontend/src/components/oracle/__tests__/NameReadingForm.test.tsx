@@ -103,12 +103,14 @@ describe("NameReadingForm", () => {
     expect(mockNameApi).not.toHaveBeenCalled();
   });
 
-  it("keyboard toggle shows/hides PersianKeyboard", () => {
+  it("keyboard toggle shows/hides PersianKeyboard", async () => {
     render(<NameReadingForm onResult={onResult} />);
 
     expect(screen.queryByTestId("persian-keyboard")).not.toBeInTheDocument();
     fireEvent.click(screen.getByTestId("keyboard-toggle"));
-    expect(screen.getByTestId("persian-keyboard")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId("persian-keyboard")).toBeInTheDocument();
+    });
     fireEvent.click(screen.getByTestId("keyboard-toggle"));
     expect(screen.queryByTestId("persian-keyboard")).not.toBeInTheDocument();
   });
