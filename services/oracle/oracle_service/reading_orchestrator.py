@@ -136,6 +136,186 @@ class ReadingOrchestrator:
                 "confidence_score": 0,
             }
 
+    def generate_name_reading(
+        self,
+        name: str,
+        user_id: int | None = None,
+        birth_day: int | None = None,
+        birth_month: int | None = None,
+        birth_year: int | None = None,
+        mother_name: str | None = None,
+        gender: str | None = None,
+        numerology_system: str = "pythagorean",
+        include_ai: bool = True,
+        locale: str = "en",
+    ) -> Dict[str, Any]:
+        """Generate a name-based reading using the framework."""
+        from oracle_service.framework_bridge import generate_name_reading as fw_name
+
+        start = time.perf_counter()
+
+        # Build minimal UserProfile for framework bridge
+        user = UserProfile(
+            user_id=user_id or 0,
+            full_name=name,
+            birth_day=birth_day or 1,
+            birth_month=birth_month or 1,
+            birth_year=birth_year or 2000,
+            mother_name=mother_name,
+            gender=gender,
+            numerology_system=numerology_system,
+        )
+
+        # Build framework reading
+        reading_result = fw_name(user, name, locale=locale)
+
+        fw = reading_result.framework_output
+
+        # AI interpretation
+        ai_text = None
+        if include_ai:
+            ai_sections = self._call_ai_interpreter(fw, locale)
+            ai_text = ai_sections.get("full_text", "")
+
+        # Extract numerology from framework output
+        numerology = fw.get("numerology", {})
+
+        # Build letter breakdown
+        from oracle_service.question_analyzer import (
+            PYTHAGOREAN_VALUES,
+            CHALDEAN_VALUES,
+            ABJAD_VALUES,
+        )
+        from oracle_service.utils.script_detector import detect_script as ds
+
+        script = ds(name)
+        if numerology_system == "abjad" or (numerology_system == "auto" and script == "persian"):
+            table = ABJAD_VALUES
+            resolved_system = "abjad"
+        elif numerology_system == "chaldean":
+            table = CHALDEAN_VALUES
+            resolved_system = "chaldean"
+        else:
+            table = PYTHAGOREAN_VALUES
+            resolved_system = "pythagorean"
+
+        element_cycle = ["Fire", "Earth", "Metal", "Water", "Wood"]
+        letter_breakdown = []
+        if resolved_system == "abjad":
+            for ch in name:
+                val = table.get(ch, 0)
+                if val > 0:
+                    elem = element_cycle[(val - 1) % 5]
+                    letter_breakdown.append({"letter": ch, "value": val, "element": elem})
+        else:
+            for ch in name.upper():
+                if ch.isalpha():
+                    val = table.get(ch, 0)
+                    elem = element_cycle[(val - 1) % 5] if val > 0 else ""
+                    letter_breakdown.append({"letter": ch, "value": val, "element": elem})
+
+        elapsed = (time.perf_counter() - start) * 1000
+        logger.info("Name reading generated in %.1fms", elapsed)
+
+        # Extract confidence
+        confidence = fw.get("confidence", {})
+        if not isinstance(confidence, dict):
+            confidence = {"score": 50, "level": "low"}
+
+        return {
+            "name": name,
+            "detected_script": script if script != "unknown" else "latin",
+            "numerology_system": resolved_system,
+            "expression": numerology.get("expression", 0),
+            "soul_urge": numerology.get("soul_urge", 0),
+            "personality": numerology.get("personality", 0),
+            "life_path": (
+                numerology.get("life_path", {}).get("number")
+                if isinstance(numerology.get("life_path"), dict)
+                else numerology.get("life_path")
+            ),
+            "personal_year": numerology.get("personal_year"),
+            "fc60_stamp": fw.get("fc60_stamp"),
+            "moon": fw.get("moon"),
+            "ganzhi": fw.get("ganzhi"),
+            "patterns": fw.get("patterns"),
+            "confidence": confidence,
+            "ai_interpretation": ai_text,
+            "letter_breakdown": letter_breakdown,
+        }
+
+    def generate_question_reading(
+        self,
+        question: str,
+        user_id: int | None = None,
+        birth_day: int | None = None,
+        birth_month: int | None = None,
+        birth_year: int | None = None,
+        full_name: str | None = None,
+        mother_name: str | None = None,
+        gender: str | None = None,
+        numerology_system: str = "auto",
+        include_ai: bool = True,
+        locale: str = "en",
+    ) -> Dict[str, Any]:
+        """Generate a question-based reading with question hashing."""
+        from oracle_service.question_analyzer import question_number
+        from oracle_service.framework_bridge import (
+            generate_question_reading as fw_question,
+        )
+
+        start = time.perf_counter()
+
+        # Hash the question text
+        q_analysis = question_number(question, numerology_system)
+
+        # Build minimal UserProfile for framework bridge
+        user = UserProfile(
+            user_id=user_id or 0,
+            full_name=full_name or "Anonymous",
+            birth_day=birth_day or 1,
+            birth_month=birth_month or 1,
+            birth_year=birth_year or 2000,
+            mother_name=mother_name,
+            gender=gender,
+            numerology_system=q_analysis["system_used"],
+        )
+
+        # Generate framework reading
+        reading_result = fw_question(user, question, locale=locale)
+
+        fw = reading_result.framework_output
+
+        # AI interpretation with question context
+        ai_text = None
+        if include_ai:
+            ai_sections = self._call_ai_interpreter(fw, locale)
+            ai_text = ai_sections.get("full_text", "")
+
+        # Extract confidence
+        confidence = fw.get("confidence", {})
+        if not isinstance(confidence, dict):
+            confidence = {"score": 50, "level": "low"}
+
+        elapsed = (time.perf_counter() - start) * 1000
+        logger.info("Question reading generated in %.1fms", elapsed)
+
+        return {
+            "question": question,
+            "question_number": q_analysis["question_number"],
+            "detected_script": q_analysis["detected_script"],
+            "numerology_system": q_analysis["system_used"],
+            "raw_letter_sum": q_analysis["raw_sum"],
+            "is_master_number": q_analysis["is_master_number"],
+            "fc60_stamp": fw.get("fc60_stamp"),
+            "numerology": fw.get("numerology"),
+            "moon": fw.get("moon"),
+            "ganzhi": fw.get("ganzhi"),
+            "patterns": fw.get("patterns"),
+            "confidence": confidence,
+            "ai_interpretation": ai_text,
+        }
+
     def _build_response(
         self,
         reading_result: ReadingResult,

@@ -270,9 +270,55 @@ class QuestionResponse(BaseModel):
     confidence: float
 
 
+class QuestionReadingRequest(BaseModel):
+    question: str
+    user_id: int | None = None
+    numerology_system: str = "auto"
+    include_ai: bool = True
+
+    @field_validator("question")
+    @classmethod
+    def validate_question_length(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Question cannot be empty")
+        if len(v) > 500:
+            raise ValueError("Question must be 500 characters or less")
+        return v
+
+
+class QuestionReadingResponse(BaseModel):
+    question: str
+    question_number: int = 0
+    detected_script: str = "latin"
+    numerology_system: str = "pythagorean"
+    raw_letter_sum: int = 0
+    is_master_number: bool = False
+    fc60_stamp: dict | None = None
+    numerology: dict | None = None
+    moon: dict | None = None
+    ganzhi: dict | None = None
+    patterns: dict | None = None
+    confidence: dict | None = None
+    ai_interpretation: str | None = None
+    reading_id: int | None = None
+
+    model_config = ConfigDict(extra="allow")
+
+
 class NameReadingRequest(BaseModel):
     name: str
-    numerology_system: NumerologySystemType = "auto"
+    user_id: int | None = None
+    numerology_system: str = "pythagorean"
+    include_ai: bool = True
+
+    @field_validator("name")
+    @classmethod
+    def validate_name_not_empty(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Name cannot be empty")
+        return v
 
 
 class LetterAnalysis(BaseModel):
@@ -283,11 +329,23 @@ class LetterAnalysis(BaseModel):
 
 class NameReadingResponse(BaseModel):
     name: str
-    destiny_number: int
-    soul_urge: int
-    personality: int
-    letters: list[LetterAnalysis] = []
-    interpretation: str = ""
+    detected_script: str = "latin"
+    numerology_system: str = "pythagorean"
+    expression: int = 0
+    soul_urge: int = 0
+    personality: int = 0
+    life_path: int | None = None
+    personal_year: int | None = None
+    fc60_stamp: dict | None = None
+    moon: dict | None = None
+    ganzhi: dict | None = None
+    patterns: dict | None = None
+    confidence: dict | None = None
+    ai_interpretation: str | None = None
+    letter_breakdown: list[LetterAnalysis] = []
+    reading_id: int | None = None
+
+    model_config = ConfigDict(extra="allow")
 
 
 class DailyInsightResponse(BaseModel):

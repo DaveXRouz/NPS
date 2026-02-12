@@ -126,13 +126,54 @@ export interface QuestionResponse {
   confidence: number;
 }
 
+export interface NameReadingRequest {
+  name: string;
+  user_id?: number;
+  numerology_system?: string;
+  include_ai?: boolean;
+}
+
 export interface NameReading {
   name: string;
-  destiny_number: number;
+  detected_script: string;
+  numerology_system: string;
+  expression: number;
   soul_urge: number;
   personality: number;
-  letters: { letter: string; value: number; element: string }[];
-  interpretation: string;
+  life_path: number | null;
+  personal_year: number | null;
+  fc60_stamp: Record<string, unknown> | null;
+  moon: Record<string, unknown> | null;
+  ganzhi: Record<string, unknown> | null;
+  patterns: Record<string, unknown> | null;
+  confidence: { score: number; level: string; factors?: string } | null;
+  ai_interpretation: string | null;
+  letter_breakdown: { letter: string; value: number; element: string }[];
+  reading_id: number | null;
+}
+
+export interface QuestionReadingRequest {
+  question: string;
+  user_id?: number;
+  numerology_system?: string;
+  include_ai?: boolean;
+}
+
+export interface QuestionReadingResult {
+  question: string;
+  question_number: number;
+  detected_script: string;
+  numerology_system: string;
+  raw_letter_sum: number;
+  is_master_number: boolean;
+  fc60_stamp: Record<string, unknown> | null;
+  numerology: Record<string, unknown> | null;
+  moon: Record<string, unknown> | null;
+  ganzhi: Record<string, unknown> | null;
+  patterns: Record<string, unknown> | null;
+  confidence: { score: number; level: string; factors?: string } | null;
+  ai_interpretation: string | null;
+  reading_id: number | null;
 }
 
 // ─── Oracle Results ───
@@ -141,6 +182,7 @@ export interface NameReading {
 export type ConsultationResult =
   | { type: "reading"; data: OracleReading }
   | { type: "question"; data: QuestionResponse }
+  | { type: "question_v2"; data: QuestionReadingResult }
   | { type: "name"; data: NameReading };
 
 // Stored reading from GET /oracle/readings — mirrors backend StoredReadingResponse

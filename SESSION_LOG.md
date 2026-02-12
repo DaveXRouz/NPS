@@ -9,8 +9,8 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 14 of 45
-**Last session:** Session 14 — Reading Flow: Time Reading (end-to-end)
+**Sessions completed:** 15 of 45
+**Last session:** Session 15 — Reading Flow: Name & Question Readings
 **Current block:** AI & Reading Types (Sessions 13-18)
 
 ---
@@ -603,7 +603,50 @@ TEMPLATE — copy this for each new session:
 - POST /readings shares path with GET /readings (list) — FastAPI differentiates by HTTP method
 - from \_\_future\_\_ import annotations + TYPE_CHECKING for forward refs in oracle_reading.py
 
-**Next:** Session 15 — Daily Reading Flow (daily reading endpoint using ReadingOrchestrator, auto-generation, caching in oracle_daily_readings)
+**Next:** Session 16 — Daily Reading Flow & Multi-User Compatibility
+
+---
+
+### Session 15 — Reading Flow: Name & Question Readings
+
+**Date:** 2026-02-13
+**Spec:** `.session-specs/SESSION_15_SPEC.md`
+**Focus:** Complete name and question reading pipelines end-to-end: question analyzer engine, framework-based backend endpoints, frontend forms, i18n
+
+**Files created (6):**
+
+- `services/oracle/oracle_service/question_analyzer.py` — Script detection reusing utils.script_detector + Pythagorean/Chaldean/Abjad letter value tables + digital_root() preserving master numbers 11/22/33 + sum_letter_values() with auto system detection + question_number() returning full analysis dict
+- `frontend/src/components/oracle/NameReadingForm.tsx` — Name input form with Persian keyboard toggle, "Use Profile Name" button, NumerologySystemSelector, validation, loading state, all text via i18n
+- `frontend/src/components/oracle/QuestionReadingForm.tsx` — Textarea (rows=5) with 500-char maxLength, live character counter (red near limit), script detection badge (EN/FA/Mixed), auto dir="rtl" for Persian, Persian keyboard toggle
+- `services/oracle/tests/test_question_analyzer.py` — 23 tests: script detection (5), letter sums (5), digital root (5), question number (4), Abjad Persian extras (4)
+- `api/tests/test_name_question_readings.py` — 26 tests (13×2 asyncio+trio): name validation (2), name endpoint (5), question validation (2), question endpoint (4)
+- `frontend/src/components/oracle/__tests__/NameReadingForm.test.tsx` — 5 tests: renders, profile name pre-fill, submit API call, empty validation, keyboard toggle
+- `frontend/src/components/oracle/__tests__/QuestionReadingForm.test.tsx` — 6 tests: renders, char counter, maxLength, script badge, submit API call, empty validation
+
+**Files modified (8):**
+
+- `api/app/models/oracle.py` — Enhanced NameReadingRequest (user_id, numerology_system, include_ai, name validator), NameReadingResponse (expression, soul_urge, personality, life_path, personal_year, fc60_stamp, moon, ganzhi, patterns, confidence, letter_breakdown, reading_id); Added QuestionReadingRequest (question validator: empty check + 500 char limit), QuestionReadingResponse (question_number, detected_script, raw_letter_sum, is_master_number, etc.)
+- `api/app/routers/oracle.py` — Rewrote create_question_sign() to use QuestionReadingRequest + svc.get_question_reading_v2(); Rewrote create_name_reading() to use enhanced NameReadingRequest + svc.get_name_reading_v2()
+- `api/app/services/oracle_reading.py` — Added get_name_reading_v2() and get_question_reading_v2() resolving user profiles from DB, calling ReadingOrchestrator
+- `services/oracle/oracle_service/reading_orchestrator.py` — Added generate_name_reading() (builds UserProfile, calls fw_name bridge, builds letter breakdown, extracts numerology) and generate_question_reading() (calls question_analyzer, builds UserProfile, calls fw_question bridge)
+- `frontend/src/types/index.ts` — Added NameReadingRequest, QuestionReadingRequest, QuestionReadingResult interfaces; Enhanced NameReading with framework fields; Updated ConsultationResult union type
+- `frontend/src/services/api.ts` — Updated oracle.name() and oracle.question() to accept userId + system params and send full request bodies
+- `frontend/src/hooks/useOracleReadings.ts` — Updated useSubmitName and useSubmitQuestion hooks to accept params objects
+- `frontend/src/locales/en.json` + `fa.json` — Added 17 i18n keys for name/question reading forms (titles, labels, placeholders, script detection, char counter, error messages)
+- `api/tests/test_oracle_readings.py` — Updated existing tests to match new response shapes (expression instead of destiny_number, letter_breakdown instead of letters, 422 for empty inputs)
+
+**Tests:** 23 question_analyzer pass | 26 API endpoint pass (13×2 backends) | 5 NameReadingForm pass | 6 QuestionReadingForm pass | 287 full API suite pass (0 regressions) | 10 pre-existing multi_user failures (CompatibilityAnalyzer=None, unrelated)
+**Issues:** Fixed UserProfile missing user_id argument; Fixed AsyncMock vs MagicMock for sync service methods; Updated old test assertions for new response shapes
+**Decisions:**
+
+- question_analyzer reuses existing utils.script_detector.detect_script() for script detection, adds Pythagorean/Chaldean/Abjad letter tables
+- Abjad table: 28 Arabic letters + 4 Persian extras (pe=2, che=3, zhe=7, gaf=20) + alef variants
+- digital_root() reimplemented locally (4 lines) to avoid path coupling with framework
+- Name/question reading orchestrator methods follow same pattern as time reading (Session 14)
+- Frontend forms use data-testid attributes for testability
+- QuestionReadingForm has client-side script detection for UX (badge + dir attribute), backend does authoritative detection
+
+**Next:** Session 16 — Daily Reading Flow & Multi-User Compatibility
 
 ---
 

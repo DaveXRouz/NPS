@@ -14,7 +14,11 @@ export function useSubmitReading() {
 export function useSubmitQuestion() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (question: string) => oracle.question(question),
+    mutationFn: (params: {
+      question: string;
+      userId?: number;
+      system?: string;
+    }) => oracle.question(params.question, params.userId, params.system),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
   });
 }
@@ -22,7 +26,8 @@ export function useSubmitQuestion() {
 export function useSubmitName() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (name: string) => oracle.name(name),
+    mutationFn: (params: { name: string; userId?: number; system?: string }) =>
+      oracle.name(params.name, params.userId, params.system),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
   });
 }

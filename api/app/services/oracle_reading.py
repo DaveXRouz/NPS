@@ -561,6 +561,112 @@ class OracleReadingService:
 
         return result
 
+    # ── Framework name/question reading (Session 15) ──
+
+    def get_name_reading_v2(
+        self,
+        name: str,
+        user_id: int | None = None,
+        numerology_system: str = "pythagorean",
+        include_ai: bool = True,
+    ) -> dict:
+        """Name reading using framework via ReadingOrchestrator."""
+        from oracle_service.reading_orchestrator import ReadingOrchestrator
+
+        # Resolve user profile if user_id provided
+        birth_day = birth_month = birth_year = None
+        mother_name = gender = None
+        if user_id:
+            from app.orm.oracle_user import OracleUser
+
+            oracle_user = (
+                self.db.query(OracleUser)
+                .filter(OracleUser.id == user_id, OracleUser.deleted_at.is_(None))
+                .first()
+            )
+            if not oracle_user:
+                raise ValueError(f"Oracle user {user_id} not found")
+            bday = oracle_user.birthday
+            if isinstance(bday, str):
+                parts = bday.split("-")
+                birth_year, birth_month, birth_day = (
+                    int(parts[0]),
+                    int(parts[1]),
+                    int(parts[2]),
+                )
+            elif hasattr(bday, "year"):
+                birth_year, birth_month, birth_day = bday.year, bday.month, bday.day
+            mother_name = oracle_user.mother_name
+            if self.enc and mother_name:
+                mother_name = self.enc.decrypt_field(mother_name)
+            gender = getattr(oracle_user, "gender", None)
+
+        orchestrator = ReadingOrchestrator()
+        return orchestrator.generate_name_reading(
+            name=name,
+            user_id=user_id,
+            birth_day=birth_day,
+            birth_month=birth_month,
+            birth_year=birth_year,
+            mother_name=mother_name,
+            gender=gender,
+            numerology_system=numerology_system,
+            include_ai=include_ai,
+        )
+
+    def get_question_reading_v2(
+        self,
+        question: str,
+        user_id: int | None = None,
+        numerology_system: str = "auto",
+        include_ai: bool = True,
+    ) -> dict:
+        """Question reading using framework via ReadingOrchestrator."""
+        from oracle_service.reading_orchestrator import ReadingOrchestrator
+
+        # Resolve user profile if user_id provided
+        birth_day = birth_month = birth_year = None
+        full_name = mother_name = gender = None
+        if user_id:
+            from app.orm.oracle_user import OracleUser
+
+            oracle_user = (
+                self.db.query(OracleUser)
+                .filter(OracleUser.id == user_id, OracleUser.deleted_at.is_(None))
+                .first()
+            )
+            if not oracle_user:
+                raise ValueError(f"Oracle user {user_id} not found")
+            bday = oracle_user.birthday
+            if isinstance(bday, str):
+                parts = bday.split("-")
+                birth_year, birth_month, birth_day = (
+                    int(parts[0]),
+                    int(parts[1]),
+                    int(parts[2]),
+                )
+            elif hasattr(bday, "year"):
+                birth_year, birth_month, birth_day = bday.year, bday.month, bday.day
+            full_name = oracle_user.name
+            mother_name = oracle_user.mother_name
+            if self.enc and mother_name:
+                mother_name = self.enc.decrypt_field(mother_name)
+            gender = getattr(oracle_user, "gender", None)
+
+        orchestrator = ReadingOrchestrator()
+        return orchestrator.generate_question_reading(
+            question=question,
+            user_id=user_id,
+            birth_day=birth_day,
+            birth_month=birth_month,
+            birth_year=birth_year,
+            full_name=full_name,
+            mother_name=mother_name,
+            gender=gender,
+            numerology_system=numerology_system,
+            include_ai=include_ai,
+        )
+
     # ── DB storage methods ──
 
     def store_reading(

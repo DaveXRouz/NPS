@@ -68,15 +68,25 @@ export const oracle = {
       method: "POST",
       body: JSON.stringify({ datetime }),
     }),
-  question: (question: string) =>
-    request<import("@/types").QuestionResponse>("/oracle/question", {
+  question: (question: string, userId?: number, system?: string) =>
+    request<import("@/types").QuestionReadingResult>("/oracle/question", {
       method: "POST",
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({
+        question,
+        user_id: userId,
+        numerology_system: system || "auto",
+        include_ai: true,
+      }),
     }),
-  name: (name: string) =>
+  name: (name: string, userId?: number, system?: string) =>
     request<import("@/types").NameReading>("/oracle/name", {
       method: "POST",
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({
+        name,
+        user_id: userId,
+        numerology_system: system || "pythagorean",
+        include_ai: true,
+      }),
     }),
   daily: (date?: string) =>
     request(`/oracle/daily${date ? `?date=${date}` : ""}`),

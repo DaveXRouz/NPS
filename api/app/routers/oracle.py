@@ -26,8 +26,8 @@ from app.models.oracle import (
     MultiUserReadingResponse,
     NameReadingRequest,
     NameReadingResponse,
-    QuestionRequest,
-    QuestionResponse,
+    QuestionReadingRequest,
+    QuestionReadingResponse,
     RangeRequest,
     RangeResponse,
     ReadingRequest,
@@ -183,25 +183,34 @@ def create_reading(
 
 @router.post(
     "/question",
-    response_model=QuestionResponse,
+    response_model=QuestionReadingResponse,
     dependencies=[Depends(require_scope("oracle:write"))],
 )
 def create_question_sign(
-    body: QuestionRequest,
+    body: QuestionReadingRequest,
     request: Request,
     _user: dict = Depends(get_current_user),
     svc: OracleReadingService = Depends(get_oracle_reading_service),
     audit: AuditService = Depends(get_audit_service),
 ):
-    """Ask a yes/no question with numerological context."""
-    result = svc.get_question_sign(body.question)
+    """Question reading with numerological hashing and framework analysis."""
+    try:
+        result = svc.get_question_reading_v2(
+            question=body.question,
+            user_id=body.user_id,
+            numerology_system=body.numerology_system,
+            include_ai=body.include_ai,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
+
     reading = svc.store_reading(
-        user_id=None,
+        user_id=body.user_id,
         sign_type="question",
-        sign_value=result.get("answer", ""),
+        sign_value=str(result.get("question_number", "")),
         question=body.question,
         reading_result=result,
-        ai_interpretation=result.get("interpretation"),
+        ai_interpretation=result.get("ai_interpretation"),
     )
     audit.log_reading_created(
         reading.id,
@@ -210,7 +219,8 @@ def create_question_sign(
         key_hash=_user.get("api_key_hash"),
     )
     svc.db.commit()
-    return QuestionResponse(**result)
+    result["reading_id"] = reading.id
+    return QuestionReadingResponse(**result)
 
 
 @router.post(
@@ -225,15 +235,24 @@ def create_name_reading(
     svc: OracleReadingService = Depends(get_oracle_reading_service),
     audit: AuditService = Depends(get_audit_service),
 ):
-    """Get a name cipher reading."""
-    result = svc.get_name_reading(body.name)
+    """Name reading with framework numerology analysis."""
+    try:
+        result = svc.get_name_reading_v2(
+            name=body.name,
+            user_id=body.user_id,
+            numerology_system=body.numerology_system,
+            include_ai=body.include_ai,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
+
     reading = svc.store_reading(
-        user_id=None,
+        user_id=body.user_id,
         sign_type="name",
         sign_value=body.name,
         question=body.name,
         reading_result=result,
-        ai_interpretation=result.get("interpretation"),
+        ai_interpretation=result.get("ai_interpretation"),
     )
     audit.log_reading_created(
         reading.id,
@@ -242,6 +261,7 @@ def create_name_reading(
         key_hash=_user.get("api_key_hash"),
     )
     svc.db.commit()
+    result["reading_id"] = reading.id
     return NameReadingResponse(**result)
 
 

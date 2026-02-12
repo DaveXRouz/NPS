@@ -57,10 +57,9 @@ async def test_question_sign(client):
     assert resp.status_code == 200
     data = resp.json()
     assert data["question"] == "Will I find the key?"
-    assert data["answer"] in ("yes", "no", "maybe")
-    assert isinstance(data["sign_number"], int)
-    assert isinstance(data["confidence"], float)
-    assert "interpretation" in data
+    assert isinstance(data["question_number"], int)
+    assert "detected_script" in data
+    assert "numerology_system" in data
 
 
 @pytest.mark.asyncio
@@ -72,8 +71,8 @@ async def test_question_readonly_403(readonly_client):
 @pytest.mark.asyncio
 async def test_question_empty_string(client):
     resp = await client.post(QUESTION_URL, json={"question": ""})
-    # Should still return 200 — engine handles empty gracefully
-    assert resp.status_code == 200
+    # Empty question is now rejected by validator
+    assert resp.status_code == 422
 
 
 # ─── POST /name ──────────────────────────────────────────────────────────────
@@ -85,11 +84,11 @@ async def test_name_reading(client):
     assert resp.status_code == 200
     data = resp.json()
     assert data["name"] == "Satoshi"
-    assert isinstance(data["destiny_number"], int)
+    assert isinstance(data["expression"], int)
     assert isinstance(data["soul_urge"], int)
     assert isinstance(data["personality"], int)
-    assert len(data["letters"]) > 0
-    assert all(k in data["letters"][0] for k in ("letter", "value", "element"))
+    assert len(data["letter_breakdown"]) > 0
+    assert all(k in data["letter_breakdown"][0] for k in ("letter", "value", "element"))
 
 
 @pytest.mark.asyncio
@@ -101,7 +100,8 @@ async def test_name_readonly_403(readonly_client):
 @pytest.mark.asyncio
 async def test_name_empty(client):
     resp = await client.post(NAME_URL, json={"name": ""})
-    assert resp.status_code == 200
+    # Empty name is now rejected by validator
+    assert resp.status_code == 422
 
 
 # ─── GET /daily ──────────────────────────────────────────────────────────────
