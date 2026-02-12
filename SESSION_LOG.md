@@ -592,7 +592,7 @@ TEMPLATE — copy this for each new session:
 - `frontend/src/components/oracle/__tests__/TimeReadingForm.test.tsx` — NEW: 6 tests (renders dropdowns, option counts, use current time, submit format)
 
 **Tests:** 22 API pass (11×2 backends) | 8 orchestrator pass | 6 frontend pass | 0 regressions | 10 pre-existing multi_user failures (CompatibilityAnalyzer=None)
-**Commit:** pending
+**Commit:** 9347f1d — [oracle][api][frontend] time reading flow: orchestrator, API endpoint, form component (#session-14)
 **Issues:** Fixed import rename (interpret_group→interpret_multi_user) from Session 13; fixed ruff lint warnings (unused var, TYPE_CHECKING forward refs)
 **Decisions:**
 
