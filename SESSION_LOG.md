@@ -1121,7 +1121,7 @@ TEMPLATE — copy this for each new session:
 - `api/app/routers/translation.py` — Added POST /reading (reading-type-specific) and POST /batch (bulk UI) endpoints
 
 **Tests:** 100 frontend pass / 0 fail / 100 new (5 completeness + 76 no-hardcoded + 16 formatting + 3 RTL) | 9 API pass / 0 fail / 9 new | 11 Oracle pass / 0 fail / 11 new | 0 regressions
-**Commit:** (pending)
+**Commit:** 3d28e80
 **Issues:** None
 **Decisions:**
 
