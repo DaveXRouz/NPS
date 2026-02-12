@@ -7,6 +7,7 @@ import { ExportButton } from "./ExportButton";
 import { HeartbeatDisplay } from "./HeartbeatDisplay";
 import { LocationDisplay } from "./LocationDisplay";
 import { ConfidenceMeter } from "./ConfidenceMeter";
+import { ReadingFeedback } from "./ReadingFeedback";
 import type {
   ConsultationResult,
   ResultsTab,
@@ -18,6 +19,7 @@ import type {
 
 interface ReadingResultsProps {
   result: ConsultationResult | null;
+  readingId?: number | null;
   heartbeat?: HeartbeatData | null;
   location?: LocationElementData | null;
   confidence?: ConfidenceData | null;
@@ -28,6 +30,7 @@ const TABS: ResultsTab[] = ["summary", "details", "history"];
 
 export function ReadingResults({
   result,
+  readingId,
   heartbeat,
   location,
   confidence,
@@ -83,6 +86,8 @@ export function ReadingResults({
           </div>
         )}
         <SummaryTab result={result} />
+        {/* Feedback form — shown after a reading is generated */}
+        {readingId && <ReadingFeedback readingId={readingId} />}
       </div>
       <div
         id="tabpanel-details"

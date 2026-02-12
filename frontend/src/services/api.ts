@@ -235,4 +235,27 @@ export const learning = {
   weights: () =>
     request<{ weights: Record<string, number> }>("/learning/weights"),
   patterns: () => request("/learning/patterns"),
+  feedback: {
+    submit: (readingId: number, data: import("@/types").FeedbackRequest) =>
+      request<import("@/types").FeedbackResponse>(
+        `/learning/oracle/readings/${readingId}/feedback`,
+        {
+          method: "POST",
+          body: JSON.stringify(data),
+        },
+      ),
+    get: (readingId: number) =>
+      request<import("@/types").FeedbackResponse[]>(
+        `/learning/oracle/readings/${readingId}/feedback`,
+      ),
+  },
+  learningStats: {
+    get: () =>
+      request<import("@/types").OracleLearningStats>("/learning/oracle/stats"),
+    recalculate: () =>
+      request<import("@/types").OracleLearningStats>(
+        "/learning/oracle/recalculate",
+        { method: "POST" },
+      ),
+  },
 };

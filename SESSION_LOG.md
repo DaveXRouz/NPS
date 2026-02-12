@@ -9,9 +9,9 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 17 of 45
-**Last session:** Session 17 — Reading History & Persistence
-**Current block:** AI & Reading Types (Sessions 13-18)
+**Sessions completed:** 18 of 45
+**Last session:** Session 18 — AI Learning & Feedback Loop
+**Current block:** Frontend Core (Sessions 19-25) — AI & Reading Types block COMPLETE
 
 ---
 
@@ -763,7 +763,54 @@ TEMPLATE — copy this for each new session:
 - Page-size of 12 (divisible by 1/2/3 columns) instead of spec's 20
 - Stats endpoint placed before `{reading_id}` to avoid FastAPI path resolution conflict
 
-**Next:** Session 18 — AI Wisdom Engine (prompt builder, interpretation pipeline, learning loop)
+**Next:** Session 19 — Frontend Layout & Navigation (shell, routing, responsive scaffold)
+
+---
+
+## Session 18 — 2026-02-13
+
+**Terminal:** SINGLE
+**Block:** AI & Reading Types (Sessions 13-18) — FINAL session in block
+**Task:** AI Learning & Feedback Loop — feedback collection, weighted metrics, prompt emphasis, admin dashboard
+**Spec:** `.session-specs/SESSION_18_SPEC.md`
+
+**Files created (9):**
+
+- `database/migrations/015_feedback_learning.sql` — Two new tables: `oracle_reading_feedback` (rating 1-5, section feedback JSONB, text feedback, unique per reading+user) and `oracle_learning_data` (metric_key unique, metric_value, sample_count, prompt_emphasis)
+- `database/migrations/015_feedback_learning_rollback.sql` — Clean rollback dropping both tables
+- `api/app/orm/oracle_feedback.py` — ORM models: `OracleReadingFeedback` (Integer PK, reading_id FK→oracle_readings CASCADE, user_id FK→oracle_users SET NULL, SmallInteger rating, Text section_feedback/text_feedback, timestamps, UniqueConstraint on reading+user) and `OracleLearningData` (Integer PK, metric_key unique, Double metric_value, Integer sample_count, Text prompt_emphasis)
+- `frontend/src/components/oracle/StarRating.tsx` — Reusable 5-star SVG rating: hover preview, keyboard navigation (arrows), sm/md/lg sizes, readonly mode, proper ARIA (radiogroup, aria-checked), RTL-aware (dir=ltr)
+- `frontend/src/components/oracle/ReadingFeedback.tsx` — Full feedback form: StarRating + per-section thumbs up/down (simple, advice, action_steps, universe_message) + textarea (1000 char limit with live counter) + submit; toggle-off on re-click; thank-you confirmation; error state
+- `frontend/src/components/admin/LearningDashboard.tsx` — Admin dashboard: total feedback count, average rating with stars, rating distribution bars (5→1), by-reading-type averages, section helpfulness progress bars (green/amber/red), prompt adjustments list, recalculate button, confidence warning <25 samples
+- `api/tests/test_feedback.py` — 15 tests: submit basic/sections/upsert, invalid rating/zero/not-found/text-too-long, get feedback/empty, stats empty/with-data/readonly-forbidden, recalculate empty/readonly-forbidden, section aggregation
+- `services/oracle/tests/test_learner.py` — 10 tests: weighted_score (insufficient/5/10/25/50/100/10000 samples, confidence sorted), scanner legacy (default_state, levels_structure)
+- `frontend/src/components/oracle/__tests__/StarRating.test.tsx` — 6 tests: renders 5 stars, correct checked, onChange click, readonly no-call, disabled in readonly, aria labels
+- `frontend/src/components/oracle/__tests__/ReadingFeedback.test.tsx` — 6 tests: renders form, submit disabled no rating, enabled after rating, 4 section buttons, submit→thank-you, character counter
+
+**Files modified (10):**
+
+- `api/app/models/learning.py` — Added: `SectionFeedbackItem`, `FeedbackRequest` (rating 1-5 validated, section_feedback list, text_feedback max 1000, optional user_id), `FeedbackResponse`, `OracleLearningStatsResponse`, `PromptAdjustmentPreview`
+- `api/app/routers/learning.py` — Added 4 oracle feedback endpoints: `POST /oracle/readings/{id}/feedback` (upsert), `GET /oracle/readings/{id}/feedback`, `GET /oracle/stats` (admin), `POST /oracle/recalculate` (admin); scanner stubs preserved
+- `api/app/main.py` — Added `import app.orm.oracle_feedback` for table registration
+- `services/oracle/oracle_service/engines/learner.py` — Added oracle feedback section: `CONFIDENCE_SCALE`, `weighted_score()`, `recalculate_learning_metrics()`, `generate_prompt_emphasis()`, `get_prompt_context()`, `get_learning_stats()`; scanner legacy preserved below
+- `frontend/src/types/index.ts` — Added: `SectionFeedback`, `FeedbackRequest`, `FeedbackResponse`, `OracleLearningStats` interfaces
+- `frontend/src/services/api.ts` — Added: `learning.feedback.submit()`, `learning.feedback.get()`, `learning.learningStats.get()`, `learning.learningStats.recalculate()` methods
+- `frontend/src/locales/en.json` — Added ~20 i18n keys: `learning.dashboard_title/no_data/total_feedback/average_rating/by_reading_type/section_ratings/prompt_adjustments/recalculate`, `feedback.rate_reading/section_feedback/helpful/not_helpful/text_placeholder/text_counter/submit/submitting/thank_you/error/sections.*`
+- `frontend/src/locales/fa.json` — Added ~20 matching Persian translation keys
+- `frontend/src/components/oracle/ReadingResults.tsx` — Added `readingId` prop; integrated `ReadingFeedback` component below summary tab content
+- `frontend/src/components/oracle/__tests__/ReadingResults.test.tsx` — (pre-existing, no changes needed)
+
+**Tests:** 15 API pass | 344 API total pass (10 pre-existing multi_user failures) | 10 oracle learner pass | 300 oracle total pass (1 pre-existing gRPC path failure) | 12 frontend pass | 259 frontend total pass (0 regressions)
+**Commit:** 9013e8a — [oracle][api][frontend] AI learning & feedback loop (#session-18)
+**Issues:** Used `Integer` instead of `BigInteger` for ORM PKs — SQLite doesn't support BigInteger autoincrement in test mode; PostgreSQL migration still uses BIGSERIAL
+**Decisions:**
+
+- Text (not JSONB) for section_feedback ORM column — SQLite compatibility for tests, stored as JSON string
+- `sys.modules` pattern in learner.py for lazy imports — avoids circular dependency between oracle service and API ORM
+- Prompt emphasis rules: 5 conditional rules based on feedback patterns (action_steps >80%, caution <50%, advice >80%, universe_message >80%, time>name, overall <3.0)
+- Upsert on (reading_id, user_id) pair — one feedback per user per reading, update overwrites previous
+
+**Next:** Session 19 — Frontend Layout & Navigation (shell, routing, responsive scaffold)
 
 ---
 

@@ -394,7 +394,33 @@
     "level": "Level",
     "xp": "XP",
     "insights": "Insights",
-    "recommendations": "Recommendations"
+    "recommendations": "Recommendations",
+    "dashboard_title": "Learning Dashboard",
+    "no_data": "Not enough feedback data yet. Need at least 5 ratings.",
+    "total_feedback": "Total Feedback",
+    "average_rating": "Average Rating",
+    "by_reading_type": "By Reading Type",
+    "section_ratings": "Section Helpfulness",
+    "prompt_adjustments": "Active Prompt Adjustments",
+    "recalculate": "Recalculate"
+  },
+  "feedback": {
+    "rate_reading": "How was this reading? Your feedback helps improve future readings.",
+    "section_feedback": "Which sections were helpful?",
+    "helpful": "helpful",
+    "not_helpful": "not helpful",
+    "text_placeholder": "Any additional thoughts? (optional)",
+    "text_counter": "{{count}}/1000",
+    "submit": "Submit Feedback",
+    "submitting": "Submitting...",
+    "thank_you": "Thank you for your feedback!",
+    "error": "Failed to submit feedback. Please try again.",
+    "sections": {
+      "simple": "Simple Reading",
+      "advice": "Advice",
+      "action_steps": "Action Steps",
+      "universe_message": "Universe Message"
+    }
   },
   "settings": {
     "title": "Settings",

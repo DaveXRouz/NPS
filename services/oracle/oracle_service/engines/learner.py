@@ -1,18 +1,310 @@
 """
-Active AI Learning System for NPS.
+Oracle Feedback Learning Engine.
 
-Tracks XP and levels, stores insights from AI analysis,
-provides auto-adjustment recommendations at higher levels.
+Analyzes user feedback on oracle readings, computes weighted scores with
+confidence scaling, and generates prompt emphasis adjustments.
+
+Also preserves scanner legacy functions below the oracle section.
 """
 
 import json
 import logging
 import os
 import threading
-import time
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+# ════════════════════════════════════════════════════════════
+# Oracle Feedback Learning
+# ════════════════════════════════════════════════════════════
+
+MINIMUM_SAMPLES = 5  # Need at least 5 ratings for statistical relevance
+
+CONFIDENCE_SCALE = [
+    (5, 0.3),  # 5 samples → 30% confidence
+    (10, 0.5),  # 10 samples → 50% confidence
+    (25, 0.7),  # 25 samples → 70% confidence
+    (50, 0.85),  # 50 samples → 85% confidence
+    (100, 0.95),  # 100 samples → 95% confidence
+]
+
+
+def weighted_score(avg_rating: float, sample_count: int) -> float:
+    """Compute confidence-weighted score. Returns 0 if insufficient samples."""
+    if sample_count < MINIMUM_SAMPLES:
+        return 0.0
+    confidence = 0.0
+    for threshold, conf in CONFIDENCE_SCALE:
+        if sample_count >= threshold:
+            confidence = conf
+    return avg_rating * confidence
+
+
+def recalculate_learning_metrics(db_session) -> dict:
+    """Query all feedback, compute aggregate metrics, update oracle_learning_data."""
+    try:
+        from sqlalchemy import func as sa_func
+
+        # Late imports to avoid circular dependency at module level
+        import sys
+
+        if "app.orm.oracle_feedback" in sys.modules:
+            OracleReadingFeedback = sys.modules["app.orm.oracle_feedback"].OracleReadingFeedback
+            OracleLearningData = sys.modules["app.orm.oracle_feedback"].OracleLearningData
+        else:
+            from app.orm.oracle_feedback import (
+                OracleLearningData,
+                OracleReadingFeedback,
+            )
+
+        if "app.orm.oracle_reading" in sys.modules:
+            OracleReading = sys.modules["app.orm.oracle_reading"].OracleReading
+        else:
+            from app.orm.oracle_reading import OracleReading
+
+        # Avg rating by reading type
+        type_rows = (
+            db_session.query(
+                OracleReading.sign_type,
+                sa_func.avg(OracleReadingFeedback.rating),
+                sa_func.count(OracleReadingFeedback.id),
+            )
+            .join(OracleReading, OracleReading.id == OracleReadingFeedback.reading_id)
+            .group_by(OracleReading.sign_type)
+            .all()
+        )
+
+        result = {"avg_by_type": {}, "total_feedback": 0}
+
+        for sign_type, avg_val, count in type_rows:
+            key = f"avg_rating:{sign_type}"
+            result["avg_by_type"][sign_type] = {"avg": float(avg_val), "count": count}
+            result["total_feedback"] += count
+
+            existing = (
+                db_session.query(OracleLearningData)
+                .filter(OracleLearningData.metric_key == key)
+                .first()
+            )
+            if existing:
+                existing.metric_value = float(avg_val)
+                existing.sample_count = count
+            else:
+                db_session.add(
+                    OracleLearningData(
+                        metric_key=key,
+                        metric_value=float(avg_val),
+                        sample_count=count,
+                    )
+                )
+
+        # Overall average
+        overall_avg = db_session.query(sa_func.avg(OracleReadingFeedback.rating)).scalar() or 0.0
+        overall_count = db_session.query(sa_func.count(OracleReadingFeedback.id)).scalar() or 0
+
+        existing_overall = (
+            db_session.query(OracleLearningData)
+            .filter(OracleLearningData.metric_key == "avg_rating:overall")
+            .first()
+        )
+        if existing_overall:
+            existing_overall.metric_value = float(overall_avg)
+            existing_overall.sample_count = overall_count
+        else:
+            db_session.add(
+                OracleLearningData(
+                    metric_key="avg_rating:overall",
+                    metric_value=float(overall_avg),
+                    sample_count=overall_count,
+                )
+            )
+
+        # Section helpful percentages
+        all_feedback = db_session.query(OracleReadingFeedback.section_feedback).all()
+        section_totals: dict[str, int] = {}
+        section_helpful: dict[str, int] = {}
+        for (sf_text,) in all_feedback:
+            if not sf_text:
+                continue
+            try:
+                sf = json.loads(sf_text) if isinstance(sf_text, str) else sf_text
+            except (json.JSONDecodeError, TypeError):
+                continue
+            for section, value in sf.items():
+                section_totals[section] = section_totals.get(section, 0) + 1
+                if value == "helpful":
+                    section_helpful[section] = section_helpful.get(section, 0) + 1
+
+        for section, total_count in section_totals.items():
+            pct = section_helpful.get(section, 0) / total_count
+            key = f"section_helpful:{section}"
+            existing = (
+                db_session.query(OracleLearningData)
+                .filter(OracleLearningData.metric_key == key)
+                .first()
+            )
+            if existing:
+                existing.metric_value = pct
+                existing.sample_count = total_count
+            else:
+                db_session.add(
+                    OracleLearningData(
+                        metric_key=key,
+                        metric_value=pct,
+                        sample_count=total_count,
+                    )
+                )
+
+        db_session.flush()
+        return result
+
+    except ImportError as exc:
+        logger.warning("Cannot recalculate learning metrics: %s", exc)
+        return {}
+
+
+def generate_prompt_emphasis(db_session) -> list[str]:
+    """Generate prompt emphasis strings based on feedback patterns."""
+    try:
+        import sys
+
+        if "app.orm.oracle_feedback" in sys.modules:
+            OracleLearningData = sys.modules["app.orm.oracle_feedback"].OracleLearningData
+        else:
+            from app.orm.oracle_feedback import OracleLearningData
+
+        emphasis: list[str] = []
+
+        # Helper: read a metric
+        def _get_metric(key: str):
+            row = (
+                db_session.query(OracleLearningData)
+                .filter(OracleLearningData.metric_key == key)
+                .first()
+            )
+            if row:
+                return row.metric_value, row.sample_count
+            return None, 0
+
+        # Rule: advice format avg > 4.0, samples >= 5
+        # (We use reading type as proxy since format-level tracking isn't separate)
+        # Check section helpful rates instead
+        action_val, action_count = _get_metric("section_helpful:action_steps")
+        if action_val is not None and action_count >= 10 and action_val > 0.8:
+            emphasis.append(
+                "Users value concrete action steps — make them specific and achievable."
+            )
+
+        caution_val, caution_count = _get_metric("section_helpful:caution")
+        if caution_val is not None and caution_count >= 10 and caution_val < 0.5:
+            emphasis.append("Keep cautionary notes brief, constructive, and forward-looking.")
+
+        advice_val, advice_count = _get_metric("section_helpful:advice")
+        if advice_val is not None and advice_count >= 5 and advice_val > 0.8:
+            emphasis.append("Emphasize practical, actionable advice in your interpretations.")
+
+        message_val, message_count = _get_metric("section_helpful:universe_message")
+        if message_val is not None and message_count >= 5 and message_val > 0.8:
+            emphasis.append("Lean into poetic, cosmic language — users respond well to it.")
+
+        # Check if time readings score higher than name readings
+        time_avg, time_count = _get_metric("avg_rating:time")
+        name_avg, name_count = _get_metric("avg_rating:name")
+        if (
+            time_avg is not None
+            and name_avg is not None
+            and time_count >= MINIMUM_SAMPLES
+            and name_count >= MINIMUM_SAMPLES
+            and time_avg > name_avg
+        ):
+            emphasis.append("Time-based readings resonate strongly — enrich temporal symbolism.")
+
+        # Overall low rating warning
+        overall_avg, overall_count = _get_metric("avg_rating:overall")
+        if overall_avg is not None and overall_count >= 20 and overall_avg < 3.0:
+            emphasis.append("Focus on warmth, encouragement, and personal connection.")
+
+        # Store active emphasis
+        emphasis_text = "\n".join(emphasis) if emphasis else ""
+        existing = (
+            db_session.query(OracleLearningData)
+            .filter(OracleLearningData.metric_key == "prompt_emphasis:active")
+            .first()
+        )
+        if existing:
+            existing.prompt_emphasis = emphasis_text
+            existing.sample_count = overall_count or 0
+        else:
+            db_session.add(
+                OracleLearningData(
+                    metric_key="prompt_emphasis:active",
+                    metric_value=0,
+                    sample_count=overall_count or 0,
+                    prompt_emphasis=emphasis_text,
+                )
+            )
+
+        db_session.flush()
+        return emphasis
+
+    except ImportError as exc:
+        logger.warning("Cannot generate prompt emphasis: %s", exc)
+        return []
+
+
+def get_prompt_context(db_session) -> str:
+    """Return the current prompt emphasis as a formatted string block."""
+    try:
+        import sys
+
+        if "app.orm.oracle_feedback" in sys.modules:
+            OracleLearningData = sys.modules["app.orm.oracle_feedback"].OracleLearningData
+        else:
+            from app.orm.oracle_feedback import OracleLearningData
+
+        row = (
+            db_session.query(OracleLearningData)
+            .filter(OracleLearningData.metric_key == "prompt_emphasis:active")
+            .first()
+        )
+        if row and row.prompt_emphasis and row.prompt_emphasis.strip():
+            return (
+                "=== LEARNED USER PREFERENCES ===\n"
+                + row.prompt_emphasis.strip()
+                + "\n=== END PREFERENCES ===\n"
+            )
+        return ""
+    except ImportError:
+        return ""
+
+
+def get_learning_stats(db_session) -> dict:
+    """Return aggregated stats for the admin dashboard."""
+    try:
+        import sys
+
+        if "app.orm.oracle_feedback" in sys.modules:
+            OracleLearningData = sys.modules["app.orm.oracle_feedback"].OracleLearningData
+        else:
+            from app.orm.oracle_feedback import OracleLearningData
+
+        rows = db_session.query(OracleLearningData).all()
+        stats: dict[str, dict] = {}
+        for row in rows:
+            stats[row.metric_key] = {
+                "value": row.metric_value,
+                "count": row.sample_count,
+                "emphasis": row.prompt_emphasis,
+            }
+        return stats
+    except ImportError:
+        return {}
+
+
+# ════════════════════════════════════════════════════════════
+# Scanner Legacy (preserved for backward compatibility)
+# ════════════════════════════════════════════════════════════
 
 DATA_DIR = Path(__file__).parent.parent / "data" / "learning"
 STATE_FILE = DATA_DIR / "learning_state.json"
@@ -57,7 +349,6 @@ LEVELS = {
     },
 }
 
-# Module state
 _state = None
 
 
@@ -104,7 +395,7 @@ def save_state():
             json.dump(_state, f, indent=2)
         os.replace(str(tmp_path), str(STATE_FILE))
     except IOError as e:
-        logger.error(f"Failed to save learning state: {e}")
+        logger.error("Failed to save learning state: %s", e)
 
 
 def _ensure_state():
@@ -115,19 +406,12 @@ def _ensure_state():
 
 
 def get_level():
-    """Get current level info.
-
-    Returns:
-        dict with: level, name, xp, xp_next, capabilities
-    """
+    """Get current level info."""
     _ensure_state()
     current_level = _state["level"]
     level_info = LEVELS.get(current_level, LEVELS[1])
-
-    # Find XP needed for next level
     next_level = current_level + 1
     xp_next = LEVELS.get(next_level, {}).get("xp", None)
-
     return {
         "level": current_level,
         "name": level_info["name"],
@@ -138,170 +422,47 @@ def get_level():
 
 
 def add_xp(amount, reason=""):
-    """Add XP and auto-level up if threshold reached.
-
-    Args:
-        amount: XP to add
-        reason: Description of why XP was earned
-    """
+    """Add XP and auto-level up if threshold reached."""
     _ensure_state()
     with _lock:
         _state["xp"] += amount
-
-        # Check for level up
-        leveled_up = False
-        new_level_info = None
         for level_num in sorted(LEVELS.keys(), reverse=True):
             if _state["xp"] >= LEVELS[level_num]["xp"]:
                 if level_num > _state["level"]:
-                    old_level = _state["level"]
                     _state["level"] = level_num
-                    leveled_up = True
-                    new_level_info = {
-                        "old_level": old_level,
-                        "new_level": level_num,
-                        "name": LEVELS[level_num]["name"],
-                        "xp": _state["xp"],
-                    }
                     logger.info(
-                        f"Level up! {old_level} -> {level_num} ({LEVELS[level_num]['name']})"
+                        "Level up! %d -> %d (%s)",
+                        _state["level"],
+                        level_num,
+                        LEVELS[level_num]["name"],
                     )
                 break
-
     save_state()
-
-    if leveled_up and new_level_info:
-        try:
-            from engines.events import emit, LEVEL_UP
-
-            emit(LEVEL_UP, new_level_info)
-        except Exception:
-            pass
-
-
-def learn(session_data, model="sonnet"):
-    """Trigger AI analysis of session data.
-
-    Uses Claude CLI if available, returns insights and recommendations.
-    Graceful degradation if CLI is unavailable.
-
-    Args:
-        session_data: dict with session stats
-        model: model to use for analysis
-
-    Returns:
-        dict with: insights, recommendations, adjustments
-    """
-    _ensure_state()
-    with _lock:
-        _state["total_learn_calls"] += 1
-        _state["last_learn"] = time.time()
-        _state["model"] = model
-
-    result = {
-        "insights": [],
-        "recommendations": [],
-        "adjustments": None,
-    }
-
-    try:
-        from engines.ai_engine import is_available, ask_claude
-
-        if not is_available():
-            result["insights"] = [
-                "AI CLI not available — install Claude CLI for AI-powered learning"
-            ]
-            save_state()
-            return result
-
-        prompt = (
-            f"Analyze this NPS scanning session and provide insights:\n"
-            f"Keys tested: {session_data.get('keys_tested', 0):,}\n"
-            f"Seeds tested: {session_data.get('seeds_tested', 0):,}\n"
-            f"Hits: {session_data.get('hits', 0)}\n"
-            f"Speed: {session_data.get('speed', 0):.0f}/s\n"
-            f"Duration: {session_data.get('elapsed', 0):.0f}s\n"
-            f"Mode: {session_data.get('mode', 'unknown')}\n\n"
-            f"Provide 2-3 short insights and 1-2 recommendations."
-        )
-
-        ai_result = ask_claude(prompt, model=model)
-        if ai_result.get("success"):
-            text = ai_result.get("response", "")
-            # Parse into insights and recommendations
-            lines = [l.strip() for l in text.split("\n") if l.strip()]
-            for line in lines:
-                if line.startswith("-") or line.startswith("*"):
-                    line = line.lstrip("-* ")
-                if (
-                    "recommend" in line.lower()
-                    or "suggest" in line.lower()
-                    or "try" in line.lower()
-                ):
-                    result["recommendations"].append(line)
-                else:
-                    result["insights"].append(line)
-
-            # Store insights
-            with _lock:
-                _state["insights"] = (result["insights"] + _state.get("insights", []))[
-                    :50
-                ]
-                _state["recommendations"] = result["recommendations"]
-        else:
-            result["insights"] = ["AI analysis unavailable"]
-
-    except ImportError:
-        result["insights"] = ["AI engine not available"]
-    except Exception as e:
-        result["insights"] = [f"Analysis failed: {str(e)}"]
-
-    save_state()
-    return result
 
 
 def get_auto_adjustments():
-    """Get auto-adjustment recommendations (Level 4+ only).
-
-    Returns:
-        dict with parameter adjustments, or None if below Level 4.
-    """
+    """Get auto-adjustment recommendations (Level 4+ only)."""
     _ensure_state()
     if _state["level"] < 4:
         return None
-
-    # Basic auto-adjustments based on stats
     adjustments = {}
     total_keys = _state.get("total_keys_scanned", 0)
     total_hits = _state.get("total_hits", 0)
-
-    # If scanning many keys with no hits, suggest larger batches
     if total_keys > 1_000_000 and total_hits == 0:
         adjustments["batch_size"] = 2000
         adjustments["check_every_n"] = 10000
-
-    # Use stored AI recommendations if available
     if _state.get("auto_adjustments"):
         adjustments.update(_state["auto_adjustments"])
-
     return adjustments if adjustments else None
 
 
 def get_insights(limit=10):
-    """Get stored insights.
-
-    Returns:
-        list of insight strings
-    """
+    """Get stored insights."""
     _ensure_state()
     return _state.get("insights", [])[:limit]
 
 
 def get_recommendations():
-    """Get current recommendations.
-
-    Returns:
-        list of recommendation strings
-    """
+    """Get current recommendations."""
     _ensure_state()
     return _state.get("recommendations", [])

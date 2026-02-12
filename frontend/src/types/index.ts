@@ -714,6 +714,40 @@ export interface Insight {
   created_at: string | null;
 }
 
+// ─── Oracle Feedback & Learning (Session 18) ───
+
+export interface SectionFeedback {
+  section: string;
+  helpful: boolean;
+}
+
+export interface FeedbackRequest {
+  rating: number;
+  section_feedback: SectionFeedback[];
+  text_feedback?: string;
+}
+
+export interface FeedbackResponse {
+  id: number;
+  reading_id: number;
+  rating: number;
+  section_feedback: Record<string, string>;
+  text_feedback: string | null;
+  created_at: string;
+  updated: boolean;
+}
+
+export interface OracleLearningStats {
+  total_feedback_count: number;
+  average_rating: number;
+  rating_distribution: Record<number, number>;
+  avg_by_reading_type: Record<string, number>;
+  avg_by_format: Record<string, number>;
+  section_helpful_pct: Record<string, number>;
+  active_prompt_adjustments: string[];
+  last_recalculated: string | null;
+}
+
 // ─── WebSocket Events ───
 
 export interface WSEvent {
