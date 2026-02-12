@@ -1169,7 +1169,7 @@ TEMPLATE — copy this for each new session:
 - `frontend/src/pages/__tests__/Oracle.test.tsx` — Updated useReadingProgress mock to match new interface
 
 **Tests:** 18 API pass / 0 fail / 18 new | 465 frontend pass / 0 fail / 12 new (7 WS client + 5 hook) | 10 pre-existing failures in test_multi_user_reading.py (CompatibilityAnalyzer NoneType, unrelated) | 0 regressions
-**Commit:** PENDING
+**Commit:** 2992652
 **Issues:** 10 pre-existing test failures in test_multi_user_reading.py (CompatibilityAnalyzer import is None) — not caused by Session 25, existed before changes
 **Decisions:**
 
