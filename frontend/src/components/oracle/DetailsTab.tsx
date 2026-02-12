@@ -22,6 +22,7 @@ function DetailSection({
       <button
         type="button"
         onClick={() => setOpen(!open)}
+        aria-expanded={open}
         className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-nps-text hover:bg-nps-bg-input transition-colors"
       >
         {title}

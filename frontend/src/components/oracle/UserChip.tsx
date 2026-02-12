@@ -11,6 +11,7 @@ export function UserChip({ name, isPrimary, onRemove }: UserChipProps) {
 
   return (
     <span
+      role="listitem"
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs ${
         isPrimary
           ? "bg-nps-oracle-accent/20 text-nps-oracle-accent border border-nps-oracle-accent font-bold"

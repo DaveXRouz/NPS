@@ -657,6 +657,17 @@
     "expand_section": "باز کردن بخش",
     "collapse_section": "بستن بخش"
   },
+  "a11y": {
+    "skip_to_content": "رفتن به محتوا",
+    "previous_month": "ماه قبل",
+    "next_month": "ماه بعد",
+    "selected_users": "کاربران انتخاب شده",
+    "expand_reading": "نمایش جزئیات",
+    "collapse_reading": "بستن جزئیات",
+    "filter_readings": "فیلتر خوانش‌ها",
+    "calendar_dialog": "انتخاب تاریخ",
+    "loading": "در حال بارگذاری"
+  },
   "log": {
     "no_entries": "هنوز موردی ثبت نشده"
   },

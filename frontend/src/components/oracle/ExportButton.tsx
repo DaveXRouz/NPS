@@ -73,6 +73,7 @@ export function ExportButton({ result }: ExportButtonProps) {
       <button
         type="button"
         onClick={handleExportTxt}
+        aria-label={t("oracle.export_text")}
         className="px-2 py-1 text-xs bg-nps-bg-input text-nps-text-dim hover:text-nps-text rounded transition-colors"
       >
         {t("oracle.export_text")}
@@ -80,6 +81,7 @@ export function ExportButton({ result }: ExportButtonProps) {
       <button
         type="button"
         onClick={handleExportJson}
+        aria-label={t("oracle.export_json")}
         className="px-2 py-1 text-xs bg-nps-bg-input text-nps-text-dim hover:text-nps-text rounded transition-colors"
       >
         {t("oracle.export_json")}

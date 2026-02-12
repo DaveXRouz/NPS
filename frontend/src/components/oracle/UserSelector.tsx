@@ -54,6 +54,7 @@ export function UserSelector({
 
       <button
         onClick={onAddNew}
+        aria-label={t("oracle.add_new_profile")}
         className="px-3 py-2 text-sm bg-nps-oracle-accent/20 text-nps-oracle-accent border border-nps-oracle-border rounded hover:bg-nps-oracle-accent/30 transition-colors"
       >
         + {t("oracle.add_new_profile")}
@@ -62,6 +63,7 @@ export function UserSelector({
       {selectedId !== null && (
         <button
           onClick={onEdit}
+          aria-label={t("oracle.edit_profile")}
           className="px-3 py-2 text-sm text-nps-text-dim border border-nps-border rounded hover:text-nps-text hover:border-nps-oracle-border transition-colors"
         >
           {t("oracle.edit_profile")}

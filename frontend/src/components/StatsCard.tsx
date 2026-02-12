@@ -28,7 +28,11 @@ export function StatsCard({
   trend,
 }: StatsCardProps) {
   return (
-    <div className="bg-nps-bg-card border border-nps-border rounded-lg p-4 min-h-[72px]">
+    <div
+      role="group"
+      aria-label={label}
+      className="bg-nps-bg-card border border-nps-border rounded-lg p-4 min-h-[72px]"
+    >
       <div className="flex items-center gap-1.5">
         {icon && <span className="text-sm">{icon}</span>}
         <p className="text-xs text-nps-text-dim uppercase tracking-wide">

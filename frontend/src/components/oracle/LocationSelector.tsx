@@ -109,15 +109,16 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
 
   return (
     <div>
-      <label className="block text-sm text-nps-text-dim mb-1">
+      <span className="block text-sm text-nps-text-dim mb-1">
         {t("oracle.location_label")}
-      </label>
+      </span>
 
       {/* Auto-detect button */}
       <button
         type="button"
         onClick={handleAutoDetect}
         disabled={isDetecting}
+        aria-busy={isDetecting}
         className="mb-2 px-3 py-2 text-sm bg-nps-oracle-accent/20 text-nps-oracle-accent border border-nps-oracle-border rounded hover:bg-nps-oracle-accent/30 transition-colors disabled:opacity-50 w-full sm:w-auto min-h-[44px] sm:min-h-0"
       >
         {isDetecting ? (
@@ -131,7 +132,9 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
       </button>
 
       {detectError && (
-        <p className="text-nps-error text-xs mb-2">{detectError}</p>
+        <p role="alert" className="text-nps-error text-xs mb-2">
+          {detectError}
+        </p>
       )}
 
       {/* Country selection */}

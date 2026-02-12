@@ -26,17 +26,23 @@ export function SignTypeSelector({
 
   return (
     <div>
-      <label className="block text-sm text-nps-text-dim mb-1">
+      <label
+        htmlFor="sign-type-select"
+        className="block text-sm text-nps-text-dim mb-1"
+      >
         {t("oracle.sign_label")}
         <span className="text-nps-error ms-1">*</span>
       </label>
 
       {/* Type selector */}
       <select
+        id="sign-type-select"
         value={value.type}
         onChange={(e) => handleTypeChange(e.target.value as SignType)}
         className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-2 min-h-[44px] sm:min-h-0 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent mb-2"
         aria-label={t("oracle.sign_type_label")}
+        aria-required="true"
+        aria-describedby={error ? "sign-error" : undefined}
       >
         {SIGN_TYPES.map((st) => (
           <option key={st} value={st}>
@@ -98,7 +104,11 @@ export function SignTypeSelector({
         />
       )}
 
-      {error && <p className="text-nps-error text-xs mt-1">{error}</p>}
+      {error && (
+        <p id="sign-error" role="alert" className="text-nps-error text-xs mt-1">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

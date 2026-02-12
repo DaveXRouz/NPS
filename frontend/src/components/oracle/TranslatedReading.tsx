@@ -31,10 +31,11 @@ export function TranslatedReading({ reading }: TranslatedReadingProps) {
     <div className="space-y-2">
       {/* Original reading */}
       <div
+        aria-live="polite"
         className={`text-sm text-nps-text ${translatedText && !showTranslation ? "opacity-60" : ""}`}
       >
         {showTranslation && translatedText ? (
-          <p dir="rtl" className="font-[Vazirmatn]">
+          <p dir="rtl" lang="fa" className="font-[Vazirmatn]">
             {translatedText}
           </p>
         ) : (
@@ -48,6 +49,7 @@ export function TranslatedReading({ reading }: TranslatedReadingProps) {
           <button
             onClick={handleTranslate}
             disabled={isTranslating}
+            aria-busy={isTranslating}
             className="px-3 py-1 text-xs bg-nps-oracle-accent/20 text-nps-oracle-accent border border-nps-oracle-border rounded hover:bg-nps-oracle-accent/30 transition-colors disabled:opacity-50"
           >
             {isTranslating ? t("oracle.translating") : t("oracle.translate")}
@@ -67,7 +69,11 @@ export function TranslatedReading({ reading }: TranslatedReadingProps) {
       </div>
 
       {/* Error */}
-      {error && <p className="text-xs text-nps-bg-danger">{error}</p>}
+      {error && (
+        <p role="alert" className="text-xs text-nps-bg-danger">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

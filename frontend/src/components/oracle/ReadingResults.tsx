@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { useArrowNavigation } from "@/hooks/useArrowNavigation";
 import { SummaryTab } from "./SummaryTab";
 import { DetailsTab } from "./DetailsTab";
 import { ReadingHistory } from "./ReadingHistory";
@@ -39,6 +40,8 @@ export function ReadingResults({
 }: ReadingResultsProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<ResultsTab>("summary");
+  const tablistRef = useRef<HTMLDivElement>(null);
+  const { handleKeyDown } = useArrowNavigation(tablistRef);
 
   const tabLabels: Record<ResultsTab, string> = {
     summary: t("oracle.tab_summary"),
@@ -51,9 +54,11 @@ export function ReadingResults({
       {/* Tab bar + export */}
       <div className="flex items-center justify-between gap-2">
         <div
+          ref={tablistRef}
           className="flex gap-1 overflow-x-auto"
           role="tablist"
           aria-label="Reading results"
+          onKeyDown={handleKeyDown}
         >
           {TABS.map((tab) => (
             <button
@@ -63,6 +68,7 @@ export function ReadingResults({
               id={`tab-${tab}`}
               aria-selected={activeTab === tab}
               aria-controls={`tabpanel-${tab}`}
+              tabIndex={activeTab === tab ? 0 : -1}
               onClick={() => setActiveTab(tab)}
               className={`px-3 py-1 min-h-[44px] sm:min-h-0 text-xs rounded transition-colors whitespace-nowrap ${
                 activeTab === tab
@@ -85,6 +91,7 @@ export function ReadingResults({
         id="tabpanel-summary"
         role="tabpanel"
         aria-labelledby="tab-summary"
+        aria-live={activeTab === "summary" ? "polite" : undefined}
         className={activeTab === "summary" ? "" : "hidden"}
       >
         {/* Confidence meter at top of summary */}
@@ -101,6 +108,7 @@ export function ReadingResults({
         id="tabpanel-details"
         role="tabpanel"
         aria-labelledby="tab-details"
+        aria-live={activeTab === "details" ? "polite" : undefined}
         className={activeTab === "details" ? "" : "hidden"}
       >
         <DetailsTab result={result} />
@@ -123,6 +131,7 @@ export function ReadingResults({
         id="tabpanel-history"
         role="tabpanel"
         aria-labelledby="tab-history"
+        aria-live={activeTab === "history" ? "polite" : undefined}
         className={activeTab === "history" ? "" : "hidden"}
       >
         <ReadingHistory />

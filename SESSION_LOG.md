@@ -9,9 +9,9 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 27 of 45
-**Last session:** Session 27 — Responsive Design System
-**Current block:** Frontend Advanced (Sessions 26-31) — 2 of 6 sessions complete
+**Sessions completed:** 28 of 45
+**Last session:** Session 28 — Accessibility (a11y)
+**Current block:** Frontend Advanced (Sessions 26-31) — 3 of 6 sessions complete
 
 ---
 
@@ -1301,7 +1301,85 @@ TEMPLATE — copy this for each new session:
 - Added global `matchMedia` polyfill to test setup rather than per-file mocks — prevents regression as more components adopt useBreakpoint
 - MobileNav drawer aria-label uses `accessibility.menu_toggle` (not `layout.mobile_menu`) to avoid label collision with hamburger button
 
-**Next:** Session 28 — Accessibility (ARIA roles, keyboard navigation, focus management, screen reader support, color contrast, skip links)
+**Next:** Session 29 — Animations & Transitions (loading states, page transitions, micro-interactions, skeleton screens)
+
+---
+
+## Session 28 — 2026-02-13
+
+**Objective:** Accessibility (a11y) — WCAG 2.1 AA compliance, keyboard navigation, focus management, ARIA roles, screen reader support, color contrast, skip links
+**Spec:** `.session-specs/SESSION_28_SPEC.md`
+**Block:** Frontend Advanced (Sessions 26-31) — Session 3 of 6
+
+**What was built:**
+
+1. **axe-core integration** — installed `axe-core` + `@axe-core/react`; custom `toHaveNoViolations` matcher in test setup; `checkA11y()` helper filters critical/serious violations
+2. **Focus indicators** (`index.css`) — global `*:focus-visible` outline with theme accent color; `:focus:not(:focus-visible)` removal; `prefers-reduced-motion` media query disables animations
+3. **Skip navigation** (`SkipNavLink.tsx`) — `<a href="#main-content">` with `.skip-nav` CSS (offscreen until focused); integrated into Layout before sidebar
+4. **useFocusTrap hook** (`hooks/useFocusTrap.ts`) — traps Tab/Shift+Tab within container; focuses first element on mount; restores previous focus on unmount
+5. **useArrowNavigation hook** (`hooks/useArrowNavigation.ts`) — RTL-aware arrow key navigation for tabs/menus/options; supports Home/End; loops by default; checks `document.documentElement.dir` for RTL reversal
+6. **UserForm dialog a11y** — focus trap via `useFocusTrap`; Escape key handler on backdrop; `lang="fa"` on Persian name fields; `aria-required`, `aria-invalid`, `aria-describedby` on Field component
+7. **PersianKeyboard a11y** — focus trap via `useFocusTrap`; `aria-modal="true"` added
+8. **ReadingResults tabs** — roving tabindex pattern (`tabIndex={0}` on active, `-1` on inactive); `useArrowNavigation` on tablist; `aria-live="polite"` on active tabpanel only
+9. **CalendarPicker a11y** — Escape key closes; `role="dialog"` + `aria-label` on dropdown; `role="grid"`/`role="row"`/`role="gridcell"` on day grid; `aria-selected` + `aria-current="date"` on day buttons; `aria-label` with ISO date on each day; i18n aria-labels for prev/next month
+10. **Form label fixes** — SignTypeSelector: `htmlFor`/`id` linking, `aria-required`, `aria-describedby`, `role="alert"` on error; LocationSelector: `<span>` instead of `<label>` for group, `aria-busy`, `role="alert"` on error
+11. **Live regions** — `aria-live="polite"` on TranslatedReading display, LogPanel; `aria-busy` on translate button; `role="alert"` on errors in MultiUserSelector, TranslatedReading
+12. **Color contrast fix** — dark mode `--nps-text-dim` changed from `#6b7280` (~4.02:1) to `#8b949e` (~6.34:1) on `#111111` background for WCAG AA compliance
+13. **Component ARIA additions** — LanguageToggle: `role="switch"` + `aria-checked`; StatsCard: `role="group"` + `aria-label`; ReadingHistory: `role="tablist"` + `role="tab"` + `aria-selected`; DetailsTab: `aria-expanded` on collapsible sections; UserChip: `role="listitem"`; ExportButton: `aria-label` on buttons
+14. **Tailwind focus ring** — `ringColor.focus` added to tailwind.config.ts
+15. **i18n a11y keys** — new `"a11y"` namespace in en.json/fa.json: skip_to_content, previous_month, next_month, selected_users, expand/collapse_reading, filter_readings, calendar_dialog, loading
+
+**Files created (7):**
+
+- `frontend/src/hooks/useFocusTrap.ts`
+- `frontend/src/hooks/useArrowNavigation.ts`
+- `frontend/src/components/SkipNavLink.tsx`
+- `frontend/src/components/__tests__/SkipNavLink.test.tsx`
+- `frontend/src/hooks/__tests__/useFocusTrap.test.ts`
+- `frontend/src/hooks/__tests__/useArrowNavigation.test.ts`
+- `frontend/src/components/oracle/__tests__/Accessibility.test.tsx` (rewritten)
+
+**Files modified (22):**
+
+- `frontend/src/index.css` — focus-visible, skip-nav, prefers-reduced-motion
+- `frontend/tailwind.config.ts` — ringColor.focus
+- `frontend/src/styles/theme.css` — text-dim contrast fix
+- `frontend/src/test/setup.ts` — axe-core matcher + checkA11y helper
+- `frontend/src/components/Layout.tsx` — SkipNavLink, main id, tabIndex
+- `frontend/src/components/LanguageToggle.tsx` — role="switch", aria-checked
+- `frontend/src/components/StatsCard.tsx` — role="group", aria-label
+- `frontend/src/components/LogPanel.tsx` — role="log", aria-live, aria-label
+- `frontend/src/components/oracle/UserForm.tsx` — useFocusTrap, Escape, lang="fa" on Persian fields, Field aria-\*
+- `frontend/src/components/oracle/PersianKeyboard.tsx` — useFocusTrap, aria-modal
+- `frontend/src/components/oracle/ReadingResults.tsx` — useArrowNavigation, roving tabindex, aria-live
+- `frontend/src/components/oracle/SignTypeSelector.tsx` — htmlFor/id, aria-required, aria-describedby, role="alert"
+- `frontend/src/components/oracle/LocationSelector.tsx` — span label, aria-busy, role="alert"
+- `frontend/src/components/oracle/CalendarPicker.tsx` — Escape, role="dialog", grid roles, aria-label, aria-selected, aria-current
+- `frontend/src/components/oracle/MultiUserSelector.tsx` — role="alert", aria-label, role="list"
+- `frontend/src/components/oracle/UserSelector.tsx` — aria-label on buttons
+- `frontend/src/components/oracle/UserChip.tsx` — role="listitem"
+- `frontend/src/components/oracle/TranslatedReading.tsx` — aria-live, lang="fa", aria-busy, role="alert"
+- `frontend/src/components/oracle/ExportButton.tsx` — aria-label on buttons
+- `frontend/src/components/oracle/ReadingHistory.tsx` — role="tablist", role="tab", aria-selected
+- `frontend/src/components/oracle/DetailsTab.tsx` — aria-expanded
+- `frontend/src/locales/en.json` — a11y namespace (9 keys)
+- `frontend/src/locales/fa.json` — a11y namespace (9 Persian translations)
+- `frontend/src/components/__tests__/LanguageToggle.test.tsx` — updated for role="switch"
+- `frontend/src/components/oracle/__tests__/CalendarPicker.test.tsx` — updated for i18n aria-labels
+
+**Tests:** 532 pass / 0 fail / 40 new tests (30 Accessibility.test.tsx + 3 SkipNavLink + 5 useFocusTrap + 6 useArrowNavigation) — replaced 11 old a11y tests with 30 comprehensive tests
+**Commit:** TBD
+**Issues:** None — all pre-existing tsc errors unchanged
+**Decisions:**
+
+- Used `var(--nps-accent)` (#10b981 emerald) for focus indicators instead of spec's #4fc3f7 — matches actual project theme
+- Changed dark mode text-dim from #6b7280 to #8b949e to pass WCAG AA 4.5:1 contrast on #111111 background; light mode unchanged since it already passes
+- Created custom axe-core matcher instead of vitest-axe package — more reliable, no extra dependency
+- Used `role="switch"` + `aria-checked` on LanguageToggle (spec suggested aria-pressed, but switch is semantically more correct for a two-state toggle)
+- CalendarPicker uses `role="grid"` pattern (not `role="listbox"`) per WAI-ARIA date picker best practices
+- useArrowNavigation checks `document.documentElement.dir` at key-press time (not hook init) for real-time RTL awareness
+
+**Next:** Session 29 — Animations & Transitions (loading states, page transitions, micro-interactions, skeleton screens)
 
 ---
 

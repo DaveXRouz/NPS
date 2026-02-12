@@ -28,6 +28,9 @@ export function LogPanel({
         <h3 className="text-sm font-semibold text-nps-text">{title}</h3>
       </div>
       <div
+        role="log"
+        aria-live="polite"
+        aria-label={title}
         className="overflow-auto font-mono text-xs p-2"
         style={{ maxHeight }}
       >

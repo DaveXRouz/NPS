@@ -5,6 +5,7 @@ import { Navigation } from "./Navigation";
 import { LanguageToggle } from "./LanguageToggle";
 import { ThemeToggle } from "./ThemeToggle";
 import { MobileNav } from "./MobileNav";
+import { SkipNavLink } from "./SkipNavLink";
 import { useWebSocketConnection } from "@/hooks/useWebSocket";
 
 export function Layout() {
@@ -23,6 +24,7 @@ export function Layout() {
 
   return (
     <div className="flex min-h-screen bg-[var(--nps-bg)]">
+      <SkipNavLink />
       {/* Desktop sidebar — hidden below lg */}
       <aside
         className={`
@@ -113,7 +115,11 @@ export function Layout() {
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main
+          id="main-content"
+          className="flex-1 p-4 lg:p-6 overflow-auto"
+          tabIndex={-1}
+        >
           <Outlet />
         </main>
 

@@ -6,6 +6,7 @@ import {
 } from "@/utils/persianKeyboardLayout";
 import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { MobileKeyboard } from "./MobileKeyboard";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface PersianKeyboardProps {
   onCharacterClick: (char: string) => void;
@@ -21,6 +22,7 @@ export function PersianKeyboard({
   const { t } = useTranslation();
   const { isMobile } = useBreakpoint();
   const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(panelRef, true);
   const [isShifted, setIsShifted] = useState(false);
   const [positionAbove, setPositionAbove] = useState(false);
 
@@ -62,6 +64,7 @@ export function PersianKeyboard({
       <div
         ref={panelRef}
         role="dialog"
+        aria-modal="true"
         aria-label={t("oracle.keyboard_persian")}
         dir="rtl"
         className={`absolute left-0 right-0 z-50 bg-nps-bg-card border border-nps-oracle-border rounded-lg p-3 shadow-lg ${

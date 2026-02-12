@@ -56,6 +56,9 @@ export default {
         sans: ["Inter", "Segoe UI", "Helvetica", "sans-serif"],
         mono: ["JetBrains Mono", "Consolas", "Courier", "monospace"],
       },
+      ringColor: {
+        focus: "var(--nps-accent)",
+      },
       boxShadow: {
         nps: "var(--nps-shadow)",
       },

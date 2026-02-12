@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { OracleUser, OracleUserCreate, LocationData } from "@/types";
 import { PersianKeyboard } from "./PersianKeyboard";
 import { CalendarPicker } from "./CalendarPicker";
 import { LocationSelector } from "./LocationSelector";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface UserFormProps {
   user?: OracleUser;
@@ -62,6 +63,8 @@ export function UserForm({
 }: UserFormProps) {
   const { t } = useTranslation();
   const isEdit = !!user;
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialogRef, true);
 
   const [form, setForm] = useState<OracleUserCreate>({
     name: user?.name ?? "",
@@ -139,8 +142,12 @@ export function UserForm({
       aria-modal="true"
       aria-label={isEdit ? t("oracle.edit_profile") : t("oracle.new_profile")}
       onClick={onCancel}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") onCancel();
+      }}
     >
       <div
+        ref={dialogRef}
         className="bg-nps-bg-card border border-nps-oracle-border rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
@@ -173,6 +180,7 @@ export function UserForm({
                     value={form.name_persian ?? ""}
                     onChange={(v) => handleFieldChange("name_persian", v)}
                     dir="rtl"
+                    lang="fa"
                   />
                 </div>
                 <button
@@ -233,6 +241,7 @@ export function UserForm({
                       handleFieldChange("mother_name_persian", v)
                     }
                     dir="rtl"
+                    lang="fa"
                   />
                 </div>
                 <button
@@ -455,6 +464,7 @@ function Field({
   error,
   type = "text",
   dir,
+  lang,
   required,
 }: {
   label: string;
@@ -463,6 +473,7 @@ function Field({
   error?: string;
   type?: string;
   dir?: string;
+  lang?: string;
   required?: boolean;
 }) {
   const fieldId = label.toLowerCase().replace(/[^a-z0-9]/g, "-");
@@ -480,6 +491,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         dir={dir}
+        lang={lang}
         aria-required={required}
         aria-invalid={!!error}
         aria-describedby={error ? errorId : undefined}

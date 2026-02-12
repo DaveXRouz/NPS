@@ -127,6 +127,7 @@ export function MultiUserSelector({
 
           <button
             onClick={onAddNew}
+            aria-label={t("oracle.add_new_profile")}
             className="px-3 py-2 text-sm bg-nps-oracle-accent/20 text-nps-oracle-accent border border-nps-oracle-border rounded hover:bg-nps-oracle-accent/30 transition-colors min-h-[44px] sm:min-h-0 w-full sm:w-auto"
           >
             + {t("oracle.add_new_profile")}
@@ -135,6 +136,7 @@ export function MultiUserSelector({
           {selectedUsers && (
             <button
               onClick={onEdit}
+              aria-label={t("oracle.edit_profile")}
               className="px-3 py-2 text-sm text-nps-text-dim border border-nps-border rounded hover:text-nps-text hover:border-nps-oracle-border transition-colors min-h-[44px] sm:min-h-0 w-full sm:w-auto"
             >
               {t("oracle.edit_profile")}
@@ -149,7 +151,11 @@ export function MultiUserSelector({
           <label className="block text-xs text-nps-text-dim mb-1">
             {t("oracle.secondary_users")}
           </label>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div
+            role="list"
+            aria-label={t("oracle.secondary_users")}
+            className="flex items-center gap-2 flex-wrap"
+          >
             <UserChip name={selectedUsers.primary.name} isPrimary />
             {selectedUsers.secondary.map((user) => (
               <UserChip
@@ -197,7 +203,11 @@ export function MultiUserSelector({
       )}
 
       {/* Error message */}
-      {error && <p className="text-xs text-nps-bg-danger">{error}</p>}
+      {error && (
+        <p role="alert" className="text-xs text-nps-bg-danger">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

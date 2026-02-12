@@ -10,6 +10,9 @@ vi.mock("react-i18next", () => ({
         "oracle.calendar_select_date": "Select a date",
         "oracle.calendar_gregorian": "Gregorian",
         "oracle.calendar_jalaali": "Solar Hijri",
+        "a11y.previous_month": "Previous month",
+        "a11y.next_month": "Next month",
+        "a11y.calendar_dialog": "Calendar date picker",
       };
       return map[key] ?? key;
     },

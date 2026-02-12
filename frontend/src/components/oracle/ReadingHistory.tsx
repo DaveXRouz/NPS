@@ -169,11 +169,17 @@ export function ReadingHistory() {
       </div>
 
       {/* Filter chips */}
-      <div className="flex gap-2 flex-wrap">
+      <div
+        role="tablist"
+        aria-label={t("a11y.filter_readings")}
+        className="flex gap-2 flex-wrap"
+      >
         {filters.map((f) => (
           <button
             key={f.key}
             type="button"
+            role="tab"
+            aria-selected={filter === f.key}
             onClick={() => handleFilterChange(f.key)}
             className={`px-2 py-0.5 text-xs rounded transition-colors ${
               filter === f.key

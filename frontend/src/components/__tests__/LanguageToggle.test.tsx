@@ -41,14 +41,14 @@ describe("LanguageToggle", () => {
 
   it("calls changeLanguage to fa when toggled from en", async () => {
     render(<LanguageToggle />);
-    await userEvent.click(screen.getByRole("button"));
+    await userEvent.click(screen.getByRole("switch"));
     expect(mockChangeLanguage).toHaveBeenCalledWith("fa");
   });
 
   it("calls changeLanguage to en when toggled from fa", async () => {
     mockLanguage = "fa";
     render(<LanguageToggle />);
-    await userEvent.click(screen.getByRole("button"));
+    await userEvent.click(screen.getByRole("switch"));
     expect(mockChangeLanguage).toHaveBeenCalledWith("en");
   });
 

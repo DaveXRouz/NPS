@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   type CalendarMode,
@@ -60,6 +60,10 @@ export function CalendarPicker({
     }
   }, [mode, value, today]);
 
+  const handleCalendarKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") setIsOpen(false);
+  }, []);
+
   // Close on outside click
   useEffect(() => {
     if (!isOpen) return;
@@ -72,8 +76,12 @@ export function CalendarPicker({
       }
     }
     document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [isOpen]);
+    document.addEventListener("keydown", handleCalendarKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleCalendarKeyDown);
+    };
+  }, [isOpen, handleCalendarKeyDown]);
 
   function handlePrevMonth() {
     if (mode === "jalaali") {
@@ -144,7 +152,11 @@ export function CalendarPicker({
 
       {/* Dropdown calendar */}
       {isOpen && (
-        <div className="fixed inset-x-0 bottom-0 sm:absolute sm:inset-x-auto sm:bottom-auto sm:start-0 sm:top-full sm:mt-1 z-50 bg-nps-bg-card border border-nps-oracle-border rounded-t-lg sm:rounded-lg p-3 shadow-lg w-full sm:w-72">
+        <div
+          role="dialog"
+          aria-label={t("a11y.calendar_dialog")}
+          className="fixed inset-x-0 bottom-0 sm:absolute sm:inset-x-auto sm:bottom-auto sm:start-0 sm:top-full sm:mt-1 z-50 bg-nps-bg-card border border-nps-oracle-border rounded-t-lg sm:rounded-lg p-3 shadow-lg w-full sm:w-72"
+        >
           {/* Calendar mode toggle */}
           <div className="flex gap-1 mb-3">
             <button
@@ -177,7 +189,7 @@ export function CalendarPicker({
               type="button"
               onClick={handlePrevMonth}
               className="w-10 h-10 sm:w-7 sm:h-7 flex items-center justify-center text-nps-text-dim hover:text-nps-text rounded transition-colors"
-              aria-label="Previous month"
+              aria-label={t("a11y.previous_month")}
             >
               ‹
             </button>
@@ -188,7 +200,7 @@ export function CalendarPicker({
               type="button"
               onClick={handleNextMonth}
               className="w-10 h-10 sm:w-7 sm:h-7 flex items-center justify-center text-nps-text-dim hover:text-nps-text rounded transition-colors"
-              aria-label="Next month"
+              aria-label={t("a11y.next_month")}
             >
               ›
             </button>
@@ -210,29 +222,33 @@ export function CalendarPicker({
           </div>
 
           {/* Day grid */}
-          <div dir={mode === "jalaali" ? "rtl" : "ltr"}>
+          <div role="grid" dir={mode === "jalaali" ? "rtl" : "ltr"}>
             {grid.map((week, wi) => (
-              <div key={wi} className="grid grid-cols-7 gap-0.5">
+              <div key={wi} role="row" className="grid grid-cols-7 gap-0.5">
                 {week.map((cell, ci) => {
                   const isSelected = cell.iso === value;
                   const isToday = cell.iso === today;
                   return (
-                    <button
-                      key={ci}
-                      type="button"
-                      onClick={() => handleDayClick(cell.iso)}
-                      className={`h-10 sm:h-8 text-xs rounded transition-colors ${
-                        isSelected
-                          ? "bg-nps-oracle-accent text-nps-bg font-bold"
-                          : isToday
-                            ? "bg-nps-oracle-accent/20 text-nps-oracle-accent font-medium"
-                            : cell.isCurrentMonth
-                              ? "text-nps-text hover:bg-nps-bg-hover"
-                              : "text-nps-text-dim/40 hover:bg-nps-bg-hover"
-                      }`}
-                    >
-                      {cell.day}
-                    </button>
+                    <div key={ci} role="gridcell">
+                      <button
+                        type="button"
+                        onClick={() => handleDayClick(cell.iso)}
+                        aria-label={formatDate(cell.iso, mode)}
+                        aria-selected={isSelected}
+                        aria-current={isToday ? "date" : undefined}
+                        className={`w-full h-10 sm:h-8 text-xs rounded transition-colors ${
+                          isSelected
+                            ? "bg-nps-oracle-accent text-nps-bg font-bold"
+                            : isToday
+                              ? "bg-nps-oracle-accent/20 text-nps-oracle-accent font-medium"
+                              : cell.isCurrentMonth
+                                ? "text-nps-text hover:bg-nps-bg-hover"
+                                : "text-nps-text-dim/40 hover:bg-nps-bg-hover"
+                        }`}
+                      >
+                        {cell.day}
+                      </button>
+                    </div>
                   );
                 })}
               </div>
