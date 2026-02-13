@@ -21,6 +21,7 @@ from app.routers import (
     oracle,
     scanner,
     settings as settings_router,
+    share,
     translation,
     users,
     vault,
@@ -38,6 +39,7 @@ import app.orm.api_key  # noqa: F401
 import app.orm.oracle_settings  # noqa: F401
 import app.orm.oracle_feedback  # noqa: F401
 import app.orm.user_settings  # noqa: F401
+import app.orm.share_link  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -148,6 +150,7 @@ app.include_router(learning.router, prefix="/api/learning", tags=["learning"])
 app.include_router(translation.router, prefix="/api/translation", tags=["translation"])
 app.include_router(location.router, prefix="/api/location", tags=["location"])
 app.include_router(settings_router.router, prefix="/api", tags=["settings"])
+app.include_router(share.router, prefix="/api/share", tags=["share"])
 
 
 # WebSocket — authenticated oracle endpoint

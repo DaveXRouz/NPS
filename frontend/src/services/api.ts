@@ -233,6 +233,23 @@ export const vault = {
     }),
 };
 
+// ─── Share ───
+
+export const share = {
+  create: (readingId: number, expiresInDays?: number) =>
+    request<import("@/types").ShareLink>("/share", {
+      method: "POST",
+      body: JSON.stringify({
+        reading_id: readingId,
+        expires_in_days: expiresInDays,
+      }),
+    }),
+  get: (token: string) =>
+    request<import("@/types").SharedReadingData>(`/share/${token}`),
+  revoke: (token: string) =>
+    request<void>(`/share/${token}`, { method: "DELETE" }),
+};
+
 // ─── Translation ───
 
 export const translation = {

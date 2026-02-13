@@ -9,9 +9,9 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 31 of 45
-**Last session:** Session 31 — Frontend Polish & Performance
-**Current block:** Frontend Advanced (Sessions 26-31) — COMPLETE
+**Sessions completed:** 32 of 45
+**Last session:** Session 32 — Export & Share
+**Current block:** Features & Integration (Sessions 32-37) — Session 1 of 6
 
 ---
 
@@ -1613,6 +1613,76 @@ TEMPLATE — copy this for each new session:
 - React.memo applied conservatively to 3 components (StatsCard, ReadingResults, Layout) — all are pure or near-pure with primitive/stable props; avoids over-memoization complexity
 
 **Next:** Session 32 — Export & Share (PDF export, image export, text export for reading results). Begins Features & Integration block (Sessions 32-37).
+
+---
+
+## Session 32 — 2026-02-13
+
+**Terminal:** SINGLE
+**Block:** Features & Integration (Sessions 32-37) — Session 1 of 6
+**Task:** Export & Share — PDF/image/text/JSON export, share links with backend API, SharedReading page, social preview OG meta
+**Spec:** `.session-specs/SESSION_32_SPEC.md`
+
+**What was built:**
+
+1. **Database migration 013** — `oracle_share_links` table with token, reading_id FK, expiration, view_count, is_active, created_at
+2. **ShareLink ORM model** — `app/orm/share_link.py` with Integer PK (SQLite-compatible), unique token, server_default timestamps
+3. **Share Pydantic models** — `ShareLinkCreate`, `ShareLinkResponse`, `SharedReadingResponse` in `app/models/share.py`
+4. **Share router** — POST (create, auth required, max 10 per reading, token collision retry), GET (public, increments view_count, 410 for expired), DELETE (revoke, auth required)
+5. **Export utilities** — `exportReading.ts`: `formatAsText()` (comprehensive with Persian support), `exportAsPdf()` (html2canvas→jsPDF multi-page), `exportAsImage()` (html2canvas→PNG blob), `copyToClipboard()` (with execCommand fallback), `downloadAsText()`, `downloadAsJson()`
+6. **Share utilities** — `shareReading.ts`: `createShareLink()`, `getShareUrl()` (full URL builder)
+7. **ExportShareMenu component** — dropdown with PDF/Image/Text/JSON export + Share Link creation, loading states per action, clipboard copy feedback, outside-click/Escape close, aria attributes
+8. **SharedReading page** — public `/share/:token` route outside Layout (no sidebar), loading/error/expired states, OG meta tags, read-only reading card
+9. **ExportButton re-export** — backwards-compatible re-export of ExportShareMenu
+10. **i18n keys** — 17 new keys in en.json + fa.json for export/share strings
+11. **Frontend dependencies** — jspdf + html2canvas added to package.json
+
+**Files created (9):**
+
+- `database/migrations/013_share_links.sql`
+- `database/migrations/013_share_links_rollback.sql`
+- `api/app/orm/share_link.py`
+- `api/app/models/share.py`
+- `api/app/routers/share.py`
+- `frontend/src/utils/exportReading.ts`
+- `frontend/src/utils/shareReading.ts`
+- `frontend/src/components/oracle/ExportShareMenu.tsx`
+- `frontend/src/pages/SharedReading.tsx`
+
+**Files modified (10):**
+
+- `api/app/main.py` — registered share router + ORM import
+- `frontend/src/types/index.ts` — added ShareLink, SharedReadingData, ExportFormat types
+- `frontend/src/services/api.ts` — added share namespace (create, get, revoke)
+- `frontend/src/App.tsx` — added `/share/:token` lazy route outside Layout
+- `frontend/src/components/oracle/ReadingResults.tsx` — replaced ExportButton+ShareButton with ExportShareMenu, added reading-card div
+- `frontend/src/components/oracle/ExportButton.tsx` — rewritten as re-export of ExportShareMenu
+- `frontend/src/locales/en.json` — 17 export/share keys
+- `frontend/src/locales/fa.json` — 17 matching Persian keys
+- `frontend/package.json` — added jspdf, html2canvas
+
+**Test files created/modified (4):**
+
+- `api/tests/test_share.py` — 10 tests (create success, not found, get success, expired, invalid token, deactivated, revoke, no auth, public access, view count)
+- `frontend/src/components/oracle/__tests__/ExportShareMenu.test.tsx` — 10 tests (null guard, render, dropdown, text export, share visibility, clipboard, PDF loading, error handling, outside click, Escape)
+- `frontend/src/components/oracle/__tests__/SharedReading.test.tsx` — 5 tests (loading, success, error, no sidebar, document title)
+- `frontend/src/components/oracle/__tests__/ReadingResults.test.tsx` — updated for ExportShareMenu
+
+**Tests:** Backend 401 pass (10 pre-existing multi_user failures unrelated) / Frontend 627 pass / 0 fail / 25 new tests
+**Commit:** (pending)
+**Issues:**
+
+- `BigInteger` PK with autoincrement doesn't work in SQLite (autoincrement requires exactly `INTEGER` type). Fixed by using `Integer` instead. Migration SQL still uses `BIGSERIAL` for PostgreSQL — ORM uses `Integer` which maps to `BIGINT` in PG and `INTEGER` in SQLite.
+- jspdf and html2canvas are dynamically imported in exportReading.ts to avoid bundle bloat for users who don't export.
+
+**Decisions:**
+
+- Migration numbered 013 (not 012 as spec suggested) because 012_framework_alignment already exists
+- `created_by_user_id` is VARCHAR(255) instead of INTEGER because auth system returns string user IDs
+- ShareLink ORM uses Integer (not BigInteger) for SQLite test compatibility — no practical difference for share link volume
+- ExportButton.tsx rewritten as thin re-export rather than deleted, for backwards compatibility if imported elsewhere
+
+**Next:** Session 33 — Telegram Bot integration (bot token, chat commands, reading notifications, admin alerts).
 
 ---
 

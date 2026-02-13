@@ -65,6 +65,32 @@ vi.mock("@/services/api", () => ({
     history: vi.fn().mockReturnValue(new Promise(() => {})),
   },
   translation: { translate: vi.fn() },
+  share: {
+    create: vi.fn(),
+    get: vi.fn(),
+    revoke: vi.fn(),
+  },
+}));
+
+vi.mock("@/utils/exportReading", () => ({
+  formatAsText: vi.fn(() => "formatted text"),
+  exportAsPdf: vi.fn(() => Promise.resolve()),
+  exportAsImage: vi.fn(() => Promise.resolve()),
+  copyToClipboard: vi.fn(() => Promise.resolve(true)),
+  downloadAsText: vi.fn(),
+  downloadAsJson: vi.fn(),
+}));
+
+vi.mock("@/utils/shareReading", () => ({
+  createShareLink: vi.fn(() =>
+    Promise.resolve({
+      token: "abc",
+      url: "/share/abc",
+      expires_at: null,
+      created_at: "2026-01-01",
+    }),
+  ),
+  getShareUrl: vi.fn(() => "http://localhost/share/abc"),
 }));
 
 const readingResult: ConsultationResult = {
@@ -132,25 +158,13 @@ describe("ReadingResults", () => {
     expect(screen.getByText("Test summary for reading")).toBeInTheDocument();
   });
 
-  it("shows export buttons when result exists", () => {
+  it("shows export menu button when result exists", () => {
     renderWithProviders(<ReadingResults result={readingResult} />);
-    expect(screen.getByText("Export TXT")).toBeInTheDocument();
-    expect(screen.getByText("Export JSON")).toBeInTheDocument();
+    expect(screen.getByText(/Export TXT/)).toBeInTheDocument();
   });
 
-  it("does not show export buttons when no result", () => {
+  it("does not show export menu when no result", () => {
     renderWithProviders(<ReadingResults result={null} />);
-    expect(screen.queryByText("Export TXT")).not.toBeInTheDocument();
-    expect(screen.queryByText("Export JSON")).not.toBeInTheDocument();
-  });
-
-  it("share button appears when result exists", () => {
-    renderWithProviders(<ReadingResults result={readingResult} />);
-    expect(screen.getByText("Share")).toBeInTheDocument();
-  });
-
-  it("share button hidden when no result", () => {
-    renderWithProviders(<ReadingResults result={null} />);
-    expect(screen.queryByText("Share")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Export TXT/)).not.toBeInTheDocument();
   });
 });

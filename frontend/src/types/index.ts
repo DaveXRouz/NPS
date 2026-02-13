@@ -776,6 +776,23 @@ export type EventType =
   | "daily_reading"
   | "error";
 
+// ─── Share ───
+
+export interface ShareLink {
+  token: string;
+  url: string;
+  expires_at: string | null;
+  created_at: string;
+}
+
+export interface SharedReadingData {
+  reading: Record<string, unknown>;
+  shared_at: string;
+  view_count: number;
+}
+
+export type ExportFormat = "pdf" | "image" | "text" | "json";
+
 export type ConnectionStatus =
   | "disconnected"
   | "connecting"

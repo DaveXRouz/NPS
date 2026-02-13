@@ -4,8 +4,7 @@ import { useArrowNavigation } from "@/hooks/useArrowNavigation";
 import { SummaryTab } from "./SummaryTab";
 import { DetailsTab } from "./DetailsTab";
 import { ReadingHistory } from "./ReadingHistory";
-import { ExportButton } from "./ExportButton";
-import { ShareButton } from "./ShareButton";
+import { ExportShareMenu } from "./ExportShareMenu";
 import { HeartbeatDisplay } from "./HeartbeatDisplay";
 import { LocationDisplay } from "./LocationDisplay";
 import { ConfidenceMeter } from "./ConfidenceMeter";
@@ -81,60 +80,68 @@ export const ReadingResults = React.memo(function ReadingResults({
           ))}
         </div>
         <div className="flex gap-2 export-actions">
-          {result && <ShareButton result={result} />}
-          <ExportButton result={result} />
+          <ExportShareMenu
+            result={result}
+            readingId={readingId}
+            readingCardId="reading-card"
+          />
         </div>
       </div>
 
       {/* Tab content — eagerly rendered, hidden via CSS, fade on show */}
-      <div
-        id="tabpanel-summary"
-        role="tabpanel"
-        aria-labelledby="tab-summary"
-        aria-live={activeTab === "summary" ? "polite" : undefined}
-        className={activeTab === "summary" ? "nps-animate-fade-in" : "hidden"}
-      >
-        {/* Confidence meter at top of summary */}
-        {(confidence || boosts.length > 0) && (
-          <div className="mb-3 p-3 bg-nps-bg-card border border-nps-border/30 rounded">
-            <ConfidenceMeter confidence={confidence ?? null} boosts={boosts} />
+      <div id="reading-card">
+        <div
+          id="tabpanel-summary"
+          role="tabpanel"
+          aria-labelledby="tab-summary"
+          aria-live={activeTab === "summary" ? "polite" : undefined}
+          className={activeTab === "summary" ? "nps-animate-fade-in" : "hidden"}
+        >
+          {/* Confidence meter at top of summary */}
+          {(confidence || boosts.length > 0) && (
+            <div className="mb-3 p-3 bg-nps-bg-card border border-nps-border/30 rounded">
+              <ConfidenceMeter
+                confidence={confidence ?? null}
+                boosts={boosts}
+              />
+            </div>
+          )}
+          <SummaryTab result={result} />
+          {/* Feedback form — shown after a reading is generated */}
+          {readingId && <ReadingFeedback readingId={readingId} />}
+        </div>
+        <div
+          id="tabpanel-details"
+          role="tabpanel"
+          aria-labelledby="tab-details"
+          aria-live={activeTab === "details" ? "polite" : undefined}
+          className={activeTab === "details" ? "nps-animate-fade-in" : "hidden"}
+        >
+          <DetailsTab result={result} />
+          {/* Heartbeat display */}
+          <div className="mt-3 p-3 bg-nps-bg-card border border-nps-border/30 rounded">
+            <h4 className="text-xs font-medium text-nps-text-dim mb-2">
+              {t("oracle.details_heartbeat")}
+            </h4>
+            <HeartbeatDisplay heartbeat={heartbeat ?? null} />
           </div>
-        )}
-        <SummaryTab result={result} />
-        {/* Feedback form — shown after a reading is generated */}
-        {readingId && <ReadingFeedback readingId={readingId} />}
-      </div>
-      <div
-        id="tabpanel-details"
-        role="tabpanel"
-        aria-labelledby="tab-details"
-        aria-live={activeTab === "details" ? "polite" : undefined}
-        className={activeTab === "details" ? "nps-animate-fade-in" : "hidden"}
-      >
-        <DetailsTab result={result} />
-        {/* Heartbeat display */}
-        <div className="mt-3 p-3 bg-nps-bg-card border border-nps-border/30 rounded">
-          <h4 className="text-xs font-medium text-nps-text-dim mb-2">
-            {t("oracle.details_heartbeat")}
-          </h4>
-          <HeartbeatDisplay heartbeat={heartbeat ?? null} />
+          {/* Location element display */}
+          <div className="mt-3 p-3 bg-nps-bg-card border border-nps-border/30 rounded">
+            <h4 className="text-xs font-medium text-nps-text-dim mb-2">
+              {t("oracle.details_location_element")}
+            </h4>
+            <LocationDisplay location={location ?? null} />
+          </div>
         </div>
-        {/* Location element display */}
-        <div className="mt-3 p-3 bg-nps-bg-card border border-nps-border/30 rounded">
-          <h4 className="text-xs font-medium text-nps-text-dim mb-2">
-            {t("oracle.details_location_element")}
-          </h4>
-          <LocationDisplay location={location ?? null} />
+        <div
+          id="tabpanel-history"
+          role="tabpanel"
+          aria-labelledby="tab-history"
+          aria-live={activeTab === "history" ? "polite" : undefined}
+          className={activeTab === "history" ? "nps-animate-fade-in" : "hidden"}
+        >
+          <ReadingHistory />
         </div>
-      </div>
-      <div
-        id="tabpanel-history"
-        role="tabpanel"
-        aria-labelledby="tab-history"
-        aria-live={activeTab === "history" ? "polite" : undefined}
-        className={activeTab === "history" ? "nps-animate-fade-in" : "hidden"}
-      >
-        <ReadingHistory />
       </div>
     </div>
   );

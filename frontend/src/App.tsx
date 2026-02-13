@@ -13,6 +13,7 @@ const ReadingHistory = lazy(() => import("./pages/ReadingHistory"));
 const Settings = lazy(() => import("./pages/Settings"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const Scanner = lazy(() => import("./pages/Scanner"));
+const SharedReading = lazy(() => import("./pages/SharedReading"));
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -26,6 +27,16 @@ export default function App() {
   return (
     <Suspense fallback={<PageLoadingFallback />}>
       <Routes>
+        {/* Public share page — no layout/sidebar */}
+        <Route
+          path="/share/:token"
+          element={
+            <ErrorBoundary>
+              <SharedReading />
+            </ErrorBoundary>
+          }
+        />
+
         <Route element={<Layout />}>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route
