@@ -1,0 +1,12 @@
+# dependencies
+node_modules/
+
+# build
+dist/
+
+# e2e output
+e2e-screenshots/
+e2e-results/
+e2e-report/
+test-results/
+playwright-report/

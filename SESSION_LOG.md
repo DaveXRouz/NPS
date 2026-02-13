@@ -2243,6 +2243,53 @@ Full backup/restore system with shell script enhancements, cron container, 4 adm
 
 ---
 
+### Session 43 — E2E Tests: Frontend Flows (Playwright)
+
+**Date:** 2026-02-14
+**Spec:** `.session-specs/SESSION_43_SPEC.md`
+**Status:** COMPLETE
+**Commit:** `b2e27f5`
+
+**Summary:**
+
+26 new Playwright E2E test cases across 6 spec files covering all major user-facing flows: authentication & navigation (4 tests), Oracle profile CRUD (5 tests), time/question/multi-user reading flows (5 tests), reading history browsing & filtering (3 tests), settings & locale/RTL switching (4 tests), and mobile viewport responsiveness (5 tests). Expanded fixtures.ts with 10 exported helpers (login, seedTestProfile, seedMultipleProfiles, takeStepScreenshot, waitForApiReady, authHeaders, getAuthToken, switchToFarsi, switchToEnglish, cleanupTestUsers). Updated playwright.config.ts with mobile-chrome project, screenshot "on", HTML reporter, 60s timeout. Created frontend/.gitignore with e2e output directories.
+
+**Files created (6):**
+
+- `frontend/e2e/auth.spec.ts` — 4 tests: app redirect, sidebar nav links, page navigation clicks, direct URL access
+- `frontend/e2e/profile.spec.ts` — 5 tests: create via form, validation errors, edit pre-filled, two-step delete, localStorage persistence
+- `frontend/e2e/reading.spec.ts` — 5 tests: time reading submission + results, ARIA tab switching, question with Persian keyboard, multi-user 3-profile flow, empty state guidance
+- `frontend/e2e/history.spec.ts` — 3 tests: history displays after reading, filter chip toggling, card expand/collapse
+- `frontend/e2e/settings.spec.ts` — 4 tests: EN/FA toggle with dir/lang attributes, RTL sidebar border, language persistence across navigation, settings page sections render
+- `frontend/.gitignore` — e2e-screenshots/, e2e-results/, e2e-report/, test-results/, playwright-report/
+
+**Files modified (3):**
+
+- `frontend/e2e/fixtures.ts` — Complete rewrite: added login(), seedTestProfile(), seedMultipleProfiles(), takeStepScreenshot(), waitForApiReady(), authHeaders(), getAuthToken(), switchToFarsi(), switchToEnglish(); refactored createTestUser/cleanupTestUsers to use centralized authHeaders()
+- `frontend/playwright.config.ts` — Added mobile-chrome (Pixel 5) project, screenshot "on", video "on-first-retry", HTML+list reporter, 60s timeout, 10s expect timeout, sequential workers, e2e-results output dir
+- `frontend/e2e/responsive.spec.ts` — Added 5 new Session 43 tests (mobile dashboard, oracle page, profile modal, reading results, RTL mode) with login/cleanup lifecycle; preserved 12 existing responsive tests from prior sessions
+
+**Tests:** 26 new E2E test cases discovered across 6 spec files (4+5+5+3+4+5). 38 total chromium tests in new files. All 666 frontend unit tests pass (0 regressions). Existing oracle.spec.ts (8 tests) preserved. Tests require live Vite + API servers to execute (Playwright webServer auto-starts Vite).
+
+**Decisions:**
+
+- LanguageToggle located by `button[role="switch"]` — matches actual component implementation rather than text-based selectors.
+- Profile selector located by `select[aria-label]` — matches actual `aria-label={t("oracle.select_profile")}` attribute.
+- Existing responsive.spec.ts (12 tests from prior sessions) preserved alongside 5 new Session 43 tests in same file.
+- Tests use adaptive login() fixture that handles both auth-gated and token-injection modes.
+- cleanupTestUsers wrapped in try/catch to prevent cleanup failures from breaking test runs.
+- takeStepScreenshot uses filesystem operations — screenshots captured to `e2e-screenshots/` for visual review.
+
+**Issues:**
+
+- E2E tests cannot be fully executed without running Vite + FastAPI stack (Docker not available in this environment). Tests are code-complete and collection-verified via `--list`.
+- Pre-existing TS error in BackupManager.tsx (unused import) — unrelated to Session 43.
+- Spec references routes `/vault` and `/learning` but actual Navigation.tsx only has: Dashboard, Oracle, Reading History, Settings, Admin (admin-only), Scanner (disabled). Tests adapted to actual routes.
+
+**Next:** Session 44 — Performance Optimization.
+
+---
+
 ## Cross-Terminal Dependencies
 
 > Only used in multi-terminal mode. Track what each terminal needs from others.
