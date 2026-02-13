@@ -9,9 +9,9 @@
 
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 39 of 45
-**Last session:** Session 40 — Admin: Backup, Restore & Infrastructure Polish
-**Current block:** Admin & DevOps (Sessions 38-40) — Session 2 of 3
+**Sessions completed:** 41 of 45
+**Last session:** Session 41 — Integration Tests: Auth & Profiles
+**Current block:** Testing & Deployment (Sessions 41-45) — Session 1 of 5
 
 ---
 
@@ -2155,6 +2155,47 @@ Full backup/restore system with shell script enhancements, cron container, 4 adm
 - All 10 Docker services now have json-file logging with 10MB/3-file rotation.
 
 **Next:** Session 41 — Testing: Integration Tests & Test Coverage.
+
+---
+
+### Session 41 — Integration Tests: Auth & Profiles
+
+**Date:** 2026-02-14
+**Spec:** `.session-specs/SESSION_41_SPEC.md`
+**Status:** COMPLETE
+**Commit:** `de4b440`
+
+**Summary:**
+
+77 new integration tests covering full authentication lifecycle (JWT login, API key CRUD, role-based access, edge cases) and Oracle profile CRUD (create, read, update, delete, Persian UTF-8 round-trip, encryption verification). Extended conftest.py with 13 new fixtures/helpers for auth and profile testing. All tests are designed to run against a live PostgreSQL + API stack.
+
+**Files created (2):**
+
+- `integration/tests/test_auth_flow.py` — 40 tests across 4 classes: TestLoginFlow (10), TestAPIKeyFlow (7), TestRoleBasedAccess (15), TestAuthEdgeCases (8)
+- `integration/tests/test_profile_flow.py` — 37 tests across 6 classes: TestProfileCreate (8), TestProfileRead (6), TestProfileUpdate (6), TestProfileDelete (6), TestPersianDataHandling (7), TestProfileEncryption (4)
+
+**Files modified (2):**
+
+- `integration/tests/conftest.py` — Added 13 fixtures/helpers: \_create_test_system_user, \_login, admin_user, regular_user, readonly_user, admin_jwt_client, user_jwt_client, readonly_jwt_client, unauth_client, cleanup_test_system_users, SAMPLE_PROFILE_EN, SAMPLE_PROFILE_FA, SAMPLE_PROFILE_MIXED
+- `integration/pytest.ini` — Registered auth, profile, persian, security custom markers
+
+**Tests:** 77 new tests collected (40 auth + 37 profile). 153 total integration tests collected (77 new + 76 existing). Syntax verified, ruff clean, black clean. Tests require live API+DB to execute (not available in current environment).
+
+**Decisions:**
+
+- Session-scoped JWT client fixtures created once per test session (admin, user, readonly) to avoid repeated login overhead.
+- Test users created via direct DB insert with ON CONFLICT upsert for idempotent re-runs.
+- Session-scoped cleanup deletes test system users + API keys at end; function-scoped cleanup deletes oracle_users after each test.
+- JWT edge case tests use jose.jwt.encode to craft expired/tampered tokens for security verification.
+- Encryption tests use pytest.skip() when NPS_ENCRYPTION_KEY is not configured.
+- Persian text stored as Unicode escapes in source for cross-platform compatibility.
+- All test profile names use IntTest\_ prefix for automated cleanup.
+
+**Issues:**
+
+- Integration tests cannot be executed without running PostgreSQL + API stack (Docker not available in this environment). Tests are code-complete and collection-verified.
+
+**Next:** Session 42 — Integration Tests: Readings & Calculations.
 
 ---
 
