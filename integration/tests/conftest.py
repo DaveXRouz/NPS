@@ -1,6 +1,7 @@
 """Shared fixtures for NPS integration tests."""
 
 import os
+import time
 import uuid
 from pathlib import Path
 
@@ -305,3 +306,173 @@ def cleanup_test_system_users(db_session_factory):
 def api_url(path: str) -> str:
     """Build a full API URL from a relative path."""
     return f"{API_BASE_URL}{path}"
+
+
+# ─── Deterministic Test Constants ─────────────────────────────────────────────
+
+DETERMINISTIC_DATETIME = "2024-06-15T14:30:00+00:00"
+
+ZODIAC_SIGNS = {
+    "Aries",
+    "Taurus",
+    "Gemini",
+    "Cancer",
+    "Leo",
+    "Virgo",
+    "Libra",
+    "Scorpio",
+    "Sagittarius",
+    "Capricorn",
+    "Aquarius",
+    "Pisces",
+}
+
+CHINESE_ANIMALS = {
+    "Rat",
+    "Ox",
+    "Tiger",
+    "Rabbit",
+    "Dragon",
+    "Snake",
+    "Horse",
+    "Goat",
+    "Monkey",
+    "Rooster",
+    "Dog",
+    "Pig",
+}
+
+FIVE_ELEMENTS = {"Wood", "Fire", "Earth", "Metal", "Water"}
+
+VALID_LIFE_PATHS = set(range(1, 10)) | {11, 22, 33}
+
+THREE_USERS = [
+    {"name": "IntTest_Deep_A", "birth_year": 1990, "birth_month": 3, "birth_day": 15},
+    {"name": "IntTest_Deep_B", "birth_year": 1985, "birth_month": 7, "birth_day": 22},
+    {"name": "IntTest_Deep_C", "birth_year": 1978, "birth_month": 11, "birth_day": 8},
+]
+
+
+# ─── AI Mock Fixture ─────────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def ai_mock():
+    """Stub for AI mocking in integration tests.
+
+    In unit tests, this would monkeypatch the AI interpreter. For HTTP-based
+    integration tests, the server-side AI is already optional — if
+    ANTHROPIC_API_KEY is not set, ai_interpretation returns None gracefully.
+    This fixture exists for API parity and future in-process test support.
+    """
+    yield
+
+
+# ─── Reading Helper Fixture ──────────────────────────────────────────────────
+
+
+@pytest.fixture
+def reading_helper(api_client):
+    """Utility for common reading test patterns."""
+
+    class ReadingHelper:
+        def time_reading(self, datetime_str: str = DETERMINISTIC_DATETIME):
+            resp = api_client.post(
+                api_url("/api/oracle/reading"),
+                json={"datetime": datetime_str},
+            )
+            assert resp.status_code == 200, (
+                f"Time reading failed: {resp.status_code}: {resp.text}"
+            )
+            return resp.json()
+
+        def name_reading(self, name: str):
+            resp = api_client.post(
+                api_url("/api/oracle/name"),
+                json={"name": name},
+            )
+            assert resp.status_code == 200, (
+                f"Name reading failed: {resp.status_code}: {resp.text}"
+            )
+            return resp.json()
+
+        def question_reading(self, question: str):
+            resp = api_client.post(
+                api_url("/api/oracle/question"),
+                json={"question": question},
+            )
+            assert resp.status_code == 200, (
+                f"Question reading failed: {resp.status_code}: {resp.text}"
+            )
+            return resp.json()
+
+        def daily_reading(self, date: str | None = None):
+            url = api_url("/api/oracle/daily")
+            if date:
+                url += f"?date={date}"
+            resp = api_client.get(url)
+            assert resp.status_code == 200, (
+                f"Daily reading failed: {resp.status_code}: {resp.text}"
+            )
+            return resp.json()
+
+        def multi_user_reading(
+            self, users: list[dict], include_interpretation: bool = False
+        ):
+            resp = api_client.post(
+                api_url("/api/oracle/reading/multi-user"),
+                json={
+                    "users": users,
+                    "primary_user_index": 0,
+                    "include_interpretation": include_interpretation,
+                },
+            )
+            assert resp.status_code == 200, (
+                f"Multi-user reading failed: {resp.status_code}: {resp.text}"
+            )
+            return resp.json()
+
+    return ReadingHelper()
+
+
+# ─── Assertion Helpers ────────────────────────────────────────────────────────
+
+
+def assert_reading_has_core_sections(data: dict) -> None:
+    """Assert time reading response has all mandatory sections."""
+    for key in ("fc60", "numerology", "zodiac", "summary", "generated_at"):
+        assert key in data, f"Missing required section: {key}"
+
+
+def assert_fc60_valid(fc60: dict) -> None:
+    """Assert FC60 section has valid data types and ranges."""
+    assert isinstance(fc60["cycle"], int) and 0 <= fc60["cycle"] <= 59
+    assert fc60["element"] in FIVE_ELEMENTS
+    assert fc60["polarity"] in ("Yin", "Yang")
+    assert isinstance(fc60["stem"], str) and len(fc60["stem"]) > 0
+    assert isinstance(fc60["branch"], str) and len(fc60["branch"]) > 0
+    assert (
+        isinstance(fc60["energy_level"], (int, float))
+        and 0 <= fc60["energy_level"] <= 1.0
+    )
+    if "element_balance" in fc60:
+        assert set(fc60["element_balance"].keys()) == FIVE_ELEMENTS
+        assert 0.9 <= sum(fc60["element_balance"].values()) <= 1.1
+
+
+def assert_numerology_valid(num: dict) -> None:
+    """Assert numerology section has valid data types and ranges."""
+    assert num["life_path"] in VALID_LIFE_PATHS
+    assert isinstance(num["day_vibration"], int)
+    assert isinstance(num["personal_year"], int)
+    assert isinstance(num["personal_month"], int)
+    assert isinstance(num["personal_day"], int)
+    assert isinstance(num["interpretation"], str)
+
+
+def timed_request(client, method: str, url: str, **kwargs):
+    """Execute a request and return (response, elapsed_ms)."""
+    start = time.perf_counter()
+    resp = getattr(client, method)(url, **kwargs)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    return resp, elapsed_ms

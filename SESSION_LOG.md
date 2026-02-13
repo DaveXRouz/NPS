@@ -2199,6 +2199,50 @@ Full backup/restore system with shell script enhancements, cron container, 4 adm
 
 ---
 
+### Session 42 — Integration Tests: All Reading Types
+
+**Date:** 2026-02-14
+**Spec:** `.session-specs/SESSION_42_SPEC.md`
+**Status:** COMPLETE
+**Commit:** `PENDING`
+
+**Summary:**
+
+88 new integration tests covering all 5 reading types end-to-end plus framework verification. Six new test files: time reading (15 tests verifying all 12 response sections, data types, determinism), name reading (13 tests for numerology values, letter analysis, edge cases), question reading (12 tests for answer validation, confidence, determinism, master numbers), daily reading (10 tests for caching, date handling, non-persistence), multi-user deep reading (15 tests for 3-user flow, pairwise math C(n,2), group energy/dynamics, DB persistence), and framework integration (23 tests for engine output verification, AI mock/real split, cross-reading integrity, performance). Conftest enhanced with reading_helper fixture, assertion utilities, deterministic constants, timed_request helper, and ai_mock stub.
+
+**Files created (6):**
+
+- `integration/tests/test_time_reading.py` — 15 tests: all 12 response sections, FC60/numerology/zodiac data types, determinism, default datetime, DB persistence, ISO format, AI interpretation type
+- `integration/tests/test_name_reading.py` — 13 tests: response structure (v1/v2 compat), name echo, number ranges, letter count/structure, determinism, divergence, single/long/spaced names, DB persistence
+- `integration/tests/test_question_reading.py` — 12 tests: response structure (v1/v2 compat), question echo, answer validation, sign number, confidence, interpretation, determinism, short/long questions, master number, DB persistence
+- `integration/tests/test_daily_reading.py` — 10 tests: structure, date format, insight non-empty, lucky numbers, default=today, specific date, same-date caching, divergence, non-persistence verification, optimal_activity type
+- `integration/tests/test_multi_user_reading.py` — 15 tests: 3-user flow, profile completeness, pairwise C(n,2) for n=2/3/4, compatibility score range, strengths/challenges, group energy, group dynamics, avg_compatibility range, computation_ms, pair_count, reading_id, name matching, determinism, AI interpretation, DB junction table
+- `integration/tests/test_framework_integration.py` — 23 tests across 6 classes: engine output (10), AI mock CI (2), AI real staging (2, skipif no key), cross-reading integrity (3), performance (5), multi-user engine output (1)
+
+**Files modified (2):**
+
+- `integration/tests/conftest.py` — Added: DETERMINISTIC_DATETIME, ZODIAC_SIGNS, CHINESE_ANIMALS, FIVE_ELEMENTS, VALID_LIFE_PATHS, THREE_USERS constants; ai_mock fixture; reading_helper fixture (ReadingHelper class with 5 methods); assert_reading_has_core_sections, assert_fc60_valid, assert_numerology_valid assertion helpers; timed_request helper
+- `integration/pytest.ini` — Added 4 markers: reading, multi_user, framework, ai_real
+
+**Tests:** 88 new tests discovered (15+13+12+10+15+23). 241 total integration tests collected (88 new + 153 existing). All files pass ruff check and black formatting. Syntax verified via py_compile. Tests require live API+DB to execute.
+
+**Decisions:**
+
+- V1/V2 field compatibility: Tests accept both v1 field names (destiny_number, letters, answer, sign_number) and v2 names (expression, letter_breakdown, question_number, is_master_number) since the API uses v2 endpoints with extra="allow" pass-through.
+- ai_mock fixture is a stub for HTTP-based integration tests (can't monkeypatch a running server). Server-side AI gracefully degrades when ANTHROPIC_API_KEY is not set.
+- Performance tests use 5s/2s/5s/2s/8s thresholds matching existing TARGETS in test_e2e_flow.py.
+- Daily reading non-persistence test uses before/after reading count comparison via GET /api/oracle/readings.
+- Pairwise count formula test creates n=2,3,4 user groups and verifies C(n,2) = pair_count in response.
+
+**Issues:**
+
+- Integration tests cannot be executed without running PostgreSQL + API stack. Tests are code-complete and collection-verified.
+- The question reading v2 endpoint returns different field names than the spec's v1 contract. Tests handle both with fallback checks.
+
+**Next:** Session 43 — Playwright E2E Tests.
+
+---
+
 ## Cross-Terminal Dependencies
 
 > Only used in multi-terminal mode. Track what each terminal needs from others.
