@@ -17,6 +17,7 @@ from telegram.ext import (
 )
 
 from .. import client
+from ..i18n import t
 from ..rate_limiter import rate_limiter
 
 logger = logging.getLogger(__name__)
@@ -108,9 +109,7 @@ async def admin_stats_handler(
 
     try:
         if not await _is_admin(chat_id):
-            await update.message.reply_text(
-                "\u26d4 Access denied. Admin role required."
-            )
+            await update.message.reply_text(t("admin_access_denied", "en"))
             return
 
         http = await client.get_client()
@@ -236,9 +235,7 @@ async def admin_users_handler(
 
     try:
         if not await _is_admin(chat_id):
-            await update.message.reply_text(
-                "\u26d4 Access denied. Admin role required."
-            )
+            await update.message.reply_text(t("admin_access_denied", "en"))
             return
 
         await _send_users_page(update, chat_id, page=0)
@@ -262,7 +259,7 @@ async def admin_users_callback(
         chat_id = query.message.chat_id
 
         if not await _is_admin(chat_id):
-            await query.edit_message_text("\u26d4 Access denied. Admin role required.")
+            await query.edit_message_text(t("admin_access_denied", "en"))
             return
 
         await _send_users_page(query, chat_id, page, is_callback=True)
@@ -287,9 +284,7 @@ async def admin_broadcast_handler(
 
     try:
         if not await _is_admin(chat_id):
-            await update.message.reply_text(
-                "\u26d4 Access denied. Admin role required."
-            )
+            await update.message.reply_text(t("admin_access_denied", "en"))
             return
 
         if not context.args:
@@ -353,7 +348,7 @@ async def admin_broadcast_callback(
         action = query.data.split(":")[1] if ":" in query.data else ""
 
         if not await _is_admin(chat_id):
-            await query.edit_message_text("\u26d4 Access denied. Admin role required.")
+            await query.edit_message_text(t("admin_access_denied", "en"))
             return
 
         if action == "cancel":

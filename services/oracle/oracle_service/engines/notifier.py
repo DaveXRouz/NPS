@@ -1,32 +1,18 @@
 """
 Telegram notification system for NPS.
 
-Sends alerts for puzzle solves, balance discoveries, errors, and daily status.
-All functions fail silently when unconfigured or on network error.
+Modernized in Session 37: removed deprecated urllib/threading code.
+All notifications now route through the event callback bridge to SystemNotifier.
 
-Legacy additions:
+Legacy additions preserved:
 - Command registry with _register_command / dispatch_command
 - Inline keyboard system with callback routing
-- Message queue with rate limiting and auto-retry
 - Bot health tracking with auto-disable after consecutive failures
 - Notification templates for common alert types
 """
 
-import json
-import threading
-import time
 import logging
-import ssl
-import urllib.request
-import urllib.error
-
-# SSL context -- macOS Python often lacks system CA certs
-try:
-    import certifi
-
-    _ssl_ctx = ssl.create_default_context(cafile=certifi.where())
-except Exception:
-    _ssl_ctx = ssl._create_unverified_context()
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -77,29 +63,20 @@ COMMANDS = {
     "/export": "Export vault or report",
 }
 
-_lock = threading.Lock()
-_last_send_time = 0.0
-_error_count = 0
-_error_count_reset_time = 0.0
-_MAX_ERRORS_PER_HOUR = 10
-_MIN_SEND_INTERVAL = 2.0
 _MAX_MESSAGE_LENGTH = 4096
-_last_update_id = 0
 
 # ================================================================
-# Bot Health & Auto-Disable (4.5)
+# Bot Health & Auto-Disable
 # ================================================================
 
 _consecutive_failures = 0
 _bot_disabled = False
 _BOT_DISABLE_THRESHOLD = 5
 
+
 # ================================================================
 # Event Callback Bridge (Session 36)
 # ================================================================
-# Allows the new python-telegram-bot notification service to receive
-# events from this legacy notifier. Register a callback via
-# register_event_callback() to forward events to SystemNotifier.
 
 _event_callback = None
 
@@ -122,6 +99,7 @@ def _emit_event(event_type, data):
     Since the callback is async, we use a best-effort fire-and-forget approach.
     """
     if _event_callback is None:
+        logger.debug("No callback registered; dropped event: %s", event_type)
         return
     try:
         import asyncio
@@ -131,9 +109,10 @@ def _emit_event(event_type, data):
             loop.create_task(_event_callback(event_type, data))
         else:
             loop.run_until_complete(_event_callback(event_type, data))
+        _record_success()
     except RuntimeError:
-        # No event loop running — log and skip
         logger.debug("Could not emit event %s: no event loop", event_type)
+        _record_failure()
 
 
 def is_bot_healthy():
@@ -142,591 +121,121 @@ def is_bot_healthy():
 
 
 def _record_success():
-    """Record a successful API call; re-enable bot if it was disabled."""
+    """Record a successful callback; re-enable bot if it was disabled."""
     global _consecutive_failures, _bot_disabled
-    with _lock:
-        _consecutive_failures = 0
-        if _bot_disabled:
-            _bot_disabled = False
-            logger.info("Telegram bot re-enabled after successful send")
+    _consecutive_failures = 0
+    if _bot_disabled:
+        _bot_disabled = False
+        logger.info("Telegram bot re-enabled after successful callback")
 
 
 def _record_failure():
-    """Record a failed API call; disable bot after threshold."""
+    """Record a failed callback; disable bot after threshold."""
     global _consecutive_failures, _bot_disabled
-    with _lock:
-        _consecutive_failures += 1
-        if _consecutive_failures >= _BOT_DISABLE_THRESHOLD and not _bot_disabled:
-            _bot_disabled = True
-            logger.error(
-                "Telegram bot auto-disabled after %d consecutive failures",
-                _consecutive_failures,
-            )
-
-
-# ================================================================
-# Message Queue & Rate Limiting (4.4)
-# ================================================================
-
-_message_queue = []
-_queue_lock = threading.Lock()
-_queue_thread = None
-_queue_running = False
-
-
-def _enqueue_message(text, buttons=None, parse_mode="HTML"):
-    """Add a message to the outgoing queue. Starts processor if needed."""
-    global _queue_thread, _queue_running
-    with _queue_lock:
-        _message_queue.append(
-            {
-                "text": text,
-                "buttons": buttons,
-                "parse_mode": parse_mode,
-            }
+    _consecutive_failures += 1
+    if _consecutive_failures >= _BOT_DISABLE_THRESHOLD and not _bot_disabled:
+        _bot_disabled = True
+        logger.error(
+            "Telegram bot auto-disabled after %d consecutive failures",
+            _consecutive_failures,
         )
 
-    # Start queue processor daemon if not running
-    if not _queue_running:
-        _queue_running = True
-        _queue_thread = threading.Thread(target=_process_queue, daemon=True)
-        _queue_thread.start()
-
-
-def _process_queue():
-    """Daemon thread: processes queued messages at 1 msg/sec."""
-    global _queue_running
-    while True:
-        msg = None
-        with _queue_lock:
-            if _message_queue:
-                msg = _message_queue.pop(0)
-
-        if msg is None:
-            # No messages -- check again in 0.5s, exit after 10s idle
-            time.sleep(0.5)
-            with _queue_lock:
-                if not _message_queue:
-                    _queue_running = False
-                    return
-            continue
-
-        # Send with retry
-        _send_with_retry(
-            msg["text"],
-            buttons=msg.get("buttons"),
-            parse_mode=msg.get("parse_mode", "HTML"),
-        )
-        time.sleep(1.0)  # 1 msg/sec rate limit
-
-
-def _send_with_retry(text, buttons=None, parse_mode="HTML", max_retries=3):
-    """Send a message with exponential backoff retry (1s, 2s, 4s).
-
-    Returns True on success, False after all retries exhausted.
-    """
-    if _bot_disabled:
-        logger.debug("Bot disabled, skipping send_with_retry")
-        return False
-
-    for attempt in range(max_retries):
-        if buttons:
-            ok = send_message_with_buttons(text, buttons, parse_mode)
-        else:
-            ok = send_message(text, parse_mode)
-
-        if ok:
-            return True
-
-        if attempt < max_retries - 1:
-            delay = 2**attempt  # 1s, 2s, 4s
-            time.sleep(delay)
-
-    return False
-
 
 # ================================================================
-# Core Send Functions (preserved from earlier version)
+# Notification Functions (routed through event callback)
 # ================================================================
 
 
 def is_configured():
-    """Check if Telegram bot token and chat_id are both set."""
-    try:
-        from engines.config import get
-
-        token = get("telegram.bot_token", "")
-        chat_id = get("telegram.chat_id", "")
-        enabled = get("telegram.enabled", True)
-        return bool(token and chat_id and enabled)
-    except Exception:
-        return False
-
-
-def _send_raw(token, chat_id, text, parse_mode="HTML"):
-    """Send a message via Telegram Bot API. Returns True on success."""
-    global _last_send_time, _error_count, _error_count_reset_time
-
-    # Rate limiting
-    with _lock:
-        now = time.time()
-        elapsed = now - _last_send_time
-        if elapsed < _MIN_SEND_INTERVAL:
-            time.sleep(_MIN_SEND_INTERVAL - elapsed)
-
-        # Error rate limiting
-        if now - _error_count_reset_time > 3600:
-            _error_count = 0
-            _error_count_reset_time = now
-
-    # Truncate long messages
-    if len(text) > _MAX_MESSAGE_LENGTH:
-        text = text[: _MAX_MESSAGE_LENGTH - 20] + "\n... (truncated)"
-
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = json.dumps(
-        {
-            "chat_id": chat_id,
-            "text": text,
-            "parse_mode": parse_mode,
-        }
-    ).encode("utf-8")
-
-    req = urllib.request.Request(
-        url,
-        data=payload,
-        headers={"Content-Type": "application/json"},
-    )
-
-    try:
-        with urllib.request.urlopen(req, timeout=10, context=_ssl_ctx):
-            with _lock:
-                _last_send_time = time.time()
-            _record_success()
-            return True
-    except Exception as e:
-        with _lock:
-            _error_count += 1
-        _record_failure()
-        logger.debug(f"Telegram send failed: {e}")
-        return False
-
-
-def _send_async(text, parse_mode="HTML"):
-    """Send message in a daemon thread (fire-and-forget)."""
-    try:
-        from engines.config import get
-
-        token = get("telegram.bot_token", "")
-        chat_id = get("telegram.chat_id", "")
-    except Exception:
-        return
-
-    if not token or not chat_id:
-        return
-
-    def _do_send():
-        _send_raw(token, chat_id, text, parse_mode)
-
-    threading.Thread(target=_do_send, daemon=True).start()
-
-
-def send_message(text, parse_mode="HTML"):
-    """Send a message via Telegram. Returns False silently when unconfigured."""
-    if not is_configured():
-        return False
-
-    try:
-        from engines.config import get
-
-        token = get("telegram.bot_token", "")
-        chat_id = get("telegram.chat_id", "")
-        return _send_raw(token, chat_id, text, parse_mode)
-    except Exception:
-        return False
-
-
-def send_message_with_buttons(text, buttons=None, parse_mode="HTML"):
-    """Send a message with inline keyboard buttons via Bot API."""
-    if not is_configured():
-        return False
-
-    try:
-        from engines.config import get
-
-        token = get("telegram.bot_token", "")
-        chat_id = get("telegram.chat_id", "")
-    except Exception:
-        return False
-
-    if not token or not chat_id:
-        return False
-
-    if len(text) > _MAX_MESSAGE_LENGTH:
-        text = text[: _MAX_MESSAGE_LENGTH - 20] + "\n... (truncated)"
-
-    payload_dict = {
-        "chat_id": chat_id,
-        "text": text,
-        "parse_mode": parse_mode,
-    }
-    if buttons:
-        payload_dict["reply_markup"] = {"inline_keyboard": buttons}
-
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = json.dumps(payload_dict).encode("utf-8")
-    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
-
-    try:
-        with urllib.request.urlopen(req, timeout=10, context=_ssl_ctx):
-            with _lock:
-                global _last_send_time
-                _last_send_time = time.time()
-            _record_success()
-            return True
-    except Exception as e:
-        _record_failure()
-        logger.debug(f"Telegram send_with_buttons failed: {e}")
-        return False
-
-
-def _send_with_buttons_async(text, buttons=None, parse_mode="HTML"):
-    """Send message with buttons in a daemon thread (fire-and-forget)."""
-
-    def _do_send():
-        send_message_with_buttons(text, buttons, parse_mode)
-
-    threading.Thread(target=_do_send, daemon=True).start()
-
-
-# ================================================================
-# Polling (4.7 fix: preserve full command text)
-# ================================================================
-
-
-def poll_telegram_commands(timeout=10):
-    """Long-poll Telegram for commands via getUpdates. Returns list of command strings."""
-    global _last_update_id
-
-    if not is_configured():
-        return []
-
-    try:
-        from engines.config import get
-
-        token = get("telegram.bot_token", "")
-    except Exception:
-        return []
-
-    if not token:
-        return []
-
-    url = (
-        f"https://api.telegram.org/bot{token}/getUpdates"
-        f"?offset={_last_update_id + 1}&timeout={timeout}"
-    )
-    req = urllib.request.Request(url)
-
-    commands = []
-    try:
-        with urllib.request.urlopen(req, timeout=timeout + 5, context=_ssl_ctx) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            for update in data.get("result", []):
-                update_id = update.get("update_id", 0)
-                if update_id > _last_update_id:
-                    _last_update_id = update_id
-
-                # Handle callback queries (inline button presses)
-                cb = update.get("callback_query")
-                if cb:
-                    cmd = cb.get("data", "")
-                    if cmd:
-                        commands.append(cmd)
-                    # Acknowledge the callback immediately in background
-                    cb_id = cb.get("id")
-                    if cb_id:
-                        ack_url = f"https://api.telegram.org/bot{token}/answerCallbackQuery?callback_query_id={cb_id}"
-                        threading.Thread(
-                            target=lambda u: urllib.request.urlopen(u, timeout=5, context=_ssl_ctx),
-                            args=(ack_url,),
-                            daemon=True,
-                        ).start()
-
-                # Handle text messages starting with /
-                msg = update.get("message", {})
-                text = msg.get("text", "")
-                if text.startswith("/"):
-                    # 4.7 FIX: preserve full text including arguments
-                    commands.append(text)
-    except Exception as e:
-        logger.debug(f"Telegram poll failed: {e}")
-
-    return commands
-
-
-# ================================================================
-# Notification Functions (preserved from earlier version)
-# ================================================================
+    """Check if event callback is registered."""
+    return _event_callback is not None
 
 
 def notify_solve(puzzle_id, private_key, address):
-    """Notify about a puzzle solve.
-
-    Also emits event to new notification bridge (Session 36).
-    """
-    _emit_event("solve", {"puzzle_id": puzzle_id, "address": address})
-
-    if not is_configured():
-        return False
-
+    """Notify about a puzzle solve via event callback."""
     key_hex = hex(private_key) if isinstance(private_key, int) else str(private_key)
-    text = (
-        f"<b>PUZZLE SOLVED!</b>\n\n"
-        f"Puzzle: #{puzzle_id}\n"
-        f"Key: <code>{key_hex}</code>\n"
-        f"Address: <code>{address}</code>\n"
-        f"Time: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}"
+    _emit_event(
+        "solve",
+        {
+            "puzzle_id": puzzle_id,
+            "address": address,
+            "key": key_hex,
+            "time": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
+        },
     )
-    _send_async(text)
     return True
 
 
 def notify_balance_found(address, balance_btc, source="unknown"):
-    """Notify about a balance discovery.
-
-    Also emits event to new notification bridge (Session 36).
-    """
+    """Notify about a balance discovery via event callback."""
     _emit_event(
         "balance_found",
-        {"address": address, "balance_btc": str(balance_btc), "source": source},
+        {
+            "address": address,
+            "balance_btc": str(balance_btc),
+            "source": source,
+            "time": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
+        },
     )
-
-    if not is_configured():
-        return False
-
-    try:
-        from engines.config import get
-
-        if not get("telegram.notify_balance", True):
-            return False
-    except Exception:
-        pass
-
-    text = (
-        f"<b>BALANCE FOUND!</b>\n\n"
-        f"Address: <code>{address}</code>\n"
-        f"Balance: \u20bf {balance_btc} BTC\n"
-        f"Source: {source}\n"
-        f"Time: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}"
-    )
-    _send_with_buttons_async(text, CONTROL_BUTTONS)
     return True
 
 
 def notify_error(error_msg, context=""):
-    """Notify about an error. Rate-limited to 10/hour.
-
-    Also emits event to new notification bridge (Session 36).
-    """
-    # Bridge: emit to new notification service (deprecated path — use SystemNotifier directly)
-    _emit_event("error", {"error": error_msg, "context": context})
-
-    if not is_configured():
-        return False
-
-    try:
-        from engines.config import get
-
-        if not get("telegram.notify_error", True):
-            return False
-    except Exception:
-        pass
-
-    with _lock:
-        if _error_count >= _MAX_ERRORS_PER_HOUR:
-            return False
-
-    text = (
-        f"<b>NPS Error</b>\n\n"
-        f"Context: {context}\n"
-        f"Error: {error_msg}\n"
-        f"Time: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}"
+    """Notify about an error via event callback."""
+    _emit_event(
+        "error",
+        {
+            "error": error_msg,
+            "context": context,
+            "time": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
+        },
     )
-    _send_async(text)
     return True
 
 
 def notify_daily_status(stats):
-    """Send daily status summary."""
-    if not is_configured():
-        return False
-
-    try:
-        from engines.config import get
-
-        if not get("telegram.notify_daily", True):
-            return False
-    except Exception:
-        pass
-
-    keys_tested = stats.get("keys_tested", 0)
-    seeds_tested = stats.get("seeds_tested", 0)
-    online_checks = stats.get("online_checks", 0)
-    hits = stats.get("hits", 0)
-    uptime = stats.get("uptime", "unknown")
-
-    text = (
-        f"<b>\u20bf NPS Daily Status</b>\n\n"
-        f"Keys tested: {keys_tested:,}\n"
-        f"Seeds tested: {seeds_tested:,}\n"
-        f"Online checks: {online_checks:,}\n"
-        f"Hits: {hits}\n"
-        f"Uptime: {uptime}\n"
-        f"Time: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}"
-    )
-    _send_with_buttons_async(text, CONTROL_BUTTONS)
+    """Send daily status summary via event callback."""
+    _emit_event("daily_status", stats)
     return True
 
 
 def notify_scanner_hit(address_dict, private_key, balances, method="unknown"):
-    """Notify about a scanner hit (multi-chain version)."""
-    if not is_configured():
-        return False
-
-    try:
-        from engines.config import get
-
-        if not get("telegram.notify_balance", True):
-            return False
-    except Exception:
-        pass
-
+    """Notify about a scanner hit via event callback."""
     key_hex = hex(private_key) if isinstance(private_key, int) else str(private_key)
-    btc_addr = address_dict.get("btc", "N/A")
-    eth_addr = address_dict.get("eth", "N/A")
-
-    balance_lines = []
-    for chain, amount in balances.items():
-        if amount and amount != "0" and amount != 0:
-            icon = CURRENCY_ICONS.get(chain.upper(), "")
-            balance_lines.append(f"  {icon} {chain.upper()}: {amount}")
-
-    balance_text = "\n".join(balance_lines) if balance_lines else "  (checking...)"
-
-    text = (
-        f"<b>SCANNER HIT!</b>\n\n"
-        f"Method: {method}\n"
-        f"Key: <code>{key_hex}</code>\n"
-        f"BTC: <code>{btc_addr}</code>\n"
-        f"ETH: <code>{eth_addr}</code>\n"
-        f"Balances:\n{balance_text}\n"
-        f"Time: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}"
+    _emit_event(
+        "scanner_hit",
+        {
+            "addresses": address_dict,
+            "key": key_hex,
+            "balances": balances,
+            "method": method,
+            "time": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
+        },
     )
-    _send_with_buttons_async(text, CONTROL_BUTTONS)
     return True
-
-
-# ================================================================
-# Multi-Chain Balance Found Notification (preserved from earlier version)
-# ================================================================
 
 
 def notify_balance_found_multi(address_dict, balances, source="unknown"):
-    """Notify about a multi-chain balance discovery with inline buttons.
-
-    Parameters
-    ----------
-    address_dict : dict
-        Dict with chain addresses, e.g. {"btc": "1A...", "eth": "0x..."}.
-    balances : dict
-        Dict with chain balances, e.g. {"btc": {"balance_btc": 0.5}, "eth": {"balance_eth": 1.2}}.
-    source : str
-        Source/method that found the balance.
-    """
-    if not is_configured():
-        return False
-
-    try:
-        from engines.config import get
-
-        if not get("telegram.notify_balance", True):
-            return False
-    except Exception:
-        pass
-
-    # Build address lines
-    addr_lines = []
-    for chain, addr in address_dict.items():
-        if addr:
-            icon = CURRENCY_ICONS.get(chain.upper(), "")
-            addr_lines.append(f"  {icon} {chain.upper()}: <code>{addr}</code>")
-    addr_text = "\n".join(addr_lines) if addr_lines else "  (none)"
-
-    # Build balance lines
-    balance_lines = []
-    for chain, bal_data in balances.items():
-        if isinstance(bal_data, dict):
-            icon = CURRENCY_ICONS.get(chain.upper(), "")
-            if chain.lower() == "btc":
-                amount = bal_data.get("balance_btc", 0)
-                if amount:
-                    balance_lines.append(f"  {icon} BTC: {amount}")
-            elif chain.lower() == "eth":
-                amount = bal_data.get("balance_eth", 0)
-                if amount:
-                    balance_lines.append(f"  {icon} ETH: {amount}")
-            else:
-                # Token or other chain
-                amount = bal_data.get("balance", bal_data.get("balance_human", 0))
-                if amount:
-                    balance_lines.append(f"  {icon} {chain.upper()}: {amount}")
-        elif bal_data and bal_data != 0 and bal_data != "0":
-            icon = CURRENCY_ICONS.get(chain.upper(), "")
-            balance_lines.append(f"  {icon} {chain.upper()}: {bal_data}")
-
-    balance_text = "\n".join(balance_lines) if balance_lines else "  (checking...)"
-
-    text = (
-        f"<b>MULTI-CHAIN BALANCE FOUND!</b>\n\n"
-        f"Addresses:\n{addr_text}\n\n"
-        f"Balances:\n{balance_text}\n\n"
-        f"Source: {source}\n"
-        f"Time: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}"
+    """Notify about a multi-chain balance discovery via event callback."""
+    _emit_event(
+        "balance_found_multi",
+        {
+            "addresses": address_dict,
+            "balances": balances,
+            "source": source,
+            "time": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
+        },
     )
-
-    # Inline buttons for quick actions
-    buttons = [
-        [
-            {"text": "View Details", "callback_data": "/status"},
-            {"text": "Stop Scanner", "callback_data": "/stop"},
-        ],
-        [
-            {"text": "Continue", "callback_data": "/start"},
-        ],
-    ]
-
-    _send_with_buttons_async(text, buttons)
     return True
 
 
 # ================================================================
-# Notification Templates (4.6)
+# Notification Templates
 # ================================================================
 
 
 def _format_balance_hit(data):
-    """Format a balance hit notification as HTML.
-
-    Parameters
-    ----------
-    data : dict
-        Keys: address, balance, chain, method, key (optional).
-
-    Returns
-    -------
-    str
-        HTML-formatted notification string.
-    """
+    """Format a balance hit notification as HTML."""
     address = data.get("address", "unknown")
     balance = data.get("balance", 0)
     chain = data.get("chain", "BTC").upper()
@@ -751,18 +260,7 @@ def _format_balance_hit(data):
 
 
 def _format_daily_report(stats):
-    """Format a daily report notification as HTML.
-
-    Parameters
-    ----------
-    stats : dict
-        Keys: keys_tested, seeds_tested, hits, uptime, speed, terminals.
-
-    Returns
-    -------
-    str
-        HTML-formatted daily report string.
-    """
+    """Format a daily report notification as HTML."""
     keys = stats.get("keys_tested", 0)
     seeds = stats.get("seeds_tested", 0)
     hits = stats.get("hits", 0)
@@ -784,18 +282,7 @@ def _format_daily_report(stats):
 
 
 def _format_health_alert(data):
-    """Format a health alert notification as HTML.
-
-    Parameters
-    ----------
-    data : dict
-        Keys: endpoint, healthy (bool), url, previous_state (optional).
-
-    Returns
-    -------
-    str
-        HTML-formatted health alert string.
-    """
+    """Format a health alert notification as HTML."""
     endpoint = data.get("endpoint", "unknown")
     healthy = data.get("healthy", False)
     url = data.get("url", "")
@@ -813,18 +300,7 @@ def _format_health_alert(data):
 
 
 def _format_ai_adjustment(data):
-    """Format an AI adjustment notification as HTML.
-
-    Parameters
-    ----------
-    data : dict
-        Keys: parameter, old_value, new_value, reason, level (optional).
-
-    Returns
-    -------
-    str
-        HTML-formatted AI adjustment string.
-    """
+    """Format an AI adjustment notification as HTML."""
     param = data.get("parameter", "unknown")
     old_val = data.get("old_value", "?")
     new_val = data.get("new_value", "?")
@@ -845,26 +321,14 @@ def _format_ai_adjustment(data):
 
 
 # ================================================================
-# Command Registry (4.1)
+# Command Registry
 # ================================================================
 
 _command_registry = {}
 
 
 def _register_command(name, desc, category, handler):
-    """Register a command in the command registry.
-
-    Parameters
-    ----------
-    name : str
-        Command name including leading '/' (e.g., '/status').
-    desc : str
-        Human-readable description.
-    category : str
-        Category: 'status', 'control', 'oracle', 'settings', 'export'.
-    handler : callable
-        Function(arg, app_controller) -> (text, buttons_or_None).
-    """
+    """Register a command in the command registry."""
     _command_registry[name.lower()] = {
         "name": name,
         "desc": desc,
@@ -874,7 +338,7 @@ def _register_command(name, desc, category, handler):
 
 
 # ================================================================
-# Inline Keyboard System (4.3)
+# Inline Keyboard System
 # ================================================================
 
 MAIN_MENU_BUTTONS = [
@@ -897,42 +361,24 @@ MAIN_MENU_BUTTONS = [
 
 
 def _dispatch_to_handler(cmd, arg, app_controller=None):
-    """Look up a command in the registry and call its handler.
-
-    Returns (text, buttons_or_None) tuple. Does NOT send the message.
-    """
+    """Look up a command in the registry and call its handler."""
     entry = _command_registry.get(cmd.lower())
     if entry:
         try:
             return entry["handler"](arg, app_controller)
         except Exception as e:
-            logger.debug(f"Error in handler for {cmd}: {e}")
+            logger.debug("Error in handler for %s: %s", cmd, e)
             return (f"Error processing {cmd}: {e}", None)
     return (f"Unknown command: {cmd}\nUse /help for available commands.", None)
 
 
 def _route_callback(callback_data, app_controller=None):
-    """Route an inline keyboard callback to the appropriate handler.
-
-    Parameters
-    ----------
-    callback_data : str
-        Callback data in ``section:action:param`` format.
-    app_controller : object or None
-        Optional app controller for commands that need it.
-
-    Returns
-    -------
-    tuple(str, list or None)
-        (response_text, buttons_or_None)
-    """
+    """Route an inline keyboard callback to the appropriate handler."""
     parts = callback_data.split(":")
     section = parts[0] if parts else ""
     action = parts[1] if len(parts) > 1 else ""
-    _ = parts[2] if len(parts) > 2 else ""
 
     if section == "menu":
-        # Route menu callbacks to corresponding commands
         menu_map = {
             "status": "/status",
             "health": "/health",
@@ -957,7 +403,6 @@ def _route_callback(callback_data, app_controller=None):
         return _dispatch_to_handler(cmd, "", app_controller)
 
     else:
-        # Try as a direct command (e.g., legacy /status callback)
         if callback_data.startswith("/"):
             parts_cmd = callback_data.split(maxsplit=1)
             cmd = parts_cmd[0].lower()
@@ -967,7 +412,7 @@ def _route_callback(callback_data, app_controller=None):
 
 
 # ================================================================
-# Command Handlers (4.2)
+# Command Handlers
 # ================================================================
 
 
@@ -1078,7 +523,6 @@ def _cmd_help(arg, app_controller):
             for cmd_name, cmd_desc in sorted(cmds):
                 lines.append(f"  {cmd_name} -- {cmd_desc}")
 
-    # Catch any categories not in the predefined order
     for cat, cmds in categories.items():
         if cat not in cat_order and cmds:
             lines.append(f"\n<b>{cat.title()}</b>")
@@ -1373,24 +817,20 @@ def _cmd_export(arg, app_controller):
         )
 
 
-# Backward compat: /stop, /pause, /resume mapped to old behavior
+# Backward compat
 def _cmd_stop(arg, app_controller):
-    """Stop scanning (legacy, delegates to stop_all)."""
     return _cmd_stop_all(arg, app_controller)
 
 
 def _cmd_pause(arg, app_controller):
-    """Pause (legacy, delegates to pause_all)."""
     return _cmd_pause_all(arg, app_controller)
 
 
 def _cmd_resume(arg, app_controller):
-    """Resume (legacy, delegates to resume_all)."""
     return _cmd_resume_all(arg, app_controller)
 
 
 def _cmd_mode(arg, app_controller):
-    """Change mode via app_controller (legacy)."""
     if not arg:
         return ("Usage: /mode &lt;mode_name&gt;", None)
     if app_controller and hasattr(app_controller, "change_mode"):
@@ -1405,7 +845,6 @@ def _cmd_mode(arg, app_controller):
 
 
 def _cmd_puzzle(arg, app_controller):
-    """Show puzzle status (legacy)."""
     if app_controller and hasattr(app_controller, "get_puzzle_status"):
         try:
             status = app_controller.get_puzzle_status()
@@ -1423,7 +862,6 @@ def _cmd_puzzle(arg, app_controller):
 
 def _init_command_registry():
     """Populate the command registry with all known commands."""
-    # Status commands
     _register_command("/start", "Welcome + menu", "status", _cmd_start)
     _register_command("/menu", "Show main menu", "status", _cmd_menu)
     _register_command("/status", "Show current status", "status", _cmd_status)
@@ -1434,7 +872,6 @@ def _init_command_registry():
     _register_command("/vault", "Vault summary", "status", _cmd_vault)
     _register_command("/terminals", "List all terminals", "status", _cmd_terminals)
 
-    # Control commands
     _register_command("/start_all", "Start all terminals", "control", _cmd_start_all)
     _register_command("/stop_all", "Stop all terminals", "control", _cmd_stop_all)
     _register_command("/pause_all", "Pause all terminals", "control", _cmd_pause_all)
@@ -1446,148 +883,54 @@ def _init_command_registry():
     _register_command("/mode", "Change mode", "control", _cmd_mode)
     _register_command("/puzzle", "Puzzle status", "control", _cmd_puzzle)
 
-    # Oracle commands
     _register_command("/sign", "Oracle sign reading", "oracle", _cmd_sign)
     _register_command("/name", "Name reading", "oracle", _cmd_name)
     _register_command("/daily", "Daily insight", "oracle", _cmd_daily)
 
-    # Settings commands
     _register_command("/set", "Change setting (mode|puzzle|chains|sound)", "settings", _cmd_set)
-
-    # Export commands
     _register_command("/export", "Export vault or report", "export", _cmd_export)
 
 
-# Initialize registry at module load
 _init_command_registry()
 
 
 # ================================================================
-# Unified Dispatch (4.1)
+# Unified Dispatch
 # ================================================================
 
 
 def dispatch_command(raw_text, app_controller=None):
     """Unified command dispatch entry point.
 
-    Parses the command and args from raw_text, looks up the handler in the
-    command registry, calls the handler, and sends the response via Telegram.
-
-    Parameters
-    ----------
-    raw_text : str
-        Raw command text, e.g. "/sign What does 444 mean?"
-    app_controller : object or None
-        Optional app controller with methods like get_status(), start_scan(), etc.
-
-    Returns
-    -------
-    str
-        The response text that was sent (or would be sent).
+    Note: With the removal of urllib send functions, this now only
+    returns the response text. The caller is responsible for sending.
     """
     raw_text = raw_text.strip()
 
-    # Handle callback data (section:action:param format)
     if raw_text and not raw_text.startswith("/") and ":" in raw_text:
         text, buttons = _route_callback(raw_text, app_controller)
-        if buttons:
-            try:
-                send_message_with_buttons(text, buttons)
-            except Exception as e:
-                logger.debug(f"Failed to send callback response: {e}")
-        else:
-            try:
-                send_message(text)
-            except Exception as e:
-                logger.debug(f"Failed to send callback response: {e}")
         return text
 
     parts = raw_text.split(maxsplit=1)
     cmd = parts[0].lower() if parts else ""
     arg = parts[1].strip() if len(parts) > 1 else ""
 
-    # Look up in registry and call handler
     text, buttons = _dispatch_to_handler(cmd, arg, app_controller)
-
-    # Send response
-    if text:
-        try:
-            if buttons:
-                send_message_with_buttons(text, buttons)
-            else:
-                send_message(text)
-        except Exception as e:
-            logger.debug(f"Failed to send command response: {e}")
-
     return text
 
 
-# ================================================================
-# Command Listener (Long-Poll Dispatch) -- preserved with delegation
-# ================================================================
-
-
-def start_command_listener(app_controller):
-    """Start a daemon thread that long-polls Telegram for commands.
-
-    Parameters
-    ----------
-    app_controller : object
-        Must have methods: get_status(), start_scan(), stop_scan(),
-        get_oracle_reading(sign), get_name_reading(name),
-        get_puzzle_status(), change_mode(mode), get_memory_stats(),
-        get_perf_stats().
-    """
-
-    def _listener_loop():
-        backoff = 1  # seconds, exponential backoff on failures
-
-        while True:
-            try:
-                commands = poll_telegram_commands(timeout=30)
-
-                if commands is not None:
-                    # Successful poll -- reset backoff
-                    backoff = 1
-
-                for raw_cmd in commands:
-                    try:
-                        dispatch_command(raw_cmd, app_controller)
-                    except Exception as e:
-                        logger.debug(f"Command dispatch error for '{raw_cmd}': {e}")
-
-            except Exception as e:
-                logger.debug(f"Command listener poll error: {e}")
-                time.sleep(backoff)
-                backoff = min(backoff * 2, 300)  # max 5 minutes
-
-    t = threading.Thread(target=_listener_loop, daemon=True)
-    t.start()
-    logger.info("Telegram command listener started")
-    return t
-
-
 def _dispatch_command(raw_text, app_controller):
-    """Legacy dispatch -- delegates to unified dispatch_command.
-
-    Preserved for backward compatibility.
-    """
+    """Legacy dispatch -- delegates to unified dispatch_command."""
     dispatch_command(raw_text, app_controller)
 
 
 def process_telegram_command(command):
-    """Dispatch a Telegram command and return a response string.
-
-    This is a standalone dispatcher that doesn't require an app_controller,
-    pulling data directly from engines. Returns a non-empty response string.
-
-    Delegates to the unified dispatch_command (which uses the registry).
-    """
+    """Dispatch a Telegram command and return a response string."""
     return dispatch_command(command, app_controller=None)
 
 
 # ================================================================
-# Sound Alert (preserved from earlier version)
+# Sound Alert (preserved)
 # ================================================================
 
 

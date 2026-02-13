@@ -2,9 +2,22 @@
 
 import re
 
+from .i18n import t
+
 _ESCAPE_CHARS = r"_*[]()~`>#+-=|{}.!"
 _TELEGRAM_MSG_LIMIT = 4096
 _TRUNCATE_AT = 3800  # Leave buffer for Markdown overhead + "See more" link
+
+# Circled number unicode characters
+_NUMBER_EMOJIS = {
+    1: "\u2460",
+    2: "\u2461",
+    3: "\u2462",
+    4: "\u2463",
+    5: "\u2464",
+}
+
+PROGRESS_EMOJIS = {0: "\u23f3", 1: "\U0001f52e", 2: "\u2728", 3: "\u2705"}
 
 
 def _escape(text: str) -> str:
@@ -340,13 +353,120 @@ def format_scheduled_daily_insight(
     return "\n".join(lines)
 
 
-def format_progress(step: int, total: int, message: str) -> str:
+def format_progress(
+    step: int, total: int, message: str = "", locale: str = "en"
+) -> str:
     """Format a progress update message.
 
-    Uses emojis for visual progress: ⏳ → 🔮 → ✨ → ✅
+    Uses emojis for visual progress and i18n keys when message is empty.
     """
-    step_emojis = ["\u23f3", "\U0001f52e", "\u2728", "\u2705"]
-    idx = min(step, len(step_emojis) - 1)
-    icon = step_emojis[idx]
-    bar = "\u2593" * step + "\u2591" * (total - step)
-    return f"{icon} {_escape(message)}\n`{bar}` {step}/{total}"
+    if not message:
+        step_keys = [
+            "progress_calculating",
+            "progress_ai",
+            "progress_formatting",
+            "progress_done",
+        ]
+        key = step_keys[min(step, len(step_keys) - 1)]
+        message = t(key, locale)
+
+    icon = PROGRESS_EMOJIS.get(step, "\u23f3")
+    bar = "\u2593" * (step + 1) + "\u2591" * (total - step - 1)
+    return f"{icon} {_escape(message)}\n`{bar}` {step + 1}/{total}"
+
+
+def _number_emoji(n: int) -> str:
+    """Convert 1-5 to circled number unicode character."""
+    return _NUMBER_EMOJIS.get(n, str(n))
+
+
+def _format_meter_bar(score: int, width: int = 10) -> str:
+    """Format a visual meter bar with color indicator.
+
+    score: 0-100 percentage
+    Returns: emoji + filled/empty bar + percentage
+    """
+    if score >= 70:
+        emoji = "\U0001f7e2"  # green circle
+    elif score >= 40:
+        emoji = "\U0001f7e1"  # yellow circle
+    else:
+        emoji = "\U0001f534"  # red circle
+
+    filled = round(score / 100 * width)
+    empty = width - filled
+    bar = "\u2593" * filled + "\u2591" * empty
+    return f"{emoji} `{bar}` {score}%"
+
+
+def format_multi_user_reading(
+    data: dict, profile_names: list[str], locale: str = "en"
+) -> str:
+    """Format a multi-user compatibility reading for Telegram.
+
+    Sections: Participants, Pairwise Compatibility, Group Dynamics, AI Interpretation.
+    """
+    lines: list[str] = []
+    lines.append("*" + _escape("Multi-User Compatibility Reading") + "*")
+    lines.append("")
+
+    # Participants header
+    names_str = ", ".join(profile_names)
+    lines.append(_escape(f"Participants: {names_str}"))
+    lines.append("")
+
+    # Individual highlights
+    individuals = data.get("individuals", data.get("users", []))
+    if individuals:
+        lines.append("*" + _escape("Individual Highlights") + "*")
+        for i, ind in enumerate(individuals, 1):
+            name = ind.get(
+                "name", profile_names[i - 1] if i <= len(profile_names) else f"User {i}"
+            )
+            life_path = ind.get("life_path", "?")
+            personal_year = ind.get("personal_year", "?")
+            lines.append(
+                _escape(
+                    f"  {_number_emoji(i)} {name} — LP: {life_path}, PY: {personal_year}"
+                )
+            )
+        lines.append("")
+
+    # Pairwise compatibility
+    pairs = data.get("pairwise", data.get("compatibility", []))
+    if pairs:
+        lines.append("*" + _escape("Compatibility") + "*")
+        for pair in pairs:
+            name1 = pair.get("name1", pair.get("user1", ""))
+            name2 = pair.get("name2", pair.get("user2", ""))
+            score = pair.get("score", pair.get("compatibility_score", 50))
+            lines.append(_escape(f"  {name1} + {name2}"))
+            lines.append("  " + _format_meter_bar(score))
+            summary = pair.get("summary", "")
+            if summary:
+                lines.append("  " + _escape(summary[:200]))
+        lines.append("")
+
+    # Group dynamics
+    group = data.get("group_dynamics", data.get("group", {}))
+    if group:
+        lines.append("*" + _escape("Group Dynamics") + "*")
+        energy = group.get("energy_type", group.get("energy", ""))
+        if energy:
+            lines.append(_escape(f"  Energy: {energy}"))
+        harmony = group.get("harmony_score", group.get("harmony", 0))
+        if harmony:
+            lines.append("  " + _format_meter_bar(harmony))
+        lines.append("")
+
+    # AI Interpretation (capped at 400 chars)
+    ai = data.get("ai_interpretation", data.get("summary", ""))
+    if ai:
+        lines.append("*" + _escape("Interpretation") + "*")
+        ai_text = str(ai)[:400]
+        if len(str(ai)) > 400:
+            ai_text += "..."
+        lines.append(_escape(ai_text))
+
+    result = "\n".join(lines)
+    return _truncate(result)

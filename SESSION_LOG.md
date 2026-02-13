@@ -1937,6 +1937,72 @@ TEMPLATE — copy this for each new session:
 
 ---
 
+### Session 37 — Telegram Bot: Multi-User & Polish
+
+**Date:** 2026-02-14
+**Spec:** `.session-specs/SESSION_37_SPEC.md`
+**Status:** COMPLETE
+**Commit:** (pending)
+
+**Summary:**
+
+Multi-user /compare command (2-5 profiles with pairwise compatibility), i18n system (EN+FA with Persian numeral conversion), per-user reading rate limiter (10/hour sliding window), enhanced /help with per-command detail and admin gating, error classification system, and legacy notifier migration removing all urllib/threading code.
+
+**Files created (8):**
+
+- `services/tgbot/reading_rate_limiter.py` — ReadingRateLimiter class (sliding window, 10/hr)
+- `services/tgbot/i18n/__init__.py` — i18n package with t(), load_translations(), to_persian_numerals()
+- `services/tgbot/i18n/en.json` — 60+ English translation keys
+- `services/tgbot/i18n/fa.json` — Matching Persian translations
+- `services/tgbot/handlers/multi_user.py` — /compare command handler with 3 name parsing styles
+- `services/tgbot/tests/test_multi_user.py` — 10 multi-user tests (parsing, validation, success)
+- `services/tgbot/tests/test_reading_rate_limiter.py` — 5 rate limiter tests
+- `services/tgbot/tests/test_i18n.py` — 7 i18n tests (EN/FA, interpolation, Persian numerals, fallback)
+- `services/tgbot/tests/test_help.py` — 4 help command tests (categories, per-command, admin gating)
+- `services/tgbot/tests/test_error_handling.py` — 9 error classification and handling tests
+- `services/tgbot/tests/conftest.py` — Shared session-scoped i18n fixture
+
+**Files modified (10):**
+
+- `services/tgbot/api_client.py` — added search_profiles(), create_multi_user_reading(), classify_error()
+- `services/tgbot/formatters.py` — added format_multi_user_reading(), \_format_meter_bar(), \_number_emoji()
+- `services/tgbot/keyboards.py` — added compare_actions_keyboard()
+- `services/tgbot/handlers/__init__.py` — exported compare_command
+- `services/tgbot/handlers/core.py` — full i18n rewrite, grouped /help, per-command detail, admin gating
+- `services/tgbot/handlers/readings.py` — full i18n rewrite, ReadingRateLimiter from bot_data, handle_api_error()
+- `services/tgbot/handlers/daily.py` — full i18n rewrite
+- `services/tgbot/handlers/admin.py` — i18n for access denied messages
+- `services/tgbot/bot.py` — added /compare handler, load_translations(), ReadingRateLimiter injection
+- `services/oracle/oracle_service/engines/notifier.py` — removed urllib/threading/ssl, kept event callback bridge
+
+**Existing tests updated (5):**
+
+- `services/tgbot/tests/test_readings.py` — fixed for new ReadingRateLimiter, added bot_data mock
+- `services/tgbot/tests/test_core_handlers.py` — added client.get_status mocks for \_get_locale()
+- `services/tgbot/tests/test_daily_handlers.py` — added client.get_status mocks for \_get_locale()
+- `services/tgbot/tests/test_admin.py` — updated access denied assertions for i18n
+- `services/tgbot/tests/test_formatters.py` — fixed progress bar assertion for new step+1 formula
+
+**Tests:** 134 pass (35 new) / 0 failures / Lint clean
+
+**Issues:**
+
+- Spec references `services/telegram/` but Session 33 renamed to `services/tgbot/` — all paths adapted.
+- notifier.py reduced from ~1621 lines to ~966 lines (spec target was 400-500, but command registry and templates take significant space).
+
+**Decisions:**
+
+- Reading rate limiter uses `time.monotonic()` and `deque` for O(1) amortized check/record operations.
+- i18n uses simple JSON files with `{variable}` interpolation, no third-party library.
+- Persian numerals auto-converted via `str.maketrans` for FA locale.
+- /compare supports 3 name parsing styles: quoted, comma-separated, simple space-separated.
+- Error classification maps HTTP status codes to i18n keys, with per-error-type emoji prefixes.
+- Existing tests updated in place rather than rewritten to maintain continuity.
+
+**Next:** Session 38 — Admin UI: Dashboard & User Management.
+
+---
+
 ## Cross-Terminal Dependencies
 
 > Only used in multi-terminal mode. Track what each terminal needs from others.

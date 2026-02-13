@@ -1,4 +1,4 @@
-"""NPS Telegram Bot — main entry point."""
+"""NPS Telegram Bot -- main entry point."""
 
 import logging
 import sys
@@ -21,6 +21,7 @@ from .handlers.daily import (
     daily_status_handler,
     daily_time_handler,
 )
+from .handlers.multi_user import compare_command
 from .handlers.readings import (
     daily_command,
     history_command,
@@ -29,7 +30,9 @@ from .handlers.readings import (
     reading_callback_handler,
     time_command,
 )
+from .i18n import load_translations
 from .notifications import SystemNotifier, get_admin_chat_id
+from .reading_rate_limiter import ReadingRateLimiter
 from .scheduler import DailyScheduler
 
 logging.basicConfig(
@@ -48,12 +51,18 @@ def main() -> None:
     global _scheduler, _notifier  # noqa: PLW0603
 
     if not config.BOT_TOKEN:
-        logger.error("NPS_BOT_TOKEN not set — cannot start bot")
+        logger.error("NPS_BOT_TOKEN not set -- cannot start bot")
         sys.exit(1)
 
     logger.info("Starting NPS Telegram Bot")
 
+    # Load i18n translations (Session 37)
+    load_translations()
+
     app = Application.builder().token(config.BOT_TOKEN).build()
+
+    # Inject reading rate limiter into bot_data (Session 37)
+    app.bot_data["reading_rate_limiter"] = ReadingRateLimiter()
 
     # Core command handlers (Session 33)
     app.add_handler(CommandHandler("start", start_handler))
@@ -68,6 +77,9 @@ def main() -> None:
     app.add_handler(CommandHandler("question", question_command))
     app.add_handler(CommandHandler("daily", daily_command))
     app.add_handler(CommandHandler("history", history_command))
+
+    # Multi-user compare handler (Session 37)
+    app.add_handler(CommandHandler("compare", compare_command))
 
     # Daily preference command handlers (Session 35)
     app.add_handler(CommandHandler("daily_on", daily_on_handler))
@@ -98,7 +110,7 @@ def main() -> None:
             await _notifier.notify_startup("telegram-bot", version="1.0.0")
             logger.info("SystemNotifier initialized for admin chat %s", admin_chat_id)
         else:
-            logger.warning("No admin chat ID configured — notifications disabled")
+            logger.warning("No admin chat ID configured -- notifications disabled")
 
     async def shutdown(_app: Application) -> None:
         if _notifier:

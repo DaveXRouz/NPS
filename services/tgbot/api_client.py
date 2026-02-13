@@ -120,6 +120,47 @@ class NPSAPIClient:
         """GET /oracle/readings/{id} — single reading detail."""
         return await self._request("GET", f"/oracle/readings/{reading_id}")
 
+    async def search_profiles(self, name: str) -> APIResponse:
+        """GET /oracle/profiles?search={name}
+
+        Returns list of profiles matching the name.
+        Used by /compare to resolve profile names to user IDs.
+        """
+        return await self._request("GET", "/oracle/profiles", params={"search": name})
+
+    async def create_multi_user_reading(
+        self,
+        user_ids: list[int],
+        primary_user_index: int = 0,
+    ) -> APIResponse:
+        """POST /oracle/readings with reading_type: 'multi'.
+
+        Uses Session 16's unified reading endpoint.
+        """
+        return await self._request(
+            "POST",
+            "/oracle/readings",
+            json={
+                "reading_type": "multi",
+                "user_ids": user_ids,
+                "primary_user_index": primary_user_index,
+            },
+        )
+
+    def classify_error(self, response: APIResponse) -> str:
+        """Classify an API error into an i18n key for user-friendly messaging."""
+        if response.status_code in (401, 403):
+            return "error_auth"
+        if response.status_code == 404:
+            return "error_not_found"
+        if response.status_code == 422:
+            return "error_validation"
+        if response.status_code == 429:
+            return "error_rate_limit_api"
+        if response.status_code >= 500:
+            return "error_server"
+        return "error_generic"
+
     async def close(self) -> None:
         """Close the underlying httpx client."""
         await self._client.aclose()

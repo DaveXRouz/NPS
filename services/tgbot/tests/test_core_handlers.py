@@ -32,9 +32,12 @@ def _make_context(args: list[str] | None = None):
 
 
 @pytest.mark.asyncio
+@patch("services.tgbot.handlers.core.client")
 @patch("services.tgbot.handlers.core.rate_limiter")
-async def test_start_handler_sends_welcome(mock_limiter):
+async def test_start_handler_sends_welcome(mock_limiter, mock_client):
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
+
     update = _make_update()
     context = _make_context()
 
@@ -46,9 +49,12 @@ async def test_start_handler_sends_welcome(mock_limiter):
 
 
 @pytest.mark.asyncio
+@patch("services.tgbot.handlers.core.client")
 @patch("services.tgbot.handlers.core.rate_limiter")
-async def test_link_handler_no_args(mock_limiter):
+async def test_link_handler_no_args(mock_limiter, mock_client):
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
+
     update = _make_update()
     context = _make_context(args=[])
 
@@ -64,6 +70,7 @@ async def test_link_handler_no_args(mock_limiter):
 @patch("services.tgbot.handlers.core.rate_limiter")
 async def test_link_handler_success(mock_limiter, mock_client):
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
     mock_client.link_account = AsyncMock(
         return_value={"username": "dave", "user_id": "u1"}
     )
@@ -88,6 +95,7 @@ async def test_link_handler_success(mock_limiter, mock_client):
 @patch("services.tgbot.handlers.core.rate_limiter")
 async def test_link_handler_invalid_key(mock_limiter, mock_client):
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
     mock_client.link_account = AsyncMock(return_value=None)
 
     update = _make_update()
@@ -101,9 +109,15 @@ async def test_link_handler_invalid_key(mock_limiter, mock_client):
 
 
 @pytest.mark.asyncio
+@patch(
+    "services.tgbot.handlers.core._is_admin", new_callable=AsyncMock, return_value=False
+)
+@patch("services.tgbot.handlers.core.client")
 @patch("services.tgbot.handlers.core.rate_limiter")
-async def test_help_handler_lists_commands(mock_limiter):
+async def test_help_handler_lists_commands(mock_limiter, mock_client, mock_is_admin):
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
+
     update = _make_update()
     context = _make_context()
 

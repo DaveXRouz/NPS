@@ -6,10 +6,8 @@ Callback queries: reading:*, history:*
 
 import logging
 import re
-import time
-from collections import defaultdict
-from datetime import date as date_type
 
+import httpx
 from telegram import Update
 from telegram.error import BadRequest
 from telegram.ext import ContextTypes
@@ -24,6 +22,7 @@ from ..formatters import (
     format_time_reading,
     _escape,
 )
+from ..i18n import t
 from ..keyboards import (
     history_keyboard,
     reading_actions_keyboard,
@@ -31,38 +30,24 @@ from ..keyboards import (
 )
 from ..progress import update_progress
 from ..rate_limiter import rate_limiter
+from ..reading_rate_limiter import ReadingRateLimiter
 
 logger = logging.getLogger(__name__)
 
-# ─── Per-user reading rate limiter (10/hour) ─────────────────────────────────
 
-_user_readings: dict[int, list[float]] = defaultdict(list)
-_READING_RATE_LIMIT = 10
-_READING_RATE_WINDOW = 3600  # 1 hour
+# ---- Helpers ----------------------------------------------------------------
 
 
-def check_reading_rate_limit(chat_id: int) -> bool:
-    """Returns True if the user is within the reading rate limit (10/hour)."""
-    now = time.time()
-    _user_readings[chat_id] = [
-        t for t in _user_readings[chat_id] if now - t < _READING_RATE_WINDOW
-    ]
-    if len(_user_readings[chat_id]) >= _READING_RATE_LIMIT:
-        return False
-    _user_readings[chat_id].append(now)
-    return True
-
-
-# ─── Helpers ─────────────────────────────────────────────────────────────────
+async def _get_locale(chat_id: int) -> str:
+    """Get user locale from linked account, default 'en'."""
+    status = await client.get_status(chat_id)
+    if status and status.get("locale"):
+        return status["locale"]
+    return "en"
 
 
 async def _get_user_api_key(chat_id: int) -> str | None:
-    """Retrieve the linked API key for a Telegram chat ID.
-
-    Uses the bot's service client to query the telegram status endpoint,
-    which returns user info including the ability to make API calls.
-    Returns None if the user hasn't linked their account.
-    """
+    """Retrieve the linked API key for a Telegram chat ID."""
     status_data = await client.get_status(chat_id)
     if status_data and status_data.get("linked"):
         return status_data.get("api_key")
@@ -70,11 +55,9 @@ async def _get_user_api_key(chat_id: int) -> str | None:
 
 
 def build_iso_datetime(time_str: str | None, date_str: str | None) -> str | None:
-    """Build ISO 8601 datetime string from time and optional date.
+    """Build ISO 8601 datetime string from time and optional date."""
+    from datetime import date as date_type
 
-    If time_str is None, returns None (API defaults to now).
-    If date_str is None, uses today's date.
-    """
     if time_str is None:
         return None
     if date_str is None:
@@ -90,38 +73,76 @@ async def _send_error(update: Update, text: str) -> None:
         await update.callback_query.answer(text, show_alert=True)
 
 
-async def _require_linked(update: Update) -> str | None:
-    """Check if user is linked and return API key, or send error. Returns None on failure."""
+async def _require_linked(update: Update, locale: str = "en") -> str | None:
+    """Check if user is linked and return API key, or send error."""
     chat_id = update.effective_chat.id
     api_key = await _get_user_api_key(chat_id)
     if not api_key:
-        await _send_error(update, "Link your account first: /link <api_key>")
+        await _send_error(update, t("link_required", locale))
         return None
     return api_key
 
 
-# ─── Command Handlers ────────────────────────────────────────────────────────
+def _check_reading_rate(
+    chat_id: int, context: ContextTypes.DEFAULT_TYPE
+) -> tuple[bool, int]:
+    """Check reading rate limit from bot_data. Returns (allowed, wait_seconds)."""
+    reading_rl: ReadingRateLimiter | None = context.bot_data.get("reading_rate_limiter")
+    if reading_rl:
+        return reading_rl.check(chat_id)
+    return True, 0
+
+
+def _record_reading(chat_id: int, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Record a reading in the rate limiter."""
+    reading_rl: ReadingRateLimiter | None = context.bot_data.get("reading_rate_limiter")
+    if reading_rl:
+        reading_rl.record(chat_id)
+
+
+async def handle_api_error(msg, result, locale: str, api_client: NPSAPIClient) -> None:
+    """Handle an API error with locale-aware messaging."""
+    error_key = api_client.classify_error(result)
+    detail = result.error or ""
+    error_emojis = {
+        "error_auth": "\u274c",
+        "error_not_found": "\U0001f50d",
+        "error_validation": "\u26a0\ufe0f",
+        "error_rate_limit_api": "\u23f3",
+        "error_server": "\U0001f6d1",
+        "error_network": "\U0001f4e1",
+        "error_generic": "\u2753",
+    }
+    emoji = error_emojis.get(error_key, "\u2753")
+    text = f"{emoji} {t(error_key, locale, detail=detail)}"
+    await msg.edit_text(text)
+
+
+# ---- Command Handlers -------------------------------------------------------
 
 
 async def time_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Generate a time-based oracle reading.
 
     Usage: /time [HH:MM] [YYYY-MM-DD]
-    If no time given, uses current time.
     """
-    if not rate_limiter.is_allowed(update.effective_chat.id):
-        await update.message.reply_text(
-            "Slow down! Please wait a moment before sending more commands."
-        )
+    chat_id = update.effective_chat.id
+
+    if not rate_limiter.is_allowed(chat_id):
+        locale = await _get_locale(chat_id)
+        await update.message.reply_text(t("rate_limited", locale))
         return
 
-    api_key = await _require_linked(update)
+    locale = await _get_locale(chat_id)
+    api_key = await _require_linked(update, locale)
     if not api_key:
         return
 
-    if not check_reading_rate_limit(update.effective_chat.id):
+    allowed, wait_seconds = _check_reading_rate(chat_id, context)
+    if not allowed:
+        minutes = max(1, wait_seconds // 60)
         await update.message.reply_text(
-            "You've reached the hourly reading limit (10/hour). Try again later."
+            t("rate_limit_reading", locale, minutes=minutes)
         )
         return
 
@@ -129,49 +150,49 @@ async def time_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     time_str = args[0] if args else None
     date_str = args[1] if len(args) > 1 else None
 
-    # Validate time format
     if time_str and not re.match(r"^\d{2}:\d{2}$", time_str):
         await update.message.reply_text(
             "Invalid time format. Use HH:MM (e.g., /time 14:30)"
         )
         return
 
-    # Validate date format
     if date_str and not re.match(r"^\d{4}-\d{2}-\d{2}$", date_str):
         await update.message.reply_text(
             "Invalid date format. Use YYYY-MM-DD (e.g., /time 14:30 2026-02-10)"
         )
         return
 
-    msg = await update.message.reply_text("\u23f3 Calculating FC60 stamp...")
+    msg = await update.message.reply_text("\u23f3 " + t("progress_calculating", locale))
     api = NPSAPIClient(api_key)
     try:
-        await update_progress(msg, 1, 4, "Calculating numerological stamp...")
+        await update_progress(msg, 1, 4, t("progress_calculating", locale))
         iso_dt = build_iso_datetime(time_str, date_str)
         result = await api.create_reading(iso_dt)
         if not result.success:
-            await msg.edit_text(f"\u274c {result.error}")
+            await handle_api_error(msg, result, locale, api)
             return
-        await update_progress(msg, 2, 4, "Consulting the Oracle...")
-        await update_progress(msg, 3, 4, "Formatting reading...")
+        _record_reading(chat_id, context)
+        await update_progress(msg, 2, 4, t("progress_ai", locale))
+        await update_progress(msg, 3, 4, t("progress_formatting", locale))
         text = format_time_reading(result.data)
         keyboard = reading_actions_keyboard(result.data.get("reading_id"))
         await msg.edit_text(text, parse_mode="MarkdownV2", reply_markup=keyboard)
     except BadRequest as e:
         if "can't parse entities" in str(e).lower():
-            # Fallback: send without Markdown
             plain = (
-                result.data.get("summary", "Reading complete.")
+                result.data.get("summary", t("reading_complete", locale))
                 if result.success
-                else "Error formatting reading."
+                else t("error_generic", locale)
             )
             await msg.edit_text(str(plain))
         else:
             logger.exception("BadRequest in time_command")
-            await msg.edit_text("\u274c Error formatting reading. Try again.")
+            await msg.edit_text(t("error_generic", locale))
+    except (httpx.ConnectError, httpx.TimeoutException):
+        await msg.edit_text(t("error_network", locale))
     except Exception:
         logger.exception("Error in time_command")
-        await msg.edit_text("\u274c Something went wrong. Try again later.")
+        await msg.edit_text(t("error_generic", locale))
     finally:
         await api.close()
 
@@ -180,30 +201,32 @@ async def name_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     """Generate a name-based oracle reading.
 
     Usage: /name [name]
-    If no name given, uses profile name.
     """
-    if not rate_limiter.is_allowed(update.effective_chat.id):
-        await update.message.reply_text(
-            "Slow down! Please wait a moment before sending more commands."
-        )
+    chat_id = update.effective_chat.id
+
+    if not rate_limiter.is_allowed(chat_id):
+        locale = await _get_locale(chat_id)
+        await update.message.reply_text(t("rate_limited", locale))
         return
 
-    api_key = await _require_linked(update)
+    locale = await _get_locale(chat_id)
+    api_key = await _require_linked(update, locale)
     if not api_key:
         return
 
-    if not check_reading_rate_limit(update.effective_chat.id):
+    allowed, wait_seconds = _check_reading_rate(chat_id, context)
+    if not allowed:
+        minutes = max(1, wait_seconds // 60)
         await update.message.reply_text(
-            "You've reached the hourly reading limit (10/hour). Try again later."
+            t("rate_limit_reading", locale, minutes=minutes)
         )
         return
 
     args = context.args or []
     name = " ".join(args) if args else None
 
-    # If no name provided, try to get from profile
     if not name:
-        profiles = await client.get_profile(update.effective_chat.id)
+        profiles = await client.get_profile(chat_id)
         if profiles:
             name = profiles[0].get("name")
         if not name:
@@ -213,27 +236,30 @@ async def name_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             )
             return
 
-    msg = await update.message.reply_text("\u23f3 Analyzing name...")
+    msg = await update.message.reply_text("\u23f3 " + t("progress_calculating", locale))
     api = NPSAPIClient(api_key)
     try:
-        await update_progress(msg, 1, 3, "Analyzing letters...")
+        await update_progress(msg, 1, 3, t("progress_calculating", locale))
         result = await api.create_name_reading(name)
         if not result.success:
-            await msg.edit_text(f"\u274c {result.error}")
+            await handle_api_error(msg, result, locale, api)
             return
-        await update_progress(msg, 2, 3, "Generating interpretation...")
+        _record_reading(chat_id, context)
+        await update_progress(msg, 2, 3, t("progress_formatting", locale))
         text = format_name_reading(result.data)
         keyboard = reading_actions_keyboard(result.data.get("reading_id"))
         await msg.edit_text(text, parse_mode="MarkdownV2", reply_markup=keyboard)
     except BadRequest as e:
         if "can't parse entities" in str(e).lower():
-            await msg.edit_text("Name reading complete. View details in the web app.")
+            await msg.edit_text(t("reading_complete", locale))
         else:
             logger.exception("BadRequest in name_command")
-            await msg.edit_text("\u274c Error formatting reading. Try again.")
+            await msg.edit_text(t("error_generic", locale))
+    except (httpx.ConnectError, httpx.TimeoutException):
+        await msg.edit_text(t("error_network", locale))
     except Exception:
         logger.exception("Error in name_command")
-        await msg.edit_text("\u274c Something went wrong. Try again later.")
+        await msg.edit_text(t("error_generic", locale))
     finally:
         await api.close()
 
@@ -243,19 +269,23 @@ async def question_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     Usage: /question <your question here>
     """
-    if not rate_limiter.is_allowed(update.effective_chat.id):
-        await update.message.reply_text(
-            "Slow down! Please wait a moment before sending more commands."
-        )
+    chat_id = update.effective_chat.id
+
+    if not rate_limiter.is_allowed(chat_id):
+        locale = await _get_locale(chat_id)
+        await update.message.reply_text(t("rate_limited", locale))
         return
 
-    api_key = await _require_linked(update)
+    locale = await _get_locale(chat_id)
+    api_key = await _require_linked(update, locale)
     if not api_key:
         return
 
-    if not check_reading_rate_limit(update.effective_chat.id):
+    allowed, wait_seconds = _check_reading_rate(chat_id, context)
+    if not allowed:
+        minutes = max(1, wait_seconds // 60)
         await update.message.reply_text(
-            "You've reached the hourly reading limit (10/hour). Try again later."
+            t("rate_limit_reading", locale, minutes=minutes)
         )
         return
 
@@ -269,29 +299,30 @@ async def question_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         )
         return
 
-    msg = await update.message.reply_text("\u23f3 Consulting the Oracle...")
+    msg = await update.message.reply_text("\u23f3 " + t("progress_ai", locale))
     api = NPSAPIClient(api_key)
     try:
-        await update_progress(msg, 1, 3, "Hashing your question...")
+        await update_progress(msg, 1, 3, t("progress_ai", locale))
         result = await api.create_question(question_text)
         if not result.success:
-            await msg.edit_text(f"\u274c {result.error}")
+            await handle_api_error(msg, result, locale, api)
             return
-        await update_progress(msg, 2, 3, "Interpreting the signs...")
+        _record_reading(chat_id, context)
+        await update_progress(msg, 2, 3, t("progress_formatting", locale))
         text = format_question_reading(result.data)
         keyboard = reading_actions_keyboard(result.data.get("reading_id"))
         await msg.edit_text(text, parse_mode="MarkdownV2", reply_markup=keyboard)
     except BadRequest as e:
         if "can't parse entities" in str(e).lower():
-            await msg.edit_text(
-                "Question reading complete. View details in the web app."
-            )
+            await msg.edit_text(t("reading_complete", locale))
         else:
             logger.exception("BadRequest in question_command")
-            await msg.edit_text("\u274c Error formatting reading. Try again.")
+            await msg.edit_text(t("error_generic", locale))
+    except (httpx.ConnectError, httpx.TimeoutException):
+        await msg.edit_text(t("error_network", locale))
     except Exception:
         logger.exception("Error in question_command")
-        await msg.edit_text("\u274c Something went wrong. Try again later.")
+        await msg.edit_text(t("error_generic", locale))
     finally:
         await api.close()
 
@@ -301,39 +332,45 @@ async def daily_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     Usage: /daily
     """
-    if not rate_limiter.is_allowed(update.effective_chat.id):
-        await update.message.reply_text(
-            "Slow down! Please wait a moment before sending more commands."
-        )
+    chat_id = update.effective_chat.id
+
+    if not rate_limiter.is_allowed(chat_id):
+        locale = await _get_locale(chat_id)
+        await update.message.reply_text(t("rate_limited", locale))
         return
 
-    api_key = await _require_linked(update)
+    locale = await _get_locale(chat_id)
+    api_key = await _require_linked(update, locale)
     if not api_key:
         return
 
-    msg = await update.message.reply_text("\U0001f31f Fetching daily insight...")
+    msg = await update.message.reply_text(
+        "\U0001f31f " + t("progress_calculating", locale)
+    )
     api = NPSAPIClient(api_key)
     try:
         result = await api.get_daily()
         if not result.success:
-            await msg.edit_text(f"\u274c {result.error}")
+            await handle_api_error(msg, result, locale, api)
             return
         text = format_daily_insight(result.data)
         await msg.edit_text(text, parse_mode="MarkdownV2")
     except BadRequest as e:
         if "can't parse entities" in str(e).lower():
             insight = (
-                result.data.get("insight", "Daily insight ready.")
+                result.data.get("insight", t("reading_complete", locale))
                 if result.success
-                else "Error"
+                else t("error_generic", locale)
             )
             await msg.edit_text(str(insight))
         else:
             logger.exception("BadRequest in daily_command")
-            await msg.edit_text("\u274c Error formatting daily insight. Try again.")
+            await msg.edit_text(t("error_generic", locale))
+    except (httpx.ConnectError, httpx.TimeoutException):
+        await msg.edit_text(t("error_network", locale))
     except Exception:
         logger.exception("Error in daily_command")
-        await msg.edit_text("\u274c Something went wrong. Try again later.")
+        await msg.edit_text(t("error_generic", locale))
     finally:
         await api.close()
 
@@ -343,22 +380,26 @@ async def history_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     Usage: /history
     """
-    if not rate_limiter.is_allowed(update.effective_chat.id):
-        await update.message.reply_text(
-            "Slow down! Please wait a moment before sending more commands."
-        )
+    chat_id = update.effective_chat.id
+
+    if not rate_limiter.is_allowed(chat_id):
+        locale = await _get_locale(chat_id)
+        await update.message.reply_text(t("rate_limited", locale))
         return
 
-    api_key = await _require_linked(update)
+    locale = await _get_locale(chat_id)
+    api_key = await _require_linked(update, locale)
     if not api_key:
         return
 
-    msg = await update.message.reply_text("\U0001f4dc Fetching history...")
+    msg = await update.message.reply_text(
+        "\U0001f4dc " + t("progress_calculating", locale)
+    )
     api = NPSAPIClient(api_key)
     try:
         result = await api.list_readings(limit=5, offset=0)
         if not result.success:
-            await msg.edit_text(f"\u274c {result.error}")
+            await handle_api_error(msg, result, locale, api)
             return
         readings = result.data.get("readings", [])
         total = result.data.get("total", 0)
@@ -368,18 +409,20 @@ async def history_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await msg.edit_text(text, parse_mode="MarkdownV2", reply_markup=keyboard)
     except BadRequest as e:
         if "can't parse entities" in str(e).lower():
-            await msg.edit_text("Reading history loaded. View details in the web app.")
+            await msg.edit_text(t("reading_complete", locale))
         else:
             logger.exception("BadRequest in history_command")
-            await msg.edit_text("\u274c Error formatting history. Try again.")
+            await msg.edit_text(t("error_generic", locale))
+    except (httpx.ConnectError, httpx.TimeoutException):
+        await msg.edit_text(t("error_network", locale))
     except Exception:
         logger.exception("Error in history_command")
-        await msg.edit_text("\u274c Something went wrong. Try again later.")
+        await msg.edit_text(t("error_generic", locale))
     finally:
         await api.close()
 
 
-# ─── Callback Query Handler ──────────────────────────────────────────────────
+# ---- Callback Query Handler -------------------------------------------------
 
 
 async def reading_callback_handler(
@@ -387,21 +430,22 @@ async def reading_callback_handler(
 ) -> None:
     """Handle inline keyboard callbacks for reading:* and history:* patterns."""
     query = update.callback_query
-    await query.answer()  # Acknowledge the callback
+    await query.answer()
 
     data = query.data or ""
     chat_id = update.effective_chat.id
 
     api_key = await _get_user_api_key(chat_id)
     if not api_key:
-        await query.edit_message_text("Link your account first: /link <api_key>")
+        locale = await _get_locale(chat_id)
+        await query.edit_message_text(t("link_required", locale))
         return
 
     parts = data.split(":")
     if len(parts) < 2:
         return
 
-    category = parts[0]  # "reading" or "history"
+    category = parts[0]
     action = parts[1]
     value = parts[2] if len(parts) > 2 else ""
 
@@ -414,7 +458,7 @@ async def reading_callback_handler(
     except Exception:
         logger.exception("Error in callback handler for %s", data)
         try:
-            await query.edit_message_text("\u274c Something went wrong. Try again.")
+            await query.edit_message_text(t("error_generic", "en"))
         except BadRequest:
             pass
     finally:
@@ -442,12 +486,11 @@ async def _handle_reading_callback(query, api, action, value):
                     reply_markup=reading_actions_keyboard(reading_id),
                 )
             except BadRequest:
-                await query.edit_message_text("Reading details loaded.")
+                await query.edit_message_text(t("reading_complete", "en"))
         else:
             await query.edit_message_text(f"\u274c {result.error}")
 
     elif action == "rate" and value:
-        # Stub: log the rating intent
         logger.info("User wants to rate reading %s", value)
         await query.edit_message_text(
             _escape("Rating feature coming soon!"),
@@ -455,6 +498,12 @@ async def _handle_reading_callback(query, api, action, value):
         )
 
     elif action == "share" and value:
+        if value == "compare":
+            await query.edit_message_text(
+                _escape("Share feature for comparisons coming soon!"),
+                parse_mode="MarkdownV2",
+            )
+            return
         reading_id = int(value)
         result = await api.get_reading(reading_id)
         if result.success:
@@ -477,7 +526,6 @@ async def _handle_reading_callback(query, api, action, value):
         )
 
     elif action == "type" and value:
-        # User chose a reading type from the keyboard
         type_hints = {
             "time": "Use: /time [HH:MM] [YYYY-MM-DD]",
             "question": "Use: /question <your question>",
@@ -509,7 +557,7 @@ async def _handle_history_callback(query, api, action, value):
                     reply_markup=reading_actions_keyboard(reading_id),
                 )
             except BadRequest:
-                await query.edit_message_text("Reading loaded.")
+                await query.edit_message_text(t("reading_complete", "en"))
         else:
             await query.edit_message_text(f"\u274c {result.error}")
 
@@ -527,7 +575,7 @@ async def _handle_history_callback(query, api, action, value):
                     text, parse_mode="MarkdownV2", reply_markup=keyboard
                 )
             except BadRequest:
-                await query.edit_message_text("History loaded.")
+                await query.edit_message_text(t("reading_complete", "en"))
         else:
             await query.edit_message_text(f"\u274c {result.error}")
 

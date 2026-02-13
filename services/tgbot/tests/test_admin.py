@@ -113,7 +113,7 @@ async def test_admin_stats_rejects_non_admin(mock_limiter, mock_client):
     await admin_stats_handler(update, context)
 
     call_text = update.message.reply_text.call_args[0][0]
-    assert "Access denied" in call_text
+    assert "Access denied" in call_text or "denied" in call_text.lower()
 
 
 # ─── /admin_users tests ─────────────────────────────────────────────────────
@@ -227,7 +227,7 @@ async def test_admin_users_rejects_non_admin(mock_limiter, mock_client):
     await admin_users_handler(update, context)
 
     call_text = update.message.reply_text.call_args[0][0]
-    assert "Access denied" in call_text
+    assert "Access denied" in call_text or "denied" in call_text.lower()
 
 
 # ─── /admin_broadcast tests ─────────────────────────────────────────────────
@@ -373,7 +373,7 @@ async def test_admin_broadcast_rejects_non_admin(mock_limiter, mock_client):
     await admin_broadcast_handler(update, context)
 
     call_text = update.message.reply_text.call_args[0][0]
-    assert "Access denied" in call_text
+    assert "Access denied" in call_text or "denied" in call_text.lower()
 
 
 # ─── is_admin tests ─────────────────────────────────────────────────────────

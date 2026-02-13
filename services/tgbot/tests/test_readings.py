@@ -6,14 +6,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from services.tgbot.api_client import APIResponse
 from services.tgbot.handlers.readings import (
     build_iso_datetime,
-    check_reading_rate_limit,
     daily_command,
     history_command,
     name_command,
     question_command,
     time_command,
-    _user_readings,
 )
+from services.tgbot.reading_rate_limiter import ReadingRateLimiter
 
 
 def _make_update(chat_id: int = 12345):
@@ -31,6 +30,7 @@ def _make_context(args: list[str] | None = None):
     context = MagicMock()
     context.args = args
     context.bot.send_message = AsyncMock()
+    context.bot_data = {}
     return context
 
 
@@ -51,11 +51,9 @@ def _reading_response(data: dict | None = None) -> APIResponse:
 
 
 @pytest.fixture(autouse=True)
-def reset_rate_limiter():
-    """Clear per-user rate limiter between tests."""
-    _user_readings.clear()
-    yield
-    _user_readings.clear()
+def _reading_rate_limiter():
+    """Provide a fresh reading rate limiter for each test."""
+    yield ReadingRateLimiter()
 
 
 # ─── time_command tests ──────────────────────────────────────────────────────
@@ -441,11 +439,16 @@ async def test_unlinked_user_gets_error(mock_limiter, mock_client):
 
 def test_rate_limit_enforced():
     """11th reading in an hour gets rate limit message."""
+    rl = ReadingRateLimiter(max_readings=10, window_seconds=3600)
     chat_id = 99999
-    for i in range(10):
-        assert check_reading_rate_limit(chat_id) is True
+    for _ in range(10):
+        allowed, _ = rl.check(chat_id)
+        assert allowed is True
+        rl.record(chat_id)
     # 11th should fail
-    assert check_reading_rate_limit(chat_id) is False
+    allowed, wait = rl.check(chat_id)
+    assert allowed is False
+    assert wait > 0
 
 
 # ─── Helper tests ────────────────────────────────────────────────────────────

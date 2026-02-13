@@ -71,6 +71,22 @@ def history_keyboard(
     return InlineKeyboardMarkup(buttons)
 
 
+def compare_actions_keyboard() -> InlineKeyboardMarkup:
+    """Post-compare action buttons."""
+    return InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton(
+                    "\U0001f4e4 Share", callback_data="reading:share:compare"
+                ),
+                InlineKeyboardButton(
+                    "\U0001f52e New Reading", callback_data="reading:new"
+                ),
+            ],
+        ]
+    )
+
+
 def reading_type_keyboard() -> InlineKeyboardMarkup:
     """Choose reading type when user clicks 'New Reading'."""
     return InlineKeyboardMarkup(

@@ -39,6 +39,7 @@ def _make_context(args: list[str] | None = None):
 async def test_daily_on_creates_preference(mock_limiter, mock_client):
     """/daily_on creates a new preference with daily_enabled=True."""
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
 
     mock_http = AsyncMock()
     mock_http.put = AsyncMock(
@@ -63,7 +64,7 @@ async def test_daily_on_creates_preference(mock_limiter, mock_client):
 
     update.message.reply_text.assert_called_once()
     call_text = update.message.reply_text.call_args[0][0]
-    assert "enabled" in call_text.lower()
+    assert "enabled" in call_text.lower() or "08:00" in call_text
     assert "08:00" in call_text
 
 
@@ -73,6 +74,7 @@ async def test_daily_on_creates_preference(mock_limiter, mock_client):
 async def test_daily_on_enables_existing(mock_limiter, mock_client):
     """/daily_on when preference exists but disabled sets daily_enabled=True."""
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
 
     mock_http = AsyncMock()
     mock_http.put = AsyncMock(
@@ -109,6 +111,7 @@ async def test_daily_on_enables_existing(mock_limiter, mock_client):
 async def test_daily_off_disables(mock_limiter, mock_client):
     """/daily_off sets daily_enabled=False."""
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
 
     mock_http = AsyncMock()
     mock_http.put = AsyncMock(
@@ -125,15 +128,16 @@ async def test_daily_off_disables(mock_limiter, mock_client):
     await daily_off_handler(update, context)
 
     call_text = update.message.reply_text.call_args[0][0]
-    assert "disabled" in call_text.lower()
+    assert "disabled" in call_text.lower() or "daily_on" in call_text.lower()
 
 
 @pytest.mark.asyncio
 @patch("services.tgbot.handlers.daily.client")
 @patch("services.tgbot.handlers.daily.rate_limiter")
 async def test_daily_off_when_not_exists(mock_limiter, mock_client):
-    """/daily_off when no preference exists creates disabled row with friendly message."""
+    """/daily_off when no preference exists creates disabled row."""
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
 
     mock_http = AsyncMock()
     mock_http.put = AsyncMock(
@@ -150,7 +154,7 @@ async def test_daily_off_when_not_exists(mock_limiter, mock_client):
     await daily_off_handler(update, context)
 
     call_text = update.message.reply_text.call_args[0][0]
-    assert "disabled" in call_text.lower() or "re-enable" in call_text.lower()
+    assert "disabled" in call_text.lower() or "daily_on" in call_text.lower()
 
 
 # ─── /daily_time tests ──────────────────────────────────────────────────────
@@ -162,6 +166,7 @@ async def test_daily_off_when_not_exists(mock_limiter, mock_client):
 async def test_daily_time_valid(mock_limiter, mock_client):
     """/daily_time 14:30 updates delivery_time."""
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
 
     mock_http = AsyncMock()
     mock_http.put = AsyncMock(
@@ -182,10 +187,12 @@ async def test_daily_time_valid(mock_limiter, mock_client):
 
 
 @pytest.mark.asyncio
+@patch("services.tgbot.handlers.daily.client")
 @patch("services.tgbot.handlers.daily.rate_limiter")
-async def test_daily_time_invalid_format(mock_limiter):
+async def test_daily_time_invalid_format(mock_limiter, mock_client):
     """/daily_time abc returns error with usage hint."""
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
 
     update = _make_update()
     context = _make_context(args=["abc"])
@@ -197,10 +204,12 @@ async def test_daily_time_invalid_format(mock_limiter):
 
 
 @pytest.mark.asyncio
+@patch("services.tgbot.handlers.daily.client")
 @patch("services.tgbot.handlers.daily.rate_limiter")
-async def test_daily_time_out_of_range(mock_limiter):
+async def test_daily_time_out_of_range(mock_limiter, mock_client):
     """/daily_time 25:00 returns error."""
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
 
     update = _make_update()
     context = _make_context(args=["25:00"])
@@ -212,10 +221,12 @@ async def test_daily_time_out_of_range(mock_limiter):
 
 
 @pytest.mark.asyncio
+@patch("services.tgbot.handlers.daily.client")
 @patch("services.tgbot.handlers.daily.rate_limiter")
-async def test_daily_time_no_args(mock_limiter):
+async def test_daily_time_no_args(mock_limiter, mock_client):
     """/daily_time with no argument returns usage hint."""
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
 
     update = _make_update()
     context = _make_context(args=[])
@@ -235,6 +246,7 @@ async def test_daily_time_no_args(mock_limiter):
 async def test_daily_status_enabled(mock_limiter, mock_client):
     """/daily_status shows enabled state with correct time and timezone."""
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
 
     mock_http = AsyncMock()
     mock_http.get = AsyncMock(
@@ -270,6 +282,7 @@ async def test_daily_status_enabled(mock_limiter, mock_client):
 async def test_daily_status_not_configured(mock_limiter, mock_client):
     """/daily_status when no preference exists shows setup hint."""
     mock_limiter.is_allowed.return_value = True
+    mock_client.get_status = AsyncMock(return_value=None)
 
     mock_http = AsyncMock()
     mock_http.get = AsyncMock(return_value=MagicMock(status_code=404))

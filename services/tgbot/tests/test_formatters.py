@@ -192,8 +192,8 @@ def test_format_progress():
     """Progress formatter shows correct emoji and progress bar."""
     result = format_progress(2, 4, "Consulting the Oracle...")
     assert "\u2728" in result  # Sparkles emoji (step index 2)
-    assert "\u2593\u2593\u2591\u2591" in result  # Progress bar
-    assert "2/4" in result
+    assert "\u2593\u2593\u2593\u2591" in result  # Progress bar (step+1=3 filled)
+    assert "3/4" in result
 
     # Step 1 should use crystal ball
     result1 = format_progress(1, 4, "Step one...")
