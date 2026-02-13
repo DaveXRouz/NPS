@@ -371,6 +371,8 @@ def create_multi_user_reading(
         result = svc.get_multi_user_reading(users, body.include_interpretation)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
 
     # Collect user_ids for junction table (may be None)
     user_ids = [u.user_id for u in body.users]

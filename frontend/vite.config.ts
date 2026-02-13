@@ -29,6 +29,7 @@ export default defineConfig({
             "i18next-browser-languagedetector",
           ],
           "vendor-calendar": ["jalaali-js"],
+          "vendor-charts": ["recharts"],
         },
       },
     },

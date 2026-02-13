@@ -67,7 +67,12 @@ def _make_framework_output() -> dict:
     }
 
 
-def _make_reading_result(reading_type=ReadingType.DAILY, sign_value="2026-02-13") -> ReadingResult:
+def _make_reading_result(
+    reading_type=ReadingType.DAILY,
+    sign_value=None,
+) -> ReadingResult:
+    if sign_value is None:
+        sign_value = date.today().isoformat()
     return ReadingResult(
         reading_type=reading_type,
         user_id=1,

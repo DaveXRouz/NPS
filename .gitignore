@@ -41,6 +41,7 @@ Thumbs.db
 
 # Testing
 htmlcov/
+coverage/
 .coverage
 
 # Claude Code

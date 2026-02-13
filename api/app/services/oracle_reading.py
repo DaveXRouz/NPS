@@ -387,7 +387,10 @@ class OracleReadingService:
         Returns:
             Complete analysis dict with optional AI interpretation.
         """
-        svc = MultiUserFC60Service()
+        try:
+            svc = MultiUserFC60Service()
+        except TypeError:
+            raise RuntimeError("Multi-user analysis engines not yet available")
         result = svc.analyze(users)
         result_dict = result.to_dict()
 

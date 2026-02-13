@@ -28,37 +28,27 @@ def _three_users():
     }
 
 
-# ─── Basic Functionality ────────────────────────────────────────────────────
+# ─── Engine Availability ─────────────────────────────────────────────────────
+# Multi-user engines (compatibility_analyzer, group_energy, group_dynamics) were
+# removed in Session 6 and will be rewritten in Session 7.  The endpoint returns
+# 503 Service Unavailable until those engines are reimplemented.
 
 
 @pytest.mark.asyncio
-async def test_two_user_analysis(client):
+async def test_two_user_analysis_503_without_engines(client):
+    """Multi-user analysis returns 503 when engines are not available."""
     resp = await client.post(MULTI_USER_URL, json=_two_users())
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["user_count"] == 2
-    assert data["pair_count"] == 1
-    assert isinstance(data["computation_ms"], float)
-    assert len(data["profiles"]) == 2
-    assert len(data["pairwise_compatibility"]) == 1
-    assert data["group_energy"] is not None
-    assert data["group_dynamics"] is not None
-    assert data["reading_id"] is not None
+    assert resp.status_code == 503
 
 
 @pytest.mark.asyncio
-async def test_three_user_analysis(client):
+async def test_three_user_analysis_503_without_engines(client):
     resp = await client.post(MULTI_USER_URL, json=_three_users())
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["user_count"] == 3
-    assert data["pair_count"] == 3
-    assert len(data["profiles"]) == 3
-    assert len(data["pairwise_compatibility"]) == 3
+    assert resp.status_code == 503
 
 
 @pytest.mark.asyncio
-async def test_max_ten_users(client):
+async def test_max_ten_users_503_without_engines(client):
     users = [
         {
             "name": f"User{i}",
@@ -69,71 +59,55 @@ async def test_max_ten_users(client):
         for i in range(10)
     ]
     resp = await client.post(MULTI_USER_URL, json={"users": users, "primary_user_index": 0})
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["user_count"] == 10
-    assert data["pair_count"] == 45  # 10*9/2
+    assert resp.status_code == 503
 
 
 @pytest.mark.asyncio
-async def test_without_interpretation(client):
+async def test_without_interpretation_503_without_engines(client):
     body = _two_users()
     body["include_interpretation"] = False
     resp = await client.post(MULTI_USER_URL, json=body)
+    assert resp.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_with_interpretation_503_without_engines(client):
+    resp = await client.post(MULTI_USER_URL, json=_two_users())
+    assert resp.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_profile_fields_503_without_engines(client):
+    resp = await client.post(MULTI_USER_URL, json=_two_users())
+    assert resp.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_compatibility_fields_503_without_engines(client):
+    resp = await client.post(MULTI_USER_URL, json=_two_users())
+    assert resp.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_group_energy_fields_503_without_engines(client):
+    resp = await client.post(MULTI_USER_URL, json=_two_users())
+    assert resp.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_group_dynamics_fields_503_without_engines(client):
+    resp = await client.post(MULTI_USER_URL, json=_two_users())
+    assert resp.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_reading_not_stored_when_unavailable(client):
+    """No reading stored when engines are unavailable."""
+    await client.post(MULTI_USER_URL, json=_two_users())
+    resp = await client.get(READINGS_URL, params={"sign_type": "multi_user"})
     assert resp.status_code == 200
     data = resp.json()
-    assert data["ai_interpretation"] is None
-
-
-@pytest.mark.asyncio
-async def test_with_interpretation(client):
-    resp = await client.post(MULTI_USER_URL, json=_two_users())
-    assert resp.status_code == 200
-    # AI interpretation may be None in test env (no API key) — that's fine
-
-
-# ─── Profile Fields ──────────────────────────────────────────────────────────
-
-
-@pytest.mark.asyncio
-async def test_profile_fields(client):
-    resp = await client.post(MULTI_USER_URL, json=_two_users())
-    assert resp.status_code == 200
-    profile = resp.json()["profiles"][0]
-    assert profile["name"] == "Alice"
-    assert "element" in profile
-    assert "animal" in profile
-    assert "life_path" in profile
-
-
-@pytest.mark.asyncio
-async def test_compatibility_fields(client):
-    resp = await client.post(MULTI_USER_URL, json=_two_users())
-    assert resp.status_code == 200
-    compat = resp.json()["pairwise_compatibility"][0]
-    assert "user1" in compat
-    assert "user2" in compat
-    assert "overall" in compat
-    assert isinstance(compat["overall"], float)
-
-
-@pytest.mark.asyncio
-async def test_group_energy_fields(client):
-    resp = await client.post(MULTI_USER_URL, json=_two_users())
-    assert resp.status_code == 200
-    energy = resp.json()["group_energy"]
-    assert "dominant_element" in energy
-    assert "dominant_animal" in energy
-    assert "joint_life_path" in energy
-
-
-@pytest.mark.asyncio
-async def test_group_dynamics_fields(client):
-    resp = await client.post(MULTI_USER_URL, json=_two_users())
-    assert resp.status_code == 200
-    dynamics = resp.json()["group_dynamics"]
-    assert "avg_compatibility" in dynamics
-    assert "roles" in dynamics
+    assert data["total"] == 0
 
 
 # ─── Validation ──────────────────────────────────────────────────────────────
@@ -185,19 +159,6 @@ async def test_empty_name_422(client):
     }
     resp = await client.post(MULTI_USER_URL, json=body)
     assert resp.status_code == 422
-
-
-# ─── DB Persistence ──────────────────────────────────────────────────────────
-
-
-@pytest.mark.asyncio
-async def test_reading_appears_in_history(client):
-    await client.post(MULTI_USER_URL, json=_two_users())
-    resp = await client.get(READINGS_URL, params={"sign_type": "multi_user"})
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["total"] == 1
-    assert data["readings"][0]["sign_type"] == "multi_user"
 
 
 # ─── Auth ────────────────────────────────────────────────────────────────────
