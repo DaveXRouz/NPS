@@ -1797,7 +1797,7 @@ TEMPLATE — copy this for each new session:
 - `services/tgbot/tests/test_api_client.py` — 5 tests (success, auth error, timeout, question body, pagination)
 
 **Tests:** Backend 417 pass (10 pre-existing multi_user failures unrelated) / Frontend 627 pass / Bot 48 pass (32 new) / 0 new failures
-**Commit:** PENDING
+**Commit:** 4a2db1a
 **Issues:**
 
 - Spec references `services/telegram/` but Session 33 renamed it to `services/tgbot/` — all paths adapted accordingly.
