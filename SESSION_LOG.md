@@ -1942,7 +1942,7 @@ TEMPLATE — copy this for each new session:
 **Date:** 2026-02-14
 **Spec:** `.session-specs/SESSION_37_SPEC.md`
 **Status:** COMPLETE
-**Commit:** (pending)
+**Commit:** 8a155d0
 
 **Summary:**
 
