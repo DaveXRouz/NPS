@@ -371,6 +371,23 @@ export const admin = {
   },
   deleteProfile: (id: number) =>
     request<void>(`/admin/profiles/${id}`, { method: "DELETE" }),
+  backups: () =>
+    request<import("@/types").BackupListResponse>("/admin/backups"),
+  triggerBackup: (backupType: string) =>
+    request<import("@/types").BackupTriggerResponse>("/admin/backups", {
+      method: "POST",
+      body: JSON.stringify({ backup_type: backupType }),
+    }),
+  restoreBackup: (filename: string) =>
+    request<import("@/types").RestoreResponse>("/admin/backups/restore", {
+      method: "POST",
+      body: JSON.stringify({ filename, confirm: true }),
+    }),
+  deleteBackup: (filename: string) =>
+    request<import("@/types").BackupDeleteResponse>(
+      `/admin/backups/${encodeURIComponent(filename)}`,
+      { method: "DELETE" },
+    ),
 };
 
 // ─── Admin Health / Monitoring (Session 39) ───

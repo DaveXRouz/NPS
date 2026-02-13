@@ -1,0 +1,6 @@
+# NPS Automated Backup Schedule
+# Daily: Oracle tables at midnight UTC
+0 0 * * * /app/scripts/backup_cron.sh daily >> /var/log/cron.log 2>&1
+
+# Weekly: Full database on Sunday at 3 AM UTC
+0 3 * * 0 /app/scripts/backup_cron.sh weekly >> /var/log/cron.log 2>&1

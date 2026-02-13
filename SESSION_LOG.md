@@ -10,7 +10,7 @@
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
 **Sessions completed:** 39 of 45
-**Last session:** Session 39 — Admin UI: Monitoring Dashboard & System Health
+**Last session:** Session 40 — Admin: Backup, Restore & Infrastructure Polish
 **Current block:** Admin & DevOps (Sessions 38-40) — Session 2 of 3
 
 ---
@@ -2102,6 +2102,58 @@ Full admin monitoring dashboard with 3 sub-tabs (Health, Logs, Analytics), 3 new
 - DevOps dashboard proxies NPS API health (not admin endpoints) — no auth needed for basic health check.
 
 **Next:** Session 40 — Admin: Backup, Restore & System Configuration.
+
+---
+
+### Session 40 — Admin: Backup, Restore & Infrastructure Polish
+
+**Date:** 2026-02-14
+**Spec:** `.session-specs/SESSION_40_SPEC.md`
+**Status:** COMPLETE
+
+**Summary:**
+
+Full backup/restore system with shell script enhancements, cron container, 4 admin API endpoints, BackupManager frontend component, environment validation script, and Docker Compose infrastructure polish across all 10 services.
+
+**Files created (8):**
+
+- `scripts/crontab` — Cron schedule: daily Oracle backup 00:00 UTC, weekly full DB Sunday 03:00 UTC
+- `scripts/backup_cron.sh` — Cron wrapper dispatching daily/weekly to appropriate backup scripts
+- `scripts/Dockerfile.backup` — Backup cron container based on postgres:15-alpine
+- `api/app/models/backup.py` — 7 Pydantic models (BackupInfo, BackupListResponse, BackupTriggerRequest/Response, RestoreRequest/Response, BackupDeleteResponse)
+- `scripts/validate_env.py` — Environment validator: .env, 10 required vars, encryption keys, PostgreSQL/Redis connectivity, Docker, required files, --json/--fix output modes
+- `frontend/src/components/admin/BackupManager.tsx` — Full backup management UI: table, type badges, create dropdown, two-step restore confirmation, delete modal, status banners
+- `api/tests/test_backup.py` — 15 test functions (30 with asyncio+trio): list, trigger, restore, delete, auth, path traversal guards
+- `frontend/src/components/admin/__tests__/BackupManager.test.tsx` — 11 tests: rendering, loading, badges, sizes, create menu, restore modal, confirm gate, delete modal, schedule, empty state
+
+**Files modified (12):**
+
+- `database/scripts/oracle_backup.sh` — Added --non-interactive, --notify, --data-only flags, JSON metadata sidecar, 30-day age-based retention, Telegram notification
+- `database/scripts/oracle_restore.sh` — Added --non-interactive, --notify flags, JSON output line, row count tracking
+- `scripts/backup.sh` — Added --non-interactive, --notify flags, JSON metadata sidecar, 60-day age-based retention
+- `scripts/restore.sh` — Added --non-interactive, --notify flags, JSON output line
+- `docker-compose.yml` — Added backup cron service, api backups volume, postgres shm_size, redis production config, nginx health via /api/health, oracle-alerter healthcheck, json-file logging on all 10 services
+- `api/app/routers/admin.py` — Added 4 backup endpoints (GET/POST /backups, POST /backups/restore, DELETE /backups/{filename}) with path traversal protection and subprocess execution
+- `frontend/src/types/index.ts` — Added 5 backup types (BackupInfo, BackupListResponse, BackupTriggerResponse, RestoreResponse, BackupDeleteResponse)
+- `frontend/src/services/api.ts` — Added 4 backup API methods to admin namespace (backups, triggerBackup, restoreBackup, deleteBackup)
+- `frontend/src/locales/en.json` — Added 28 backup i18n keys
+- `frontend/src/locales/fa.json` — Added matching 28 Persian translations
+- `frontend/src/App.tsx` — Added /admin/backups route with lazy-loaded BackupManager
+- `frontend/src/pages/Admin.tsx` — Added Backups tab to admin navigation
+
+**Tests:** 30 API tests pass (15 functions × asyncio+trio). 11 frontend tests pass. All 666 frontend tests pass. All 532 API tests pass (10 pre-existing failures in test_multi_user_reading.py unrelated).
+
+**Decisions:**
+
+- Backup scripts enhanced with --non-interactive flag for API-triggered execution (skips interactive prompts).
+- JSON metadata sidecar (.meta.json) written alongside each backup for programmatic metadata access.
+- Age-based retention: Oracle 30 days, Full DB 60 days — using `find -mtime` for cleanup.
+- Path traversal protection: `os.path.basename(filename) == filename` guard on all filename inputs.
+- Two-step restore confirmation in UI: user must type "RESTORE" to enable confirm button.
+- Backup cron container uses postgres:15-alpine base for pg_dump/psql compatibility.
+- All 10 Docker services now have json-file logging with 10MB/3-file rotation.
+
+**Next:** Session 41 — Testing: Integration Tests & Test Coverage.
 
 ---
 

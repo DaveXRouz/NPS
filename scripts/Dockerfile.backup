@@ -1,0 +1,21 @@
+FROM postgres:15-alpine
+
+# Install cron and curl (for Telegram notifications) and jq (for metadata)
+RUN apk add --no-cache bash curl jq docker-cli docker-cli-compose
+
+# Copy all scripts
+COPY scripts/backup_cron.sh /app/scripts/backup_cron.sh
+COPY scripts/backup.sh /app/scripts/backup.sh
+COPY scripts/restore.sh /app/scripts/restore.sh
+COPY scripts/crontab /etc/crontabs/root
+COPY database/scripts/oracle_backup.sh /app/database/scripts/oracle_backup.sh
+COPY database/scripts/oracle_restore.sh /app/database/scripts/oracle_restore.sh
+
+# Make scripts executable
+RUN chmod +x /app/scripts/*.sh /app/database/scripts/*.sh
+
+# Create backup and log directories
+RUN mkdir -p /app/backups/oracle /var/log
+
+# Start cron in foreground
+CMD ["crond", "-f", "-d", "8"]

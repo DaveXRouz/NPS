@@ -1025,6 +1025,43 @@ export type UserSortField =
 export type ProfileSortField = "name" | "birthday" | "created_at";
 export type SortOrder = "asc" | "desc";
 
+// ─── Backup (Session 40) ───
+
+export interface BackupInfo {
+  filename: string;
+  type: string; // "oracle_full" | "oracle_data" | "full_database"
+  timestamp: string;
+  size_bytes: number;
+  size_human: string;
+  tables: string[];
+  database: string;
+}
+
+export interface BackupListResponse {
+  backups: BackupInfo[];
+  total: number;
+  retention_policy: string;
+  backup_directory: string;
+}
+
+export interface BackupTriggerResponse {
+  status: string;
+  message: string;
+  backup: BackupInfo | null;
+}
+
+export interface RestoreResponse {
+  status: string;
+  message: string;
+  rows_restored: Record<string, number>;
+}
+
+export interface BackupDeleteResponse {
+  status: string;
+  message: string;
+  filename: string;
+}
+
 // ─── Currency (from legacy theme.py) ───
 
 export const CURRENCY_SYMBOLS: Record<

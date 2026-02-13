@@ -17,6 +17,7 @@ const AdminProfiles = lazy(() => import("./pages/AdminProfiles"));
 const Scanner = lazy(() => import("./pages/Scanner"));
 const SharedReading = lazy(() => import("./pages/SharedReading"));
 const AdminMonitoring = lazy(() => import("./pages/AdminMonitoring"));
+const BackupManager = lazy(() => import("./components/admin/BackupManager"));
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -86,6 +87,7 @@ export default function App() {
             <Route path="users" element={<AdminUsers />} />
             <Route path="profiles" element={<AdminProfiles />} />
             <Route path="monitoring" element={<AdminMonitoring />} />
+            <Route path="backups" element={<BackupManager />} />
           </Route>
           <Route
             path="/scanner"

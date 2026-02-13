@@ -75,6 +75,12 @@ export default function Admin() {
         >
           {t("admin.tab_monitoring")}
         </NavLink>
+        <NavLink
+          to="/admin/backups"
+          className={({ isActive }) => tabClass(isActive)}
+        >
+          {t("admin.tab_backups")}
+        </NavLink>
       </div>
 
       {/* Nested content */}
