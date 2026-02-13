@@ -1669,7 +1669,7 @@ TEMPLATE — copy this for each new session:
 - `frontend/src/components/oracle/__tests__/ReadingResults.test.tsx` — updated for ExportShareMenu
 
 **Tests:** Backend 401 pass (10 pre-existing multi_user failures unrelated) / Frontend 627 pass / 0 fail / 25 new tests
-**Commit:** (pending)
+**Commit:** 64af9ec
 **Issues:**
 
 - `BigInteger` PK with autoincrement doesn't work in SQLite (autoincrement requires exactly `INTEGER` type). Fixed by using `Integer` instead. Migration SQL still uses `BIGSERIAL` for PostgreSQL — ORM uses `Integer` which maps to `BIGINT` in PG and `INTEGER` in SQLite.
