@@ -154,7 +154,7 @@ def create_access_token(user_id: str, username: str, role: str) -> str:
     """Create a JWT access token."""
     scopes = _role_to_scopes(role)
     payload = {
-        "sub": user_id,
+        "sub": str(user_id),
         "username": username,
         "role": role,
         "scopes": scopes,

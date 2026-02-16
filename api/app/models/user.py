@@ -2,6 +2,8 @@
 
 from datetime import datetime
 
+from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
@@ -11,6 +13,12 @@ class SystemUserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
+
+    @field_validator("id", mode="before")
+    @classmethod
+    def coerce_id_to_str(cls, v: str | UUID) -> str:
+        return str(v)
+
     username: str
     role: str
     is_active: bool

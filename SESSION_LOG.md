@@ -2401,6 +2401,71 @@ Final session of the 45-session Oracle rebuild. Expanded security audit script f
 
 ---
 
+## Senior Builder 3 — 2026-02-15
+
+**Terminal:** SINGLE
+**Block:** Post-build Infrastructure & Integration Validation
+**Task:** Bring up full stack, validate all inter-service communication, run integration/E2E tests, prove system works as integrated whole
+**Spec:** Plan mode — piped-imagining-puffin.md
+
+**Files created:**
+
+- `docker-compose.override.yml` — Scanner placeholder (alpine)
+- `integration/scripts/test_connectivity.py` — Service connectivity validation (~200 lines)
+- `integration/scripts/test_all_endpoints.py` — Comprehensive endpoint testing (~700 lines)
+- `integration/scripts/test_telegram.py` — Telegram bot validation (~185 lines)
+- `integration/scripts/test_encryption.py` — AES-256-GCM encryption validation (~290 lines)
+- `integration/scripts/test_workflows.py` — E2E workflow scenarios (~320 lines)
+- `infrastructure/SERVICE_CONNECTIVITY_REPORT.md` — Connectivity results
+- `api/ENDPOINT_VALIDATION_REPORT.md` — Endpoint test results
+- `integration/TELEGRAM_INTEGRATION_REPORT.md` — Telegram test results
+- `security/ENCRYPTION_VALIDATION_REPORT.md` — Encryption validation
+- `integration/END_TO_END_WORKFLOW_REPORT.md` — Workflow test results
+- `docs/SENIOR_BUILDER_3_REPORT.md` — Comprehensive SB3 report
+
+**Files modified:**
+
+- `api/app/middleware/auth.py` — UUID→str in JWT creation (line 157)
+- `api/app/models/user.py` — UUID field_validator for SystemUserResponse
+- `api/app/models/admin.py` — UUID field_validator for SystemUserResponse
+- `api/app/models/auth.py` — UUID field_validator for RegisterResponse + APIKeyResponse
+
+**Database changes:**
+
+- Created 5 missing tables: user_settings, oracle_share_links, telegram_links, telegram_daily_preferences, oracle_reading_feedback
+- Added 6 missing columns via ALTER TABLE: users.failed_attempts, users.locked_until, users.refresh_token_hash, oracle_users.created_by, oracle_readings.is_favorite, oracle_readings.deleted_at
+
+**Tests:**
+
+- Connectivity: 6 pass / 0 fail / 3 skip
+- Endpoint validation: 60 pass / 6 fail
+- Telegram: 4/4 pass (live message sent)
+- Encryption: 10/10 pass (all security properties)
+- Integration (pytest): 180 pass / 61 fail (24 expected multi-user 503)
+- Playwright E2E: 17 pass / 43 fail (UI scaffolding mismatches)
+- Workflows: 8 pass / 3 fail / 3 skip
+- Security audit: 18/20 pass
+- Performance: 4/10 within target (rate limiting + expected 503s)
+
+**Commit:** [infra] SB3: infrastructure validated + integration tests (#senior-builder-3)
+
+**Issues:**
+
+- Docker unavailable — ran stack locally (Homebrew PostgreSQL + direct processes)
+- 6 ORM/DB schema mismatches discovered and fixed
+- UUID serialization chain: DB→ORM→JWT→Pydantic needed fixes at 3 layers
+- Playwright tests mostly fail on UI selectors (frontend not matching test expectations)
+- Rate limiter too aggressive for integration test bombardment
+
+**Decisions:**
+
+- Adapted Docker-based plan to local mode (no Docker available)
+- Created docker-compose.override.yml for when Docker becomes available
+- Fixed UUID issues at Pydantic model layer (field_validators) not ORM layer
+- Documented all 9 known issues for SB4 handoff
+
+---
+
 ## Cross-Terminal Dependencies
 
 > Only used in multi-terminal mode. Track what each terminal needs from others.

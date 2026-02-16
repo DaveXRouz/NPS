@@ -1,8 +1,9 @@
 """Authentication request/response models."""
 
 from datetime import datetime
+from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class LoginRequest(BaseModel):
@@ -26,6 +27,12 @@ class RegisterRequest(BaseModel):
 class RegisterResponse(BaseModel):
     id: str
     username: str
+
+    @field_validator("id", mode="before")
+    @classmethod
+    def coerce_id(cls, v: str | UUID) -> str:
+        return str(v)
+
     role: str
     created_at: datetime
 
@@ -55,6 +62,12 @@ class APIKeyCreate(BaseModel):
 class APIKeyResponse(BaseModel):
     id: str
     name: str
+
+    @field_validator("id", mode="before")
+    @classmethod
+    def coerce_id(cls, v: str | UUID) -> str:
+        return str(v)
+
     scopes: list[str]
     created_at: datetime
     expires_at: datetime | None
