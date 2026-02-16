@@ -11,16 +11,14 @@ from fastapi import (
     Request,
     status,
 )
+from pydantic import ValidationError
 from sqlalchemy import func, text
 from sqlalchemy.orm import Session
+from starlette.responses import Response as StarletteResponse
 
 from app.database import get_db
 from app.middleware.auth import get_current_user, require_scope
 from app.models.audit import AuditLogEntry, AuditLogResponse
-from pydantic import ValidationError
-
-from starlette.responses import Response as StarletteResponse
-
 from app.models.dashboard import DashboardStatsResponse
 from app.models.oracle import (
     DailyInsightResponse,
@@ -58,8 +56,8 @@ from app.services.oracle_reading import (
     OracleReadingService,
     get_oracle_reading_service,
 )
-from app.services.websocket_manager import ws_manager
 from app.services.security import EncryptionService, get_encryption_service
+from app.services.websocket_manager import ws_manager
 
 logger = logging.getLogger(__name__)
 

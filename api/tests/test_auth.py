@@ -12,10 +12,10 @@ from sqlalchemy.orm import sessionmaker
 
 from app.database import Base
 from app.middleware.auth import (
-    _TokenBlacklist,
     _blacklist,
     _expand_scopes,
     _role_to_scopes,
+    _TokenBlacklist,
     _try_api_key_auth,
     _try_jwt_auth,
     create_access_token,
@@ -111,6 +111,7 @@ def test_invalid_jwt_returns_none():
 
 def test_expired_jwt_returns_none():
     from jose import jwt
+
     from app.config import settings
 
     payload = {
@@ -407,6 +408,7 @@ def test_register_request_valid():
 def test_register_request_password_too_short():
     """Password under 8 chars raises validation error."""
     from pydantic import ValidationError
+
     from app.models.auth import RegisterRequest
 
     with pytest.raises(ValidationError):
@@ -416,6 +418,7 @@ def test_register_request_password_too_short():
 def test_register_request_username_too_short():
     """Username under 3 chars raises validation error."""
     from pydantic import ValidationError
+
     from app.models.auth import RegisterRequest
 
     with pytest.raises(ValidationError):

@@ -493,9 +493,9 @@ async def test_delete_user_already_deleted_404(admin_client):
 
 
 @pytest.mark.asyncio
-async def test_validation_name_no_digits(admin_client):
-    resp = await admin_client.post(USERS_URL, json=_base_user_payload(name="John123"))
-    assert resp.status_code == 422
+async def test_validation_name_allows_digits(admin_client):
+    resp = await admin_client.post(USERS_URL, json=_base_user_payload(name="Ali3"))
+    assert resp.status_code == 201
 
 
 @pytest.mark.asyncio

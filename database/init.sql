@@ -407,3 +407,121 @@ CREATE INDEX IF NOT EXISTS idx_oracle_daily_readings_result_gin
 
 CREATE INDEX IF NOT EXISTS idx_oracle_readings_numerology_system
     ON oracle_readings(numerology_system);
+
+-- ═══════════════════════════════════════════════════════════════════
+-- Schema Drift Fixes (SB4: sync init.sql with ORM models)
+-- ═══════════════════════════════════════════════════════════════════
+
+-- ─── Missing columns on existing tables ───
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_attempts INTEGER DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS refresh_token_hash TEXT;
+
+ALTER TABLE oracle_users ADD COLUMN IF NOT EXISTS created_by VARCHAR(36) REFERENCES users(id) ON DELETE SET NULL;
+
+ALTER TABLE oracle_readings ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE oracle_readings ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
+
+-- ─── User Settings (key-value store for system users) ───
+
+CREATE TABLE IF NOT EXISTS user_settings (
+    id SERIAL PRIMARY KEY,
+    user_id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    setting_key VARCHAR(100) NOT NULL,
+    setting_value TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_settings_user_id ON user_settings(user_id);
+
+CREATE TRIGGER user_settings_updated_at
+    BEFORE UPDATE ON user_settings
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- ─── Oracle Share Links ───
+
+CREATE TABLE IF NOT EXISTS oracle_share_links (
+    id SERIAL PRIMARY KEY,
+    token VARCHAR(32) UNIQUE NOT NULL,
+    reading_id INTEGER NOT NULL,
+    created_by_user_id VARCHAR(255),
+    expires_at TIMESTAMPTZ,
+    view_count INTEGER NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_oracle_share_links_token ON oracle_share_links(token);
+
+-- ─── Telegram Links ───
+
+CREATE TABLE IF NOT EXISTS telegram_links (
+    id SERIAL PRIMARY KEY,
+    telegram_chat_id BIGINT UNIQUE NOT NULL,
+    telegram_username VARCHAR(100),
+    user_id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    linked_at TIMESTAMPTZ DEFAULT NOW(),
+    last_active TIMESTAMPTZ,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE INDEX IF NOT EXISTS idx_telegram_links_user_id ON telegram_links(user_id);
+CREATE INDEX IF NOT EXISTS idx_telegram_links_chat_id ON telegram_links(telegram_chat_id);
+
+-- ─── Telegram Daily Preferences ───
+
+CREATE TABLE IF NOT EXISTS telegram_daily_preferences (
+    id SERIAL PRIMARY KEY,
+    chat_id BIGINT UNIQUE NOT NULL,
+    user_id VARCHAR(36) REFERENCES users(id) ON DELETE SET NULL,
+    daily_enabled BOOLEAN DEFAULT FALSE,
+    delivery_time TIME DEFAULT '08:00:00',
+    timezone_offset_minutes INTEGER DEFAULT 0,
+    last_delivered_date DATE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_telegram_daily_prefs_chat_id ON telegram_daily_preferences(chat_id);
+
+CREATE TRIGGER telegram_daily_preferences_updated_at
+    BEFORE UPDATE ON telegram_daily_preferences
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- ─── Oracle Reading Feedback ───
+
+CREATE TABLE IF NOT EXISTS oracle_reading_feedback (
+    id SERIAL PRIMARY KEY,
+    reading_id INTEGER NOT NULL REFERENCES oracle_readings(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES oracle_users(id) ON DELETE SET NULL,
+    rating SMALLINT NOT NULL,
+    section_feedback TEXT DEFAULT '{}',
+    text_feedback TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT oracle_feedback_unique UNIQUE (reading_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_oracle_feedback_reading_id ON oracle_reading_feedback(reading_id);
+
+CREATE TRIGGER oracle_reading_feedback_updated_at
+    BEFORE UPDATE ON oracle_reading_feedback
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- ─── Oracle Learning Data ───
+
+CREATE TABLE IF NOT EXISTS oracle_learning_data (
+    id SERIAL PRIMARY KEY,
+    metric_key VARCHAR(100) UNIQUE NOT NULL,
+    metric_value DOUBLE PRECISION NOT NULL DEFAULT 0,
+    sample_count INTEGER NOT NULL DEFAULT 0,
+    details TEXT DEFAULT '{}',
+    prompt_emphasis TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TRIGGER oracle_learning_data_updated_at
+    BEFORE UPDATE ON oracle_learning_data
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();

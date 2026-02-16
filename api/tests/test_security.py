@@ -5,8 +5,8 @@ import time
 import pytest
 
 from app.services.security import (
-    EncryptionService,
     ORACLE_SENSITIVE_KEYS,
+    EncryptionService,
     decrypt_aes256gcm,
     decrypt_dict,
     derive_key,

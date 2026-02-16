@@ -10,7 +10,6 @@ from app.database import get_db
 from app.main import app
 from app.middleware.auth import get_current_user
 from app.services.security import get_encryption_service
-
 from tests.conftest import (
     TestSession,
     override_get_current_user,

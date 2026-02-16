@@ -20,13 +20,6 @@ class OracleUserCreate(BaseModel):
     latitude: float | None = Field(None, ge=-90.0, le=90.0)
     longitude: float | None = Field(None, ge=-180.0, le=180.0)
 
-    @field_validator("name")
-    @classmethod
-    def name_no_digits(cls, v: str) -> str:
-        if v and any(c.isdigit() for c in v):
-            raise ValueError("Name must not contain digits")
-        return v
-
     @field_validator("birthday")
     @classmethod
     def birthday_range(cls, v: date) -> date:
@@ -51,13 +44,6 @@ class OracleUserUpdate(BaseModel):
     timezone_minutes: int | None = Field(None, ge=0, le=59)
     latitude: float | None = Field(None, ge=-90.0, le=90.0)
     longitude: float | None = Field(None, ge=-180.0, le=180.0)
-
-    @field_validator("name")
-    @classmethod
-    def name_no_digits(cls, v: str | None) -> str | None:
-        if v is not None and any(c.isdigit() for c in v):
-            raise ValueError("Name must not contain digits")
-        return v
 
     @field_validator("birthday")
     @classmethod

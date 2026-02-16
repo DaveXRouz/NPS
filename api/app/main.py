@@ -3,16 +3,30 @@
 import logging
 import os
 import time
-from pathlib import Path
-
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+import app.orm.api_key  # noqa: F401
+import app.orm.audit_log  # noqa: F401
+import app.orm.oracle_feedback  # noqa: F401
+import app.orm.oracle_reading  # noqa: F401
+import app.orm.oracle_settings  # noqa: F401
+
+# Import ORM models so Base.metadata knows all tables
+import app.orm.oracle_user  # noqa: F401
+import app.orm.share_link  # noqa: F401
+import app.orm.telegram_daily_preference  # noqa: F401
+import app.orm.telegram_link  # noqa: F401
+import app.orm.user  # noqa: F401
+import app.orm.user_settings  # noqa: F401
 from app.config import settings
+from app.database import SessionLocal
 from app.middleware.rate_limit import RateLimitMiddleware
+from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.routers import (
     admin,
     auth,
@@ -21,29 +35,17 @@ from app.routers import (
     location,
     oracle,
     scanner,
-    settings as settings_router,
     share,
     telegram,
     translation,
     users,
     vault,
 )
-from app.database import SessionLocal
+from app.routers import (
+    settings as settings_router,
+)
 from app.services.security import init_encryption
 from app.services.websocket_manager import ws_manager
-
-# Import ORM models so Base.metadata knows all tables
-import app.orm.oracle_user  # noqa: F401
-import app.orm.oracle_reading  # noqa: F401
-import app.orm.audit_log  # noqa: F401
-import app.orm.user  # noqa: F401
-import app.orm.api_key  # noqa: F401
-import app.orm.oracle_settings  # noqa: F401
-import app.orm.oracle_feedback  # noqa: F401
-import app.orm.user_settings  # noqa: F401
-import app.orm.share_link  # noqa: F401
-import app.orm.telegram_link  # noqa: F401
-import app.orm.telegram_daily_preference  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -139,6 +141,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Security headers (after CORS, before cache/rate limit)
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Response caching (after CORS, before rate limit)
 if settings.cache_enabled:

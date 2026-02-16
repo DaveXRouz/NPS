@@ -17,8 +17,9 @@ from app.orm.oracle_reading import OracleReading, OracleReadingUser
 from app.services.security import EncryptionService, get_encryption_service
 
 if TYPE_CHECKING:
-    from app.orm.oracle_user import OracleUser
     from oracle_service.models.reading_types import UserProfile
+
+    from app.orm.oracle_user import OracleUser
 
 logger = logging.getLogger(__name__)
 
@@ -38,20 +39,11 @@ if _ORACLE_SERVICE_DIR not in sys.path:
     sys.path.insert(0, _ORACLE_SERVICE_DIR)
 
 import oracle_service  # noqa: E402, F401 — triggers shim for absolute imports
-
-from oracle_service.framework_bridge import (  # noqa: E402
-    ANIMAL_NAMES,
-    STEM_ELEMENTS,
-    STEM_NAMES,
-    STEM_POLARITY,
-    encode_fc60,
-    ganzhi_year,
-    LETTER_VALUES,
-    LIFE_PATH_MEANINGS,
-    life_path,
-    numerology_reduce,
-    personal_year,
+from engines.ai_interpreter import (  # noqa: E402
+    interpret_multi_user,
+    interpret_reading,
 )
+from engines.multi_user_service import MultiUserFC60Service  # noqa: E402
 from engines.oracle import (  # noqa: E402
     _get_zodiac,
     daily_insight,
@@ -62,10 +54,18 @@ from engines.oracle import (  # noqa: E402
 from engines.timing_advisor import (  # noqa: E402
     get_current_quality,
 )
-from engines.multi_user_service import MultiUserFC60Service  # noqa: E402
-from engines.ai_interpreter import (  # noqa: E402
-    interpret_multi_user,
-    interpret_reading,
+from oracle_service.framework_bridge import (  # noqa: E402
+    ANIMAL_NAMES,
+    LETTER_VALUES,
+    LIFE_PATH_MEANINGS,
+    STEM_ELEMENTS,
+    STEM_NAMES,
+    STEM_POLARITY,
+    encode_fc60,
+    ganzhi_year,
+    life_path,
+    numerology_reduce,
+    personal_year,
 )
 
 # Backward-compatible alias — interpret_group was renamed to interpret_multi_user in Session 13
@@ -588,8 +588,9 @@ class OracleReadingService:
 
     def _create_daily_cache(self, user_id: int, reading_date, reading_id: int) -> None:
         """Insert row into oracle_daily_readings. Handles race condition via unique constraint."""
-        from app.orm.oracle_reading import OracleDailyReading
         from sqlalchemy.exc import IntegrityError
+
+        from app.orm.oracle_reading import OracleDailyReading
 
         try:
             cache_entry = OracleDailyReading(
@@ -1059,7 +1060,8 @@ class OracleReadingService:
         """Aggregated stats for the dashboard: totals, streak, confidence."""
         from datetime import date, timedelta
 
-        from sqlalchemy import cast, func as sqla_func, Date
+        from sqlalchemy import Date, cast
+        from sqlalchemy import func as sqla_func
 
         base = self.db.query(OracleReading).filter(
             OracleReading.deleted_at.is_(None),

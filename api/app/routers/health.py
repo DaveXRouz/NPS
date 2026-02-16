@@ -8,7 +8,7 @@ import time
 from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Query, Request
-from sqlalchemy import cast, Date, Float, extract, func
+from sqlalchemy import Date, Float, cast, extract, func
 from sqlalchemy.orm import Session
 
 from app.database import engine, get_db

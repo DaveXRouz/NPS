@@ -1,7 +1,8 @@
 """Tests for dashboard stats endpoint — GET /oracle/stats."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 
 @pytest.fixture

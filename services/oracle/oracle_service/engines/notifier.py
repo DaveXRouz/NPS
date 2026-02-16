@@ -12,6 +12,7 @@ Legacy additions preserved:
 """
 
 import logging
+import os
 import time
 
 logger = logging.getLogger(__name__)
@@ -935,20 +936,27 @@ def process_telegram_command(command):
 
 
 def play_alert_sound():
-    """Play an alert sound cross-platform. Fails silently."""
+    """Play an alert sound cross-platform. Fails silently.
+
+    Gated behind NPS_PLAY_SOUNDS env var (must be 'true' to enable).
+    No-op in production unless explicitly enabled.
+    """
+    if os.environ.get("NPS_PLAY_SOUNDS", "").lower() != "true":
+        return
+
     import platform
-    import subprocess
+    import subprocess  # noqa: S404 — allowlisted: desktop-only sound alert behind env var
 
     try:
         system = platform.system()
         if system == "Darwin":
-            subprocess.Popen(
+            subprocess.Popen(  # noqa: S603
                 ["afplay", "/System/Library/Sounds/Glass.aiff"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
         elif system == "Linux":
-            subprocess.Popen(
+            subprocess.Popen(  # noqa: S603
                 ["paplay", "/usr/share/sounds/freedesktop/stereo/complete.oga"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
