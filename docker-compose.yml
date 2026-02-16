@@ -39,6 +39,8 @@ services:
     ports:
       - "8000:8000"
     env_file: .env
+    environment:
+      BACKUP_DIR: /app/backups
     depends_on:
       postgres:
         condition: service_healthy

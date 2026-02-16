@@ -20,8 +20,9 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Install only runtime dependencies (no compiler)
+# postgresql-client provides pg_dump for admin backup endpoint
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq5 && \
+    libpq5 postgresql-client && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy installed Python packages from builder

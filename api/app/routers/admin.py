@@ -40,8 +40,10 @@ from app.services.audit import AuditService, get_audit_service
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Project root for locating backup scripts and directories
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+# Backup directory — use BACKUP_DIR env var (set in Docker), fallback for local dev
+_BACKUP_BASE = Path(
+    os.environ.get("BACKUP_DIR", str(Path(__file__).resolve().parents[3] / "backups"))
+)
 
 
 def _get_admin_service(db: Session = Depends(get_db)) -> AdminService:
@@ -311,8 +313,8 @@ def _parse_timestamp_from_filename(filename: str) -> datetime:
 def _scan_backups() -> list[BackupInfo]:
     """Scan backup directories and return BackupInfo list."""
     backups: list[BackupInfo] = []
-    oracle_dir = _PROJECT_ROOT / "backups" / "oracle"
-    full_dir = _PROJECT_ROOT / "backups"
+    oracle_dir = _BACKUP_BASE / "oracle"
+    full_dir = _BACKUP_BASE
 
     for directory in [oracle_dir, full_dir]:
         if not directory.exists():
@@ -369,8 +371,8 @@ def _scan_backups() -> list[BackupInfo]:
 
 def _find_backup_path(filename: str) -> Path | None:
     """Find the full path for a backup filename. Returns None if not found."""
-    oracle_path = _PROJECT_ROOT / "backups" / "oracle" / filename
-    full_path = _PROJECT_ROOT / "backups" / filename
+    oracle_path = _BACKUP_BASE / "oracle" / filename
+    full_path = _BACKUP_BASE / filename
     if oracle_path.exists():
         return oracle_path
     if full_path.exists():
@@ -390,7 +392,7 @@ def list_backups() -> BackupListResponse:
         backups=backups,
         total=len(backups),
         retention_policy="Oracle: 30 days, Full database: 60 days",
-        backup_directory=str(_PROJECT_ROOT / "backups"),
+        backup_directory=str(_BACKUP_BASE),
     )
 
 
@@ -436,13 +438,13 @@ def trigger_backup(
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     if body.backup_type == "oracle_full":
         filename = f"oracle_full_{timestamp}.sql.gz"
-        backup_dir = _PROJECT_ROOT / "backups" / "oracle"
+        backup_dir = _BACKUP_BASE / "oracle"
         cmd = ["pg_dump", "-h", pg_host, "-p", pg_port, "-U", pg_user, pg_db]
         for tbl in oracle_tables:
             cmd.extend(["--table", tbl])
     elif body.backup_type == "oracle_data":
         filename = f"oracle_data_{timestamp}.sql.gz"
-        backup_dir = _PROJECT_ROOT / "backups" / "oracle"
+        backup_dir = _BACKUP_BASE / "oracle"
         cmd = [
             "pg_dump",
             "-h",
@@ -458,7 +460,7 @@ def trigger_backup(
             cmd.extend(["--table", tbl])
     else:  # full_database
         filename = f"nps_backup_{timestamp}.sql.gz"
-        backup_dir = _PROJECT_ROOT / "backups"
+        backup_dir = _BACKUP_BASE
         cmd = ["pg_dump", "-h", pg_host, "-p", pg_port, "-U", pg_user, pg_db]
 
     backup_dir.mkdir(parents=True, exist_ok=True)
@@ -599,29 +601,49 @@ def restore_backup(
             detail=f"Backup file not found: {filename}",
         )
 
-    # Determine which restore script to use
-    if filename.startswith("oracle_"):
-        cmd = [
-            str(_PROJECT_ROOT / "database" / "scripts" / "oracle_restore.sh"),
-            "--non-interactive",
-            str(backup_path),
-        ]
-        timeout = 300
-    elif filename.startswith("nps_backup_"):
-        cmd = [
-            str(_PROJECT_ROOT / "scripts" / "restore.sh"),
-            "--non-interactive",
-            str(backup_path),
-        ]
-        timeout = 300
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot determine restore script for this backup type",
-        )
+    # Restore via gunzip | psql pipeline (mirrors pg_dump | gzip backup)
+    pg_host = os.environ.get("POSTGRES_HOST", "postgres")
+    pg_port = os.environ.get("POSTGRES_PORT", "5432")
+    pg_user = os.environ.get("POSTGRES_USER", "nps")
+    pg_db = os.environ.get("POSTGRES_DB", "nps")
 
+    psql_cmd = ["psql", "-h", pg_host, "-p", pg_port, "-U", pg_user, pg_db]
+    env = os.environ.copy()
+    env["PGPASSWORD"] = os.environ.get("POSTGRES_PASSWORD", "")
+
+    timeout = 300
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        with open(backup_path, "rb") as infile:
+            gunzip = subprocess.Popen(
+                ["gunzip", "-c"],
+                stdin=infile,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            psql = subprocess.Popen(
+                psql_cmd,
+                stdin=gunzip.stdout,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=env,
+            )
+            gunzip.stdout.close()
+            psql_out, psql_err = psql.communicate(timeout=timeout)
+            gunzip.communicate(timeout=10)
+
+        if psql.returncode != 0:
+            stderr_msg = (psql_err or b"").decode(errors="replace")[:500]
+            audit.log(
+                "admin.backup_restore",
+                success=False,
+                ip_address=_get_client_ip(request),
+                details={"filename": filename, "stderr": stderr_msg},
+            )
+            audit.db.commit()
+            return RestoreResponse(
+                status="failed",
+                message=stderr_msg.strip() or "Restore failed",
+            )
     except subprocess.TimeoutExpired:
         audit.log(
             "admin.backup_restore",
@@ -634,42 +656,30 @@ def restore_backup(
             status="failed",
             message=f"Restore timed out after {timeout} seconds",
         )
-
-    if result.returncode != 0:
+    except FileNotFoundError:
         audit.log(
             "admin.backup_restore",
             success=False,
             ip_address=_get_client_ip(request),
-            details={"filename": filename, "stderr": result.stderr[:500]},
+            details={"filename": filename, "error": "psql not found"},
         )
         audit.db.commit()
         return RestoreResponse(
             status="failed",
-            message=result.stderr.strip() or "Restore failed",
+            message="psql not available in this environment",
         )
-
-    # Try to parse row counts from JSON_OUTPUT line
-    rows_restored: dict[str, int] = {}
-    for line in result.stdout.splitlines():
-        if line.startswith("JSON_OUTPUT:"):
-            try:
-                data = json.loads(line[len("JSON_OUTPUT:") :])
-                rows_restored = data.get("rows", {})
-            except json.JSONDecodeError:
-                pass
 
     audit.log(
         "admin.backup_restore",
         success=True,
         ip_address=_get_client_ip(request),
-        details={"filename": filename, "rows_restored": rows_restored},
+        details={"filename": filename},
     )
     audit.db.commit()
 
     return RestoreResponse(
         status="success",
         message="Restore completed successfully",
-        rows_restored=rows_restored,
     )
 
 
