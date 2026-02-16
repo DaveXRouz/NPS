@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, func
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import ARRAY, UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -16,7 +16,7 @@ class APIKey(Base):
     user_id: Mapped[str] = mapped_column(PG_UUID(as_uuid=False), ForeignKey("users.id"))
     key_hash: Mapped[str] = mapped_column(Text, nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    scopes: Mapped[str] = mapped_column(Text, default="")  # comma-separated
+    scopes: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list)
     rate_limit: Mapped[int] = mapped_column(Integer, default=60)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     expires_at: Mapped[datetime | None] = mapped_column()
@@ -25,11 +25,9 @@ class APIKey(Base):
 
     @property
     def scopes_list(self) -> list[str]:
-        """Parse comma-separated scopes into a list."""
-        if not self.scopes:
-            return []
-        return [s.strip() for s in self.scopes.split(",") if s.strip()]
+        """Return scopes as a list."""
+        return self.scopes or []
 
     @scopes_list.setter
     def scopes_list(self, values: list[str]):
-        self.scopes = ",".join(values)
+        self.scopes = values

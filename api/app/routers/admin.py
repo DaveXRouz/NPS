@@ -405,39 +405,103 @@ def trigger_backup(
     _user: dict = Depends(get_current_user),
     audit: AuditService = Depends(get_audit_service),
 ) -> BackupTriggerResponse:
-    """Trigger an immediate backup."""
-    script_map = {
-        "oracle_full": [
-            str(_PROJECT_ROOT / "database" / "scripts" / "oracle_backup.sh"),
-            "--non-interactive",
-        ],
-        "oracle_data": [
-            str(_PROJECT_ROOT / "database" / "scripts" / "oracle_backup.sh"),
-            "--data-only",
-            "--non-interactive",
-        ],
-        "full_database": [
-            str(_PROJECT_ROOT / "scripts" / "backup.sh"),
-            "--non-interactive",
-        ],
-    }
-
-    cmd = script_map.get(body.backup_type)
-    if not cmd:
+    """Trigger an immediate backup using pg_dump directly."""
+    valid_types = {"oracle_full", "oracle_data", "full_database"}
+    if body.backup_type not in valid_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid backup type: {body.backup_type}",
         )
 
+    # DB connection params from environment
+    pg_host = os.environ.get("POSTGRES_HOST", "postgres")
+    pg_port = os.environ.get("POSTGRES_PORT", "5432")
+    pg_user = os.environ.get("POSTGRES_USER", "nps")
+    pg_db = os.environ.get("POSTGRES_DB", "nps")
+
+    # Oracle-specific tables for selective backups
+    oracle_tables = [
+        "oracle_users",
+        "oracle_readings",
+        "oracle_reading_users",
+        "oracle_audit_log",
+        "oracle_settings",
+        "oracle_daily_readings",
+        "oracle_share_links",
+        "oracle_reading_feedback",
+        "oracle_learning_data",
+    ]
+
+    # Build pg_dump command based on backup type
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    if body.backup_type == "oracle_full":
+        filename = f"oracle_full_{timestamp}.sql.gz"
+        backup_dir = _PROJECT_ROOT / "backups" / "oracle"
+        cmd = ["pg_dump", "-h", pg_host, "-p", pg_port, "-U", pg_user, pg_db]
+        for tbl in oracle_tables:
+            cmd.extend(["--table", tbl])
+    elif body.backup_type == "oracle_data":
+        filename = f"oracle_data_{timestamp}.sql.gz"
+        backup_dir = _PROJECT_ROOT / "backups" / "oracle"
+        cmd = [
+            "pg_dump",
+            "-h",
+            pg_host,
+            "-p",
+            pg_port,
+            "-U",
+            pg_user,
+            "--data-only",
+            pg_db,
+        ]
+        for tbl in oracle_tables:
+            cmd.extend(["--table", tbl])
+    else:  # full_database
+        filename = f"nps_backup_{timestamp}.sql.gz"
+        backup_dir = _PROJECT_ROOT / "backups"
+        cmd = ["pg_dump", "-h", pg_host, "-p", pg_port, "-U", pg_user, pg_db]
+
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    backup_path = backup_dir / filename
+
+    env = os.environ.copy()
+    env["PGPASSWORD"] = os.environ.get("POSTGRES_PASSWORD", "")
+
     timeout = 300 if body.backup_type == "full_database" else 120
     try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
+        with open(backup_path, "wb") as outfile:
+            dump = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=env,
+            )
+            gzip_proc = subprocess.Popen(
+                ["gzip"],
+                stdin=dump.stdout,
+                stdout=outfile,
+                stderr=subprocess.PIPE,
+            )
+            dump.stdout.close()  # Allow dump to receive SIGPIPE if gzip exits
+            _, gzip_err = gzip_proc.communicate(timeout=timeout)
+            _, dump_err = dump.communicate(timeout=10)
+
+        if dump.returncode != 0:
+            backup_path.unlink(missing_ok=True)
+            stderr_msg = (dump_err or b"").decode(errors="replace")[:500]
+            audit.log(
+                "admin.backup_trigger",
+                success=False,
+                ip_address=_get_client_ip(request),
+                details={"backup_type": body.backup_type, "stderr": stderr_msg},
+            )
+            audit.db.commit()
+            return BackupTriggerResponse(
+                status="failed",
+                message=stderr_msg.strip() or "pg_dump failed",
+            )
     except subprocess.TimeoutExpired:
+        backup_path.unlink(missing_ok=True)
         audit.log(
             "admin.backup_trigger",
             success=False,
@@ -449,21 +513,33 @@ def trigger_backup(
             status="failed",
             message=f"Backup timed out after {timeout} seconds",
         )
-
-    if result.returncode != 0:
+    except FileNotFoundError:
         audit.log(
             "admin.backup_trigger",
             success=False,
             ip_address=_get_client_ip(request),
-            details={"backup_type": body.backup_type, "stderr": result.stderr[:500]},
+            details={"backup_type": body.backup_type, "error": "pg_dump not found"},
         )
         audit.db.commit()
         return BackupTriggerResponse(
             status="failed",
-            message=result.stderr.strip() or "Backup failed",
+            message="pg_dump not available in this environment",
         )
 
-    # Find the newest backup file to return its info
+    # Write metadata sidecar
+    stat = backup_path.stat()
+    meta = {
+        "filename": filename,
+        "backup_type": body.backup_type,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "size_bytes": stat.st_size,
+        "tables": oracle_tables if body.backup_type != "full_database" else [],
+        "database": pg_db,
+    }
+    meta_path = backup_path.with_suffix("").with_suffix(".meta.json")
+    meta_path.write_text(json.dumps(meta, indent=2))
+
+    # Re-scan to return structured info
     backups = _scan_backups()
     backup_info = backups[0] if backups else None
 
@@ -473,7 +549,7 @@ def trigger_backup(
         ip_address=_get_client_ip(request),
         details={
             "backup_type": body.backup_type,
-            "filename": backup_info.filename if backup_info else "unknown",
+            "filename": filename,
         },
     )
     audit.db.commit()

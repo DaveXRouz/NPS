@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 VALID_SETTING_KEYS = {
     "locale",
+    "language",
     "theme",
     "default_reading_type",
     "timezone",
