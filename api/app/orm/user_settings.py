@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from sqlalchemy import ForeignKey, Integer, String, Text, func
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -13,7 +14,9 @@ class UserSettings(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+        PG_UUID(as_uuid=False),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
     )
     setting_key: Mapped[str] = mapped_column(String(100), nullable=False)
     setting_value: Mapped[str] = mapped_column(Text, default="", nullable=False)

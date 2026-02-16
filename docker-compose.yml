@@ -19,7 +19,7 @@ services:
           cpus: "0.5"
           memory: 256M
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:80"]
       interval: 30s
       timeout: 5s
       start_period: 15s
@@ -48,6 +48,8 @@ services:
         condition: service_healthy
     volumes:
       - ./backups:/app/backups
+      - ./services/oracle:/services/oracle:ro
+      - ./numerology_ai_framework:/numerology_ai_framework:ro
     restart: unless-stopped
     deploy:
       resources:
@@ -296,7 +298,7 @@ services:
           cpus: "0.25"
           memory: 128M
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/api/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:80/api/health"]
       interval: 30s
       timeout: 5s
       start_period: 15s

@@ -14,6 +14,9 @@ if _pkg_dir not in sys.path:
     sys.path.insert(0, _pkg_dir)
 
 # Allow `from numerology_ai_framework.xxx` imports
-_project_root = str(Path(__file__).resolve().parents[3])  # NPS/
-if _project_root not in sys.path:
-    sys.path.insert(0, _project_root)
+try:
+    _project_root = str(Path(__file__).resolve().parents[3])  # NPS/ (local dev)
+    if _project_root not in sys.path:
+        sys.path.insert(0, _project_root)
+except IndexError:
+    pass  # Docker: PYTHONPATH from Dockerfile ENV handles this

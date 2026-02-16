@@ -418,7 +418,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_attempts INTEGER DEFAULT 0;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS refresh_token_hash TEXT;
 
-ALTER TABLE oracle_users ADD COLUMN IF NOT EXISTS created_by VARCHAR(36) REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE oracle_users ADD COLUMN IF NOT EXISTS created_by UUID REFERENCES users(id) ON DELETE SET NULL;
 
 ALTER TABLE oracle_readings ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE oracle_readings ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
@@ -427,7 +427,7 @@ ALTER TABLE oracle_readings ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
 
 CREATE TABLE IF NOT EXISTS user_settings (
     id SERIAL PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     setting_key VARCHAR(100) NOT NULL,
     setting_value TEXT NOT NULL DEFAULT '',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -461,7 +461,7 @@ CREATE TABLE IF NOT EXISTS telegram_links (
     id SERIAL PRIMARY KEY,
     telegram_chat_id BIGINT UNIQUE NOT NULL,
     telegram_username VARCHAR(100),
-    user_id VARCHAR(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     linked_at TIMESTAMPTZ DEFAULT NOW(),
     last_active TIMESTAMPTZ,
     is_active BOOLEAN DEFAULT TRUE
@@ -475,7 +475,7 @@ CREATE INDEX IF NOT EXISTS idx_telegram_links_chat_id ON telegram_links(telegram
 CREATE TABLE IF NOT EXISTS telegram_daily_preferences (
     id SERIAL PRIMARY KEY,
     chat_id BIGINT UNIQUE NOT NULL,
-    user_id VARCHAR(36) REFERENCES users(id) ON DELETE SET NULL,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
     daily_enabled BOOLEAN DEFAULT FALSE,
     delivery_time TIME DEFAULT '08:00:00',
     timezone_offset_minutes INTEGER DEFAULT 0,

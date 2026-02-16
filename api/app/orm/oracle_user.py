@@ -3,6 +3,7 @@
 from datetime import date, datetime
 
 from sqlalchemy import CheckConstraint, Date, ForeignKey, Integer, String, Text, func
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -30,7 +31,7 @@ class OracleUser(Base):
 
     # Session 3 column (ownership)
     created_by: Mapped[str | None] = mapped_column(
-        String(36), ForeignKey("users.id", ondelete="SET NULL")
+        PG_UUID(as_uuid=False), ForeignKey("users.id", ondelete="SET NULL")
     )
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)

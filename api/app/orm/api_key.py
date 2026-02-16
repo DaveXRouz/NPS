@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, func
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -11,8 +12,8 @@ from app.database import Base
 class APIKey(Base):
     __tablename__ = "api_keys"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"))
+    id: Mapped[str] = mapped_column(PG_UUID(as_uuid=False), primary_key=True)
+    user_id: Mapped[str] = mapped_column(PG_UUID(as_uuid=False), ForeignKey("users.id"))
     key_hash: Mapped[str] = mapped_column(Text, nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     scopes: Mapped[str] = mapped_column(Text, default="")  # comma-separated
