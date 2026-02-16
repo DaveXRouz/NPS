@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import Date, Float, cast, extract, func
 from sqlalchemy.orm import Session
 
-from app.database import engine, get_db
+from app.database import get_db, get_engine, is_database_ready
 from app.middleware.auth import require_scope
 from app.orm.audit_log import OracleAuditLog
 from app.orm.oracle_reading import OracleReading
@@ -55,8 +55,15 @@ def _derive_severity(entry: OracleAuditLog) -> str:
 
 @router.get("")
 async def health_check():
-    """Basic health check for Docker/load balancer."""
-    return {"status": "healthy", "version": "4.0.0"}
+    """Basic health check for Docker/load balancer.
+
+    Always returns 200 so Railway doesn't kill the container while PostgreSQL boots.
+    """
+    return {
+        "status": "healthy",
+        "version": "4.0.0",
+        "database": "ready" if is_database_ready() else "initializing",
+    }
 
 
 @router.get("/ready")
@@ -64,15 +71,18 @@ async def readiness_check(request: Request):
     """Readiness probe — checks database and service connectivity."""
     checks = {}
 
-    try:
-        with engine.connect() as conn:
-            from sqlalchemy import text
+    if is_database_ready():
+        try:
+            with get_engine().connect() as conn:
+                from sqlalchemy import text
 
-            conn.execute(text("SELECT 1"))
-        checks["database"] = "healthy"
-    except Exception as exc:
-        logger.warning("Database health check failed: %s", exc)
-        checks["database"] = "unhealthy"
+                conn.execute(text("SELECT 1"))
+            checks["database"] = "healthy"
+        except Exception as exc:
+            logger.warning("Database health check failed: %s", exc)
+            checks["database"] = "unhealthy"
+    else:
+        checks["database"] = "initializing"
 
     redis = getattr(request.app.state, "redis", None)
     if redis:
@@ -120,24 +130,27 @@ async def detailed_health(
     checks: dict = {}
 
     # 1. Database
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-            try:
-                db_info = conn.execute(
-                    text("SELECT pg_database_size(current_database()) as size_bytes")
-                ).first()
-                size_bytes = db_info.size_bytes if db_info else None
-            except Exception:
-                size_bytes = None
-        checks["database"] = {
-            "status": "healthy",
-            "type": "postgresql",
-            "size_bytes": size_bytes,
-        }
-    except Exception as exc:
-        logger.warning("Database health check failed: %s", exc)
-        checks["database"] = {"status": "unhealthy", "error": str(exc)}
+    if is_database_ready():
+        try:
+            with get_engine().connect() as conn:
+                conn.execute(text("SELECT 1"))
+                try:
+                    db_info = conn.execute(
+                        text("SELECT pg_database_size(current_database()) as size_bytes")
+                    ).first()
+                    size_bytes = db_info.size_bytes if db_info else None
+                except Exception:
+                    size_bytes = None
+            checks["database"] = {
+                "status": "healthy",
+                "type": "postgresql",
+                "size_bytes": size_bytes,
+            }
+        except Exception as exc:
+            logger.warning("Database health check failed: %s", exc)
+            checks["database"] = {"status": "unhealthy", "error": str(exc)}
+    else:
+        checks["database"] = {"status": "initializing", "type": "postgresql"}
 
     # 2. Redis
     redis = getattr(request.app.state, "redis", None)

@@ -24,7 +24,7 @@ import app.orm.telegram_link  # noqa: F401
 import app.orm.user  # noqa: F401
 import app.orm.user_settings  # noqa: F401
 from app.config import settings
-from app.database import SessionLocal
+from app.database import get_session_factory
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.routers import (
@@ -62,11 +62,16 @@ async def lifespan(app: FastAPI):
     init_encryption(settings)
     logger.info("Encryption service initialized")
 
-    # Create database tables (no-op if they already exist)
-    from app.database import create_tables
+    # Create database tables (no-op if they already exist).
+    # Wrapped in try/except so the app starts even if PostgreSQL is still booting.
+    # Tables will be created on first request via the lazy engine retry.
+    try:
+        from app.database import create_tables
 
-    create_tables()
-    logger.info("Database tables verified")
+        create_tables()
+        logger.info("Database tables verified")
+    except Exception as exc:
+        logger.warning("Database tables not yet created (will retry on first request): %s", exc)
 
     # Connect to Redis (graceful fallback)
     app.state.redis = None
@@ -100,7 +105,7 @@ async def lifespan(app: FastAPI):
     try:
         from services.oracle.oracle_service.daily_scheduler import DailyScheduler
 
-        daily_scheduler = DailyScheduler(db_session_factory=SessionLocal)
+        daily_scheduler = DailyScheduler(db_session_factory=get_session_factory())
         await daily_scheduler.start()
     except Exception as exc:
         logger.warning("Daily scheduler failed to start (non-fatal): %s", exc)

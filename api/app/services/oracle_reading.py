@@ -38,38 +38,56 @@ if _ORACLE_PARENT_DIR not in sys.path:
 if _ORACLE_SERVICE_DIR not in sys.path:
     sys.path.insert(0, _ORACLE_SERVICE_DIR)
 
-import oracle_service  # noqa: E402, F401 — triggers shim for absolute imports
-from engines.ai_interpreter import (  # noqa: E402
-    interpret_multi_user,
-    interpret_reading,
-)
-from engines.multi_user_service import MultiUserFC60Service  # noqa: E402
-from engines.oracle import (  # noqa: E402
-    _get_zodiac,
-    daily_insight,
-    question_sign,
-    read_name,
-    read_sign,
-)
-from engines.timing_advisor import (  # noqa: E402
-    get_current_quality,
-)
-from oracle_service.framework_bridge import (  # noqa: E402
-    ANIMAL_NAMES,
-    LETTER_VALUES,
-    LIFE_PATH_MEANINGS,
-    STEM_ELEMENTS,
-    STEM_NAMES,
-    STEM_POLARITY,
-    encode_fc60,
-    ganzhi_year,
-    life_path,
-    numerology_reduce,
-    personal_year,
-)
+_ORACLE_ENGINES_AVAILABLE = False
+try:
+    import oracle_service  # noqa: E402, F401 — triggers shim for absolute imports
+    from engines.ai_interpreter import (  # noqa: E402
+        interpret_multi_user,
+        interpret_reading,
+    )
+    from engines.multi_user_service import MultiUserFC60Service  # noqa: E402
+    from engines.oracle import (  # noqa: E402
+        _get_zodiac,
+        daily_insight,
+        question_sign,
+        read_name,
+        read_sign,
+    )
+    from engines.timing_advisor import (  # noqa: E402
+        get_current_quality,
+    )
+    from oracle_service.framework_bridge import (  # noqa: E402
+        ANIMAL_NAMES,
+        LETTER_VALUES,
+        LIFE_PATH_MEANINGS,
+        STEM_ELEMENTS,
+        STEM_NAMES,
+        STEM_POLARITY,
+        encode_fc60,
+        ganzhi_year,
+        life_path,
+        numerology_reduce,
+        personal_year,
+    )
 
-# Backward-compatible alias — interpret_group was renamed to interpret_multi_user in Session 13
-interpret_group = interpret_multi_user
+    # Backward-compatible alias — interpret_group was renamed to interpret_multi_user in Session 13
+    interpret_group = interpret_multi_user
+    _ORACLE_ENGINES_AVAILABLE = True
+except ImportError as _import_err:
+    logger.warning(
+        "Oracle engines not available — oracle endpoints will return 503: %s",
+        _import_err,
+    )
+    # Define stubs so the module loads without crashing
+    oracle_service = None  # type: ignore[assignment]
+    interpret_multi_user = interpret_reading = None  # type: ignore[assignment]
+    interpret_group = None  # type: ignore[assignment]
+    MultiUserFC60Service = None  # type: ignore[assignment]
+    _get_zodiac = daily_insight = question_sign = read_name = read_sign = None  # type: ignore[assignment]
+    get_current_quality = None  # type: ignore[assignment]
+    ANIMAL_NAMES = LETTER_VALUES = LIFE_PATH_MEANINGS = None  # type: ignore[assignment]
+    STEM_ELEMENTS = STEM_NAMES = STEM_POLARITY = None  # type: ignore[assignment]
+    encode_fc60 = ganzhi_year = life_path = numerology_reduce = personal_year = None  # type: ignore[assignment]
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -96,10 +114,21 @@ class OracleReadingService:
         self.db = db
         self.enc = enc
 
+    def _require_engines(self) -> None:
+        """Raise 503 if oracle engines failed to import."""
+        if not _ORACLE_ENGINES_AVAILABLE:
+            from fastapi import HTTPException
+
+            raise HTTPException(
+                status_code=503,
+                detail="Oracle engines are not available. Check server logs.",
+            )
+
     # ── Computation methods (ported from gRPC server.py) ──
 
     def get_reading(self, datetime_str: str | None, extended: bool = False) -> dict:
         """Full oracle reading for a date/time."""
+        self._require_engines()
         dt = _parse_datetime(datetime_str)
         y, m, d = dt.year, dt.month, dt.day
         h, mi, s = dt.hour, dt.minute, dt.second
@@ -261,6 +290,7 @@ class OracleReadingService:
 
     def get_question_sign(self, question: str) -> dict:
         """Ask a yes/no question with numerological context."""
+        self._require_engines()
         result = question_sign(question)
 
         reduced_numbers = result.get("numerology", {}).get("reduced", [])
@@ -296,6 +326,7 @@ class OracleReadingService:
 
     def get_name_reading(self, name: str) -> dict:
         """Name cipher reading."""
+        self._require_engines()
         result = read_name(name)
 
         letters = []
@@ -317,6 +348,7 @@ class OracleReadingService:
 
     def get_daily_insight(self, date_str: str | None) -> dict:
         """Daily insight for a given date or today."""
+        self._require_engines()
         dt = _parse_datetime(date_str)
         result = daily_insight(dt)
 
@@ -336,6 +368,7 @@ class OracleReadingService:
         ai_level: int,
     ) -> dict:
         """AI-suggested scan range based on timing + coverage."""
+        self._require_engines()
         timing = get_current_quality()
         score = timing.get("score", 0.5)
 
@@ -387,6 +420,7 @@ class OracleReadingService:
         Returns:
             Complete analysis dict with optional AI interpretation.
         """
+        self._require_engines()
         try:
             svc = MultiUserFC60Service()
         except TypeError:

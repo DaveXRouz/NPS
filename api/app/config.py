@@ -1,6 +1,7 @@
 """API service configuration — loads from environment variables."""
 
 from pathlib import Path
+from urllib.parse import quote_plus
 
 from pydantic_settings import BaseSettings
 
@@ -93,9 +94,9 @@ class Settings(BaseSettings):
             user = self.pguser or self.postgres_user
             pw = self.pgpassword or self.postgres_password
             db = self.pgdatabase or self.postgres_db
-            return f"postgresql://{user}:{pw}@{self.pghost}:{port}/{db}"
+            return f"postgresql://{quote_plus(user)}:{quote_plus(pw)}@{self.pghost}:{port}/{db}"
         return (
-            f"postgresql://{self.postgres_user}:{self.postgres_password}"
+            f"postgresql://{quote_plus(self.postgres_user)}:{quote_plus(self.postgres_password)}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
 

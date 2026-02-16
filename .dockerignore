@@ -15,5 +15,12 @@ services/scanner/
 services/tgbot/
 **/__pycache__
 **/*.pyc
+**/.DS_Store
+**/.ruff_cache
+**/.pytest_cache
+numerology_ai_framework/eval.zip
+numerology_ai_framework/eval/
+numerology_ai_framework/tests/
+numerology_ai_framework/.claude/
 .env
 .env.local
