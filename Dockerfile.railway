@@ -37,6 +37,7 @@ RUN groupadd -r api && useradd -r -g api -u 1001 api && \
     mkdir -p /app/backups && chown -R api:api /app /app/backups
 
 ENV PYTHONPATH="/services/oracle:/services/oracle/oracle_service:/:/app"
+ENV BACKUP_DIR=/app/backups
 
 EXPOSE 8000
 
