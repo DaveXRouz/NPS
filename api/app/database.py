@@ -1,7 +1,6 @@
-"""Database session and engine setup — PostgreSQL with SQLite fallback."""
+"""Database session and engine setup — PostgreSQL only (schema uses ARRAY types)."""
 
 import logging
-from pathlib import Path
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
@@ -12,41 +11,30 @@ logger = logging.getLogger(__name__)
 
 
 def _build_engine():
-    """Try PostgreSQL first; fall back to SQLite if unavailable."""
+    """Connect to PostgreSQL. Fails hard if unavailable (no SQLite fallback)."""
     url = settings.effective_database_url
+    logger.info(
+        "Connecting to PostgreSQL at %s",
+        url.split("@")[-1] if "@" in url else "(embedded)",
+    )
 
-    if url.startswith("sqlite"):
-        logger.info("Using SQLite database: %s", url)
-        return create_engine(url, connect_args={"check_same_thread": False})
-
-    # Try PostgreSQL
-    try:
-        eng = create_engine(
-            url,
-            pool_pre_ping=True,
-            pool_size=settings.db_pool_size,
-            max_overflow=settings.db_max_overflow,
-            pool_recycle=settings.db_pool_recycle,
-            pool_timeout=30,
-            echo=False,
-        )
-        with eng.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        logger.info(
-            "Connected to PostgreSQL (pool_size=%d, max_overflow=%d)",
-            settings.db_pool_size,
-            settings.db_max_overflow,
-        )
-        return eng
-    except Exception as exc:
-        logger.warning("PostgreSQL unavailable (%s), falling back to SQLite", exc)
-
-    # Fallback: SQLite in api/data/
-    data_dir = Path(__file__).resolve().parent.parent / "data"
-    data_dir.mkdir(exist_ok=True)
-    sqlite_url = f"sqlite:///{data_dir / 'nps.db'}"
-    logger.info("Using SQLite fallback: %s", sqlite_url)
-    return create_engine(sqlite_url, connect_args={"check_same_thread": False})
+    eng = create_engine(
+        url,
+        pool_pre_ping=True,
+        pool_size=settings.db_pool_size,
+        max_overflow=settings.db_max_overflow,
+        pool_recycle=settings.db_pool_recycle,
+        pool_timeout=30,
+        echo=False,
+    )
+    with eng.connect() as conn:
+        conn.execute(text("SELECT 1"))
+    logger.info(
+        "Connected to PostgreSQL (pool_size=%d, max_overflow=%d)",
+        settings.db_pool_size,
+        settings.db_max_overflow,
+    )
+    return eng
 
 
 engine = _build_engine()

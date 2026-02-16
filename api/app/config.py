@@ -68,17 +68,32 @@ class Settings(BaseSettings):
 
     # Direct URL overrides (Railway/Heroku set these automatically)
     database_url: str = ""
+    database_private_url: str = ""  # Railway internal networking (faster)
     redis_url: str = ""
+    redis_private_url: str = ""
+
+    # Railway PostgreSQL plugin also sets individual PG* vars
+    pghost: str = ""
+    pgport: str = ""
+    pguser: str = ""
+    pgpassword: str = ""
+    pgdatabase: str = ""
 
     @property
     def effective_database_url(self) -> str:
-        """Database URL — checks DATABASE_URL env var first, then builds from components."""
-        url = self.database_url
-        if url:
-            # Railway/Heroku use postgres://, SQLAlchemy needs postgresql://
-            if url.startswith("postgres://"):
-                url = url.replace("postgres://", "postgresql://", 1)
-            return url
+        """Database URL — priority: DATABASE_PRIVATE_URL > DATABASE_URL > PG* vars > components."""
+        for url in (self.database_private_url, self.database_url):
+            if url:
+                if url.startswith("postgres://"):
+                    url = url.replace("postgres://", "postgresql://", 1)
+                return url
+        # Railway PG* env vars
+        if self.pghost:
+            port = self.pgport or "5432"
+            user = self.pguser or self.postgres_user
+            pw = self.pgpassword or self.postgres_password
+            db = self.pgdatabase or self.postgres_db
+            return f"postgresql://{user}:{pw}@{self.pghost}:{port}/{db}"
         return (
             f"postgresql://{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
@@ -86,8 +101,12 @@ class Settings(BaseSettings):
 
     @property
     def effective_redis_url(self) -> str:
-        """Redis URL — checks REDIS_URL env var first, then builds from components."""
-        return self.redis_url or f"redis://{self.redis_host}:{self.redis_port}"
+        """Redis URL — priority: REDIS_PRIVATE_URL > REDIS_URL > components."""
+        return (
+            self.redis_private_url
+            or self.redis_url
+            or f"redis://{self.redis_host}:{self.redis_port}"
+        )
 
     @property
     def cors_origins(self) -> list[str]:
