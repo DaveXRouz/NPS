@@ -66,21 +66,28 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_format: str = "json"
 
-    # Optional override — set DATABASE_URL to skip PostgreSQL entirely
-    database_url_override: str = ""
+    # Direct URL overrides (Railway/Heroku set these automatically)
+    database_url: str = ""
+    redis_url: str = ""
 
     @property
-    def database_url(self) -> str:
-        if self.database_url_override:
-            return self.database_url_override
+    def effective_database_url(self) -> str:
+        """Database URL — checks DATABASE_URL env var first, then builds from components."""
+        url = self.database_url
+        if url:
+            # Railway/Heroku use postgres://, SQLAlchemy needs postgresql://
+            if url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql://", 1)
+            return url
         return (
             f"postgresql://{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
 
     @property
-    def redis_url(self) -> str:
-        return f"redis://{self.redis_host}:{self.redis_port}"
+    def effective_redis_url(self) -> str:
+        """Redis URL — checks REDIS_URL env var first, then builds from components."""
+        return self.redis_url or f"redis://{self.redis_host}:{self.redis_port}"
 
     @property
     def cors_origins(self) -> list[str]:

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 def _build_engine():
     """Try PostgreSQL first; fall back to SQLite if unavailable."""
-    url = settings.database_url
+    url = settings.effective_database_url
 
     if url.startswith("sqlite"):
         logger.info("Using SQLite database: %s", url)

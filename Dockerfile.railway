@@ -1,0 +1,45 @@
+# NPS API — Railway deployment (repo root build context)
+
+# ─── Stage 1: Builder ───
+FROM python:3.11-slim AS builder
+
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY api/pyproject.toml .
+RUN pip install --no-cache-dir --prefix=/install .
+
+# ─── Stage 2: Runtime ───
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /install /usr/local
+
+# Copy API code (same layout as docker-compose: api/ contents → /app/)
+COPY api/ .
+
+# Copy Oracle engines (oracle_reading.py resolves parents[3] = "/" → "/services/oracle")
+COPY services/oracle /services/oracle
+
+# Copy numerology framework (oracle_service/__init__.py adds "/" to sys.path)
+COPY numerology_ai_framework /numerology_ai_framework
+
+# Non-root user + backups dir
+RUN groupadd -r api && useradd -r -g api -u 1001 api && \
+    mkdir -p /app/backups && chown -R api:api /app /app/backups
+
+ENV PYTHONPATH="/services/oracle:/services/oracle/oracle_service:/:/app"
+
+EXPOSE 8000
+
+USER api
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--log-level", "warning"]
