@@ -9,9 +9,9 @@ interface ReadingCardProps {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  reading: "bg-blue-500/20 text-blue-300",
-  time: "bg-blue-500/20 text-blue-300",
-  question: "bg-purple-500/20 text-purple-300",
+  reading: "bg-nps-oracle-accent/20 text-nps-oracle-accent",
+  time: "bg-nps-oracle-accent/20 text-nps-oracle-accent",
+  question: "bg-nps-purple/20 text-nps-purple",
   name: "bg-emerald-500/20 text-emerald-300",
   daily: "bg-amber-500/20 text-amber-300",
   multi_user: "bg-rose-500/20 text-rose-300",

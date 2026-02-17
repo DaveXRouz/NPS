@@ -8,8 +8,8 @@ interface ReadingHeaderProps {
 }
 
 const TYPE_BADGES: Record<string, { color: string }> = {
-  reading: { color: "bg-blue-600/20 text-blue-400" },
-  question: { color: "bg-purple-600/20 text-purple-400" },
+  reading: { color: "bg-nps-oracle-accent/20 text-nps-oracle-accent" },
+  question: { color: "bg-nps-purple/20 text-nps-purple" },
   name: { color: "bg-green-600/20 text-green-400" },
 };
 

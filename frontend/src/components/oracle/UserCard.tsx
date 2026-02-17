@@ -127,7 +127,7 @@ export function UserCard({
             <span
               className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${
                 user.gender === "male"
-                  ? "bg-blue-500/15 text-blue-400"
+                  ? "bg-nps-oracle-accent/15 text-nps-oracle-accent"
                   : "bg-pink-500/15 text-pink-400"
               }`}
               data-testid="gender-badge"

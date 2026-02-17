@@ -24,7 +24,7 @@ export default function MoonPhaseDisplay({
   const { t } = useTranslation();
   const illumination = Math.max(0, Math.min(100, moon.illumination));
   const energyColor =
-    ENERGY_COLORS[moon.energy] || "bg-gray-500/15 text-gray-400";
+    ENERGY_COLORS[moon.energy] || "bg-nps-bg-input text-nps-text-dim";
 
   return (
     <div className="space-y-3">
