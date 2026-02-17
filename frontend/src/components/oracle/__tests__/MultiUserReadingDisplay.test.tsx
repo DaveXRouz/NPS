@@ -119,7 +119,7 @@ describe("MultiUserReadingDisplay", () => {
     const cell = screen.getByTestId("cell-0-1");
     // 72% → green range
     expect(cell.textContent).toContain("72");
-    expect(cell.className).toContain("green");
+    expect(cell.className).toContain("nps-success");
   });
 
   it("group analysis visible for 3+ users", () => {

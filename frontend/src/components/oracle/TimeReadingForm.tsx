@@ -93,7 +93,7 @@ export default function TimeReadingForm({
       className="space-y-4 text-start"
       dir={isRTL ? "rtl" : "ltr"}
     >
-      <div className="text-sm text-gray-500">
+      <div className="text-sm text-nps-text-dim">
         {t("oracle.consulting_for", { name: userName })}
       </div>
 
@@ -104,7 +104,10 @@ export default function TimeReadingForm({
       {/* Time selectors */}
       <div className="flex items-center gap-2">
         <div className="flex flex-col">
-          <label htmlFor="hour-select" className="text-xs text-gray-500 mb-1">
+          <label
+            htmlFor="hour-select"
+            className="text-xs text-nps-text-dim mb-1"
+          >
             {t("oracle.hour_label")}
           </label>
           <select
@@ -112,7 +115,7 @@ export default function TimeReadingForm({
             aria-label={t("oracle.hour_label")}
             value={hour}
             onChange={(e) => setHour(Number(e.target.value))}
-            className="rounded border border-gray-300 px-2 py-1.5 text-sm"
+            className="bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
             disabled={mutation.isPending}
           >
             {hourOptions.map((h) => (
@@ -126,7 +129,10 @@ export default function TimeReadingForm({
         <span className="mt-5 text-lg font-bold">:</span>
 
         <div className="flex flex-col">
-          <label htmlFor="minute-select" className="text-xs text-gray-500 mb-1">
+          <label
+            htmlFor="minute-select"
+            className="text-nps-text-dim text-xs mb-1"
+          >
             {t("oracle.minute_label")}
           </label>
           <select
@@ -134,7 +140,7 @@ export default function TimeReadingForm({
             aria-label={t("oracle.minute_label")}
             value={minute}
             onChange={(e) => setMinute(Number(e.target.value))}
-            className="rounded border border-gray-300 px-2 py-1.5 text-sm"
+            className="bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
             disabled={mutation.isPending}
           >
             {minuteSecondOptions.map((m) => (
@@ -148,7 +154,10 @@ export default function TimeReadingForm({
         <span className="mt-5 text-lg font-bold">:</span>
 
         <div className="flex flex-col">
-          <label htmlFor="second-select" className="text-xs text-gray-500 mb-1">
+          <label
+            htmlFor="second-select"
+            className="text-nps-text-dim text-xs mb-1"
+          >
             {t("oracle.second_label")}
           </label>
           <select
@@ -156,7 +165,7 @@ export default function TimeReadingForm({
             aria-label={t("oracle.second_label")}
             value={second}
             onChange={(e) => setSecond(Number(e.target.value))}
-            className="rounded border border-gray-300 px-2 py-1.5 text-sm"
+            className="bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
             disabled={mutation.isPending}
           >
             {minuteSecondOptions.map((s) => (
@@ -172,7 +181,7 @@ export default function TimeReadingForm({
       <button
         type="button"
         onClick={handleUseCurrentTime}
-        className="text-sm text-blue-600 hover:text-blue-800 underline"
+        className="text-sm text-nps-oracle-accent hover:text-nps-oracle-accent/80 transition-colors"
         disabled={mutation.isPending}
       >
         {t("oracle.use_current_time")}
@@ -180,14 +189,14 @@ export default function TimeReadingForm({
 
       {/* Progress indicator */}
       {mutation.isPending && progress && (
-        <div className="rounded bg-blue-50 p-3 text-sm text-blue-700">
+        <div className="bg-nps-oracle-bg border border-nps-oracle-border rounded p-3 text-sm text-nps-oracle-accent">
           <div className="flex items-center gap-2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-nps-oracle-accent border-t-transparent" />
             <span>{progress.message}</span>
           </div>
-          <div className="mt-2 h-1.5 rounded-full bg-blue-200">
+          <div className="mt-2 h-1.5 rounded-full bg-nps-border">
             <div
-              className="h-1.5 rounded-full bg-blue-600 transition-all"
+              className="h-1.5 rounded-full bg-nps-oracle-accent transition-all"
               style={{
                 width: `${(progress.step / progress.total) * 100}%`,
               }}
@@ -200,7 +209,7 @@ export default function TimeReadingForm({
       <button
         type="submit"
         disabled={mutation.isPending}
-        className="w-full rounded bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full rounded bg-[var(--nps-accent)] px-4 py-2 text-[var(--nps-bg)] font-medium hover:bg-[var(--nps-accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {mutation.isPending
           ? t("oracle.generating_reading")

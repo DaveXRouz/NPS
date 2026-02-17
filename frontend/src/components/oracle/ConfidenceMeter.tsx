@@ -7,17 +7,17 @@ interface ConfidenceMeterProps {
 }
 
 const LEVEL_COLORS: Record<string, string> = {
-  very_high: "bg-green-600",
-  high: "bg-blue-600",
+  very_high: "bg-nps-success",
+  high: "bg-nps-oracle-accent",
   medium: "bg-amber-600",
-  low: "bg-red-600",
+  low: "bg-nps-error",
 };
 
 const LEVEL_TEXT_COLORS: Record<string, string> = {
-  very_high: "text-green-600",
-  high: "text-blue-600",
+  very_high: "text-nps-success",
+  high: "text-nps-oracle-accent",
   medium: "text-amber-600",
-  low: "text-red-600",
+  low: "text-nps-error",
 };
 
 export function ConfidenceMeter({ confidence, boosts }: ConfidenceMeterProps) {
@@ -32,8 +32,8 @@ export function ConfidenceMeter({ confidence, boosts }: ConfidenceMeterProps) {
     );
   }
 
-  const barColor = LEVEL_COLORS[confidence.level] ?? "bg-gray-500";
-  const textColor = LEVEL_TEXT_COLORS[confidence.level] ?? "text-gray-500";
+  const barColor = LEVEL_COLORS[confidence.level] ?? "bg-nps-text-dim";
+  const textColor = LEVEL_TEXT_COLORS[confidence.level] ?? "text-nps-text-dim";
   const levelLabel = t(`oracle.confidence_level_${confidence.level}`);
 
   return (
@@ -84,7 +84,7 @@ export function ConfidenceMeter({ confidence, boosts }: ConfidenceMeterProps) {
               <span className="flex items-center gap-1.5">
                 <span
                   className={
-                    boost.filled ? "text-green-500" : "text-nps-text-dim"
+                    boost.filled ? "text-nps-success" : "text-nps-text-dim"
                   }
                   data-testid={`boost-icon-${boost.field}`}
                 >

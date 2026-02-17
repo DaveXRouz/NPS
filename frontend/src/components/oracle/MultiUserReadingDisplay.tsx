@@ -13,9 +13,9 @@ interface MultiUserReadingDisplayProps {
 }
 
 function getCellColor(score: number): string {
-  if (score >= 70) return "bg-green-100 text-green-800";
-  if (score >= 40) return "bg-yellow-100 text-yellow-800";
-  return "bg-red-100 text-red-800";
+  if (score >= 70) return "bg-nps-success/15 text-nps-success";
+  if (score >= 40) return "bg-nps-warning/15 text-nps-warning";
+  return "bg-nps-error/15 text-nps-error";
 }
 
 export default function MultiUserReadingDisplay({
@@ -34,18 +34,18 @@ export default function MultiUserReadingDisplay({
 
   return (
     <div
-      className={`rounded-xl border border-gray-200 bg-white shadow-sm ${isRTL ? "rtl" : ""}`}
+      className={`rounded-xl border border-nps-border bg-nps-bg-card shadow-sm ${isRTL ? "rtl" : ""}`}
       data-testid="multi-user-display"
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">
+      <div className="flex items-center justify-between p-4 border-b border-nps-border">
+        <h3 className="text-lg font-semibold text-nps-text-bright">
           {t("oracle.multi_user_title")}
         </h3>
         {onClose && (
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-nps-text-dim hover:text-nps-text"
             aria-label="Close"
           >
             &times;
@@ -55,7 +55,7 @@ export default function MultiUserReadingDisplay({
 
       {/* User tabs */}
       <div
-        className="flex border-b border-gray-200 overflow-x-auto"
+        className="flex border-b border-nps-border overflow-x-auto"
         role="tablist"
       >
         {result.individual_readings.map(
@@ -67,8 +67,8 @@ export default function MultiUserReadingDisplay({
               onClick={() => setActiveTab(idx)}
               className={`px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === idx
-                  ? "border-indigo-600 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  ? "border-nps-oracle-accent text-nps-oracle-accent"
+                  : "border-transparent text-nps-text-dim hover:text-nps-text"
               }`}
               data-testid={`user-tab-${idx}`}
             >
@@ -81,12 +81,12 @@ export default function MultiUserReadingDisplay({
       <div className="p-4 space-y-6">
         {/* Individual reading summary for active tab */}
         {result.individual_readings[activeTab] && (
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-medium text-gray-900 mb-2">
+          <div className="bg-nps-bg-input rounded-lg p-4">
+            <h4 className="font-medium text-nps-text-bright mb-2">
               {result.individual_readings[activeTab].sign_value ||
                 `User ${activeTab + 1}`}
             </h4>
-            <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+            <div className="grid grid-cols-2 gap-2 text-sm text-nps-text-dim">
               <div>
                 {t("oracle.fc60_stamp")}:{" "}
                 <span className="font-mono text-xs">
@@ -105,7 +105,7 @@ export default function MultiUserReadingDisplay({
 
         {/* Compatibility grid */}
         <div>
-          <h4 className="font-medium text-gray-900 mb-3">
+          <h4 className="font-medium text-nps-text-bright mb-3">
             {t("oracle.compatibility")}
           </h4>
           <div className="overflow-x-auto">
@@ -116,7 +116,7 @@ export default function MultiUserReadingDisplay({
                   {userNames.map((name: string, i: number) => (
                     <th
                       key={i}
-                      className="p-2 text-center font-medium text-gray-600"
+                      className="p-2 text-center font-medium text-nps-text-dim"
                     >
                       {name || `U${i + 1}`}
                     </th>
@@ -126,13 +126,16 @@ export default function MultiUserReadingDisplay({
               <tbody>
                 {userNames.map((rowName: string, i: number) => (
                   <tr key={i}>
-                    <td className="p-2 font-medium text-gray-600">
+                    <td className="p-2 font-medium text-nps-text-dim">
                       {rowName || `U${i + 1}`}
                     </td>
                     {userNames.map((_: string, j: number) => {
                       if (i === j) {
                         return (
-                          <td key={j} className="p-2 text-center bg-gray-100">
+                          <td
+                            key={j}
+                            className="p-2 text-center bg-nps-bg-hover"
+                          >
                             —
                           </td>
                         );
@@ -163,14 +166,14 @@ export default function MultiUserReadingDisplay({
 
         {/* Pair detail breakdown */}
         {selectedPair && (
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-nps-bg-input rounded-lg p-4">
             <div className="flex justify-between items-center mb-3">
-              <h4 className="font-medium text-gray-900">
+              <h4 className="font-medium text-nps-text-bright">
                 {selectedPair.user_a_name} &amp; {selectedPair.user_b_name}
               </h4>
               <button
                 onClick={() => setSelectedPair(null)}
-                className="text-sm text-gray-400 hover:text-gray-600"
+                className="text-sm text-nps-text-dim hover:text-nps-text"
               >
                 &times;
               </button>
@@ -187,10 +190,10 @@ export default function MultiUserReadingDisplay({
             </div>
             {selectedPair.strengths.length > 0 && (
               <div className="mt-3">
-                <p className="text-sm font-medium text-green-700">
+                <p className="text-sm font-medium text-nps-success">
                   {t("oracle.strengths")}
                 </p>
-                <ul className="list-disc list-inside text-sm text-gray-600">
+                <ul className="list-disc list-inside text-sm text-nps-text-dim">
                   {selectedPair.strengths.map((s, i) => (
                     <li key={i}>{s}</li>
                   ))}
@@ -199,10 +202,10 @@ export default function MultiUserReadingDisplay({
             )}
             {selectedPair.challenges.length > 0 && (
               <div className="mt-2">
-                <p className="text-sm font-medium text-red-700">
+                <p className="text-sm font-medium text-nps-error">
                   {t("oracle.challenges")}
                 </p>
-                <ul className="list-disc list-inside text-sm text-gray-600">
+                <ul className="list-disc list-inside text-sm text-nps-text-dim">
                   {selectedPair.challenges.map((c, i) => (
                     <li key={i}>{c}</li>
                   ))}
@@ -215,7 +218,7 @@ export default function MultiUserReadingDisplay({
         {/* Group analysis (3+ users) */}
         {result.group_analysis && (
           <div data-testid="group-analysis">
-            <h4 className="font-medium text-gray-900 mb-3">
+            <h4 className="font-medium text-nps-text-bright mb-3">
               {t("oracle.group_analysis")}
             </h4>
             <CompatibilityMeter
@@ -224,11 +227,11 @@ export default function MultiUserReadingDisplay({
               size="lg"
             />
             <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 mb-1">
+              <div className="bg-nps-bg-input rounded-lg p-3">
+                <p className="text-xs text-nps-text-dim mb-1">
                   {t("oracle.element")}
                 </p>
-                <p className="font-medium text-gray-900">
+                <p className="font-medium text-nps-text-bright">
                   {result.group_analysis.dominant_element}
                 </p>
                 <div className="mt-2 space-y-1">
@@ -236,7 +239,7 @@ export default function MultiUserReadingDisplay({
                     ([el, count]) => (
                       <div
                         key={el}
-                        className="flex justify-between text-xs text-gray-600"
+                        className="flex justify-between text-xs text-nps-text-dim"
                       >
                         <span>{el}</span>
                         <span>{count as number}</span>
@@ -245,11 +248,11 @@ export default function MultiUserReadingDisplay({
                   )}
                 </div>
               </div>
-              <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs text-gray-500 mb-1">
+              <div className="bg-nps-bg-input rounded-lg p-3">
+                <p className="text-xs text-nps-text-dim mb-1">
                   {t("oracle.cosmic.ganzhi_title")}
                 </p>
-                <p className="font-medium text-gray-900">
+                <p className="font-medium text-nps-text-bright">
                   {result.group_analysis.dominant_animal}
                 </p>
                 <div className="mt-2 space-y-1">
@@ -258,7 +261,7 @@ export default function MultiUserReadingDisplay({
                   ).map(([animal, count]) => (
                     <div
                       key={animal}
-                      className="flex justify-between text-xs text-gray-600"
+                      className="flex justify-between text-xs text-nps-text-dim"
                     >
                       <span>{animal}</span>
                       <span>{count as number}</span>
@@ -268,7 +271,7 @@ export default function MultiUserReadingDisplay({
               </div>
             </div>
             {result.group_analysis.group_summary && (
-              <p className="text-sm text-gray-600 mt-3">
+              <p className="text-sm text-nps-text-dim mt-3">
                 {result.group_analysis.group_summary}
               </p>
             )}
@@ -277,11 +280,11 @@ export default function MultiUserReadingDisplay({
 
         {/* AI interpretation */}
         {result.ai_interpretation && (
-          <details className="border border-gray-200 rounded-lg">
-            <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-indigo-600">
+          <details className="border border-nps-border rounded-lg">
+            <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-nps-oracle-accent">
               AI Interpretation
             </summary>
-            <div className="px-4 pb-4 text-sm text-gray-600 whitespace-pre-wrap">
+            <div className="px-4 pb-4 text-sm text-nps-text-dim whitespace-pre-wrap">
               {result.ai_interpretation.full_text}
             </div>
           </details>

@@ -92,13 +92,13 @@ export default function StampComparison({
         {stamps.map((entry, idx) => (
           <div
             key={idx}
-            className={`border border-gray-700 rounded-lg p-3 space-y-2 ${
+            className={`border border-nps-border rounded-lg p-3 space-y-2 ${
               highlightShared && sharedAnimalCount > 0
-                ? "ring-1 ring-emerald-400/30"
+                ? "ring-1 ring-[var(--nps-accent)]/30"
                 : ""
             }`}
           >
-            <h4 className="text-sm font-medium text-gray-300 truncate">
+            <h4 className="text-sm font-medium text-nps-text truncate">
               {entry.userName}
             </h4>
             <FC60StampDisplay
@@ -120,7 +120,7 @@ export default function StampComparison({
               <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400">
                 {sharedAnimalCount} {t("oracle.fc60_shared_animals")}
                 {highlightShared && (
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-nps-text-dim">
                     (
                     {[...sharedAnimals]
                       .map((a) =>
@@ -133,10 +133,10 @@ export default function StampComparison({
               </span>
             )}
             {sharedElementCount > 0 && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/10 text-blue-400">
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-nps-oracle-accent/10 text-nps-oracle-accent">
                 {sharedElementCount} {t("oracle.fc60_shared_elements")}
                 {highlightShared && (
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-nps-text-dim">
                     (
                     {[...sharedElements]
                       .map((e) =>

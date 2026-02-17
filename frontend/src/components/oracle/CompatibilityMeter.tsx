@@ -53,7 +53,7 @@ export default function CompatibilityMeter({
     return (
       <div className="flex flex-col items-center gap-2">
         {label && (
-          <span className="text-sm font-medium text-gray-600">{label}</span>
+          <span className="text-sm font-medium text-nps-text-dim">{label}</span>
         )}
         <div className="relative inline-flex items-center justify-center">
           <svg className="w-28 h-28 -rotate-90" viewBox="0 0 100 100">
@@ -62,7 +62,7 @@ export default function CompatibilityMeter({
               cy="50"
               r="45"
               fill="none"
-              stroke="#e5e7eb"
+              stroke="#1f1f1f"
               strokeWidth="8"
             />
             <circle
@@ -82,7 +82,7 @@ export default function CompatibilityMeter({
             {showPercentage && (
               <span className="text-xl font-bold">{Math.round(score)}%</span>
             )}
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-nps-text-dim">
               {getClassification(score)}
             </span>
           </div>
@@ -104,17 +104,17 @@ export default function CompatibilityMeter({
     >
       {label && (
         <div className="flex justify-between mb-1">
-          <span className={`${textSize} font-medium text-gray-700`}>
+          <span className={`${textSize} font-medium text-nps-text`}>
             {label}
           </span>
           {showPercentage && (
-            <span className={`${textSize} text-gray-500`}>
+            <span className={`${textSize} text-nps-text-dim`}>
               {Math.round(score)}%
             </span>
           )}
         </div>
       )}
-      <div className={`w-full bg-gray-200 rounded-full ${barHeight}`}>
+      <div className={`w-full bg-nps-border rounded-full ${barHeight}`}>
         <div
           className={`${getColor(score)} ${barHeight} rounded-full ${
             animated ? "transition-all duration-700 ease-out" : ""
@@ -124,10 +124,10 @@ export default function CompatibilityMeter({
       </div>
       {!label && showPercentage && (
         <div className="flex justify-between mt-1">
-          <span className={`${textSize} text-gray-500`}>
+          <span className={`${textSize} text-nps-text-dim`}>
             {getClassification(score)}
           </span>
-          <span className={`${textSize} text-gray-500`}>
+          <span className={`${textSize} text-nps-text-dim`}>
             {Math.round(score)}%
           </span>
         </div>

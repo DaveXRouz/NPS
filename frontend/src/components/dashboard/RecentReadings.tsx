@@ -10,12 +10,12 @@ interface RecentReadingsProps {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  time: "bg-blue-500/20 text-blue-400",
-  name: "bg-purple-500/20 text-purple-400",
-  question: "bg-yellow-500/20 text-yellow-400",
-  daily: "bg-green-500/20 text-green-400",
-  reading: "bg-blue-500/20 text-blue-400",
-  multi_user: "bg-pink-500/20 text-pink-400",
+  time: "bg-nps-oracle-accent/15 text-nps-oracle-accent",
+  name: "bg-[var(--nps-accent)]/15 text-[var(--nps-accent)]",
+  question: "bg-nps-warning/15 text-nps-warning",
+  daily: "bg-nps-success/15 text-nps-success",
+  reading: "bg-nps-oracle-accent/15 text-nps-oracle-accent",
+  multi_user: "bg-nps-purple/15 text-nps-purple",
 };
 
 function TypeBadge({ type }: { type: string }) {
@@ -88,7 +88,7 @@ export function RecentReadings({
           </p>
           <button
             onClick={() => navigate("/oracle")}
-            className="px-4 py-2 text-sm rounded-lg bg-nps-oracle-accent text-white hover:opacity-90 transition-opacity"
+            className="px-4 py-2 text-sm rounded-lg bg-nps-oracle-accent text-[var(--nps-bg)] hover:opacity-90 transition-opacity"
           >
             {t("dashboard.recent_start")}
           </button>

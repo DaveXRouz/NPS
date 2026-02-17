@@ -7,14 +7,14 @@ interface MoonPhaseDisplayProps {
 }
 
 const ENERGY_COLORS: Record<string, string> = {
-  Seed: "bg-green-100 text-green-800",
-  Build: "bg-blue-100 text-blue-800",
-  Challenge: "bg-red-100 text-red-800",
-  Refine: "bg-purple-100 text-purple-800",
-  Culminate: "bg-yellow-100 text-yellow-800",
-  Share: "bg-teal-100 text-teal-800",
-  Release: "bg-orange-100 text-orange-800",
-  Rest: "bg-gray-100 text-gray-800",
+  Seed: "bg-green-500/15 text-green-400",
+  Build: "bg-blue-500/15 text-blue-400",
+  Challenge: "bg-red-500/15 text-red-400",
+  Refine: "bg-purple-500/15 text-purple-400",
+  Culminate: "bg-yellow-500/15 text-yellow-400",
+  Share: "bg-teal-500/15 text-teal-400",
+  Release: "bg-orange-500/15 text-orange-400",
+  Rest: "bg-gray-500/15 text-gray-400",
 };
 
 export default function MoonPhaseDisplay({
@@ -23,7 +23,8 @@ export default function MoonPhaseDisplay({
 }: MoonPhaseDisplayProps) {
   const { t } = useTranslation();
   const illumination = Math.max(0, Math.min(100, moon.illumination));
-  const energyColor = ENERGY_COLORS[moon.energy] || "bg-gray-100 text-gray-800";
+  const energyColor =
+    ENERGY_COLORS[moon.energy] || "bg-gray-500/15 text-gray-400";
 
   return (
     <div className="space-y-3">
@@ -39,9 +40,9 @@ export default function MoonPhaseDisplay({
           <span>{t("oracle.cosmic.illumination")}</span>
           <span>{illumination.toFixed(1)}%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2.5">
+        <div className="w-full bg-nps-border rounded-full h-2.5">
           <div
-            className="bg-yellow-300 h-2.5 rounded-full transition-all duration-300"
+            className="bg-yellow-400 h-2.5 rounded-full transition-all duration-300"
             style={{ width: `${illumination}%` }}
             role="progressbar"
             aria-valuenow={illumination}
@@ -49,7 +50,7 @@ export default function MoonPhaseDisplay({
             aria-valuemax={100}
           />
         </div>
-        <div className="text-xs text-gray-500 mt-1">
+        <div className="text-xs text-nps-text-dim mt-1">
           {t("oracle.cosmic.moon_age")}: {moon.age.toFixed(2)}{" "}
           {t("oracle.cosmic.days")}
         </div>
@@ -72,20 +73,20 @@ export default function MoonPhaseDisplay({
         <div className="grid grid-cols-2 gap-3 text-sm">
           {moon.best_for && (
             <div>
-              <div className="flex items-center gap-1 font-medium text-green-700">
+              <div className="flex items-center gap-1 font-medium text-nps-success">
                 <span>&#10003;</span>
                 <span>{t("oracle.cosmic.best_for")}</span>
               </div>
-              <p className="text-gray-600 mt-0.5">{moon.best_for}</p>
+              <p className="text-nps-text-dim mt-0.5">{moon.best_for}</p>
             </div>
           )}
           {moon.avoid && (
             <div>
-              <div className="flex items-center gap-1 font-medium text-amber-700">
+              <div className="flex items-center gap-1 font-medium text-amber-400">
                 <span>&#9888;</span>
                 <span>{t("oracle.cosmic.avoid")}</span>
               </div>
-              <p className="text-gray-600 mt-0.5">{moon.avoid}</p>
+              <p className="text-nps-text-dim mt-0.5">{moon.avoid}</p>
             </div>
           )}
         </div>

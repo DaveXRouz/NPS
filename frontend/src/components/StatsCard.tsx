@@ -6,7 +6,7 @@ interface StatsCardProps {
   value: string | number;
   subtitle?: string;
   color?: string;
-  icon?: string;
+  icon?: React.ReactNode;
   trend?: { direction: "up" | "down" | "flat"; value: string };
 }
 
@@ -59,7 +59,7 @@ export const StatsCard = React.memo(function StatsCard({
       className="bg-nps-bg-card border border-nps-border rounded-lg p-4 min-h-[72px]"
     >
       <div className="flex items-center gap-1.5">
-        {icon && <span className="text-sm">{icon}</span>}
+        {icon && <span className="w-4 h-4 text-nps-text-dim">{icon}</span>}
         <p className="text-xs text-nps-text-dim uppercase tracking-wide">
           {label}
         </p>

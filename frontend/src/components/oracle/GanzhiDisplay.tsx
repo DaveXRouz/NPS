@@ -25,7 +25,7 @@ export default function GanzhiDisplay({
       {/* Year Cycle */}
       {ganzhi.year && (
         <div>
-          <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+          <div className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
             {t("oracle.cosmic.year_cycle")}
           </div>
           <div className="flex items-center gap-2">
@@ -35,18 +35,18 @@ export default function GanzhiDisplay({
             >
               {ganzhi.year.element}
             </span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-nps-text-dim">
               {ganzhi.year.polarity === "Yang" ? "\u2600" : "\uD83C\uDF19"}{" "}
               {ganzhi.year.polarity}
             </span>
           </div>
           {ganzhi.year.traditional_name && (
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-nps-text-dim">
               {ganzhi.year.traditional_name}
             </div>
           )}
           {ganzhi.year.gz_token && (
-            <div className="text-xs font-mono text-gray-400">
+            <div className="text-xs font-mono text-nps-text-dim">
               {ganzhi.year.gz_token}
             </div>
           )}
@@ -56,9 +56,9 @@ export default function GanzhiDisplay({
       {/* Day Cycle */}
       {!compact && ganzhi.day && (
         <>
-          <hr className="border-gray-200" />
+          <hr className="border-nps-border" />
           <div>
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <div className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
               {t("oracle.cosmic.day_cycle")}
             </div>
             <div className="flex items-center gap-2">
@@ -68,12 +68,12 @@ export default function GanzhiDisplay({
               >
                 {ganzhi.day.element}
               </span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-nps-text-dim">
                 {ganzhi.day.polarity}
               </span>
             </div>
             {ganzhi.day.gz_token && (
-              <div className="text-xs font-mono text-gray-400">
+              <div className="text-xs font-mono text-nps-text-dim">
                 {ganzhi.day.gz_token}
               </div>
             )}
@@ -84,9 +84,9 @@ export default function GanzhiDisplay({
       {/* Hour Cycle (conditional) */}
       {!compact && ganzhi.hour && (
         <>
-          <hr className="border-gray-200" />
+          <hr className="border-nps-border" />
           <div>
-            <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+            <div className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
               {t("oracle.cosmic.hour_cycle")}
             </div>
             <span className="text-sm font-medium">

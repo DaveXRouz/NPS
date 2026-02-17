@@ -22,7 +22,7 @@ export default function CosmicCyclePanel({
 
   if (!hasAnyData) {
     return (
-      <div className="text-center text-gray-500 py-8">
+      <div className="text-center text-nps-text-dim py-8">
         {t("oracle.cosmic.no_data")}
       </div>
     );
@@ -39,8 +39,8 @@ export default function CosmicCyclePanel({
       >
         {/* Moon Section */}
         {hasMoon && (
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">
+          <div className="bg-nps-bg-card rounded-lg border border-nps-border p-4">
+            <h4 className="text-sm font-semibold text-nps-text mb-2">
               {t("oracle.cosmic.moon_title")}
             </h4>
             <MoonPhaseDisplay moon={cosmicData.moon!} compact={compact} />
@@ -49,8 +49,8 @@ export default function CosmicCyclePanel({
 
         {/* Ganzhi Section */}
         {hasGanzhi && (
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">
+          <div className="bg-nps-bg-card rounded-lg border border-nps-border p-4">
+            <h4 className="text-sm font-semibold text-nps-text mb-2">
               {t("oracle.cosmic.ganzhi_title")}
             </h4>
             <GanzhiDisplay ganzhi={cosmicData.ganzhi!} compact={compact} />
@@ -59,15 +59,15 @@ export default function CosmicCyclePanel({
 
         {/* Current Moment + Planet-Moon Section */}
         {(hasCurrent || hasPlanetMoon) && (
-          <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
+          <div className="bg-nps-bg-card rounded-lg border border-nps-border p-4 space-y-3">
             {hasCurrent && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                <h4 className="text-sm font-semibold text-nps-text mb-2">
                   {t("oracle.cosmic.current_title")}
                 </h4>
                 <div className="text-sm space-y-1">
                   <div>
-                    <span className="text-gray-500">
+                    <span className="text-nps-text-dim">
                       {t("oracle.cosmic.ruling_planet")}:{" "}
                     </span>
                     <span className="font-medium">
@@ -75,7 +75,7 @@ export default function CosmicCyclePanel({
                     </span>
                   </div>
                   <div>
-                    <span className="text-gray-500">
+                    <span className="text-nps-text-dim">
                       {t("oracle.cosmic.domain")}:{" "}
                     </span>
                     <span>{cosmicData.current!.domain}</span>
@@ -85,14 +85,14 @@ export default function CosmicCyclePanel({
             )}
 
             {hasPlanetMoon && (
-              <div className="bg-indigo-50 rounded-md p-3">
-                <h4 className="text-sm font-semibold text-indigo-700 mb-1">
+              <div className="bg-nps-oracle-bg rounded-md p-3">
+                <h4 className="text-sm font-semibold text-nps-oracle-accent mb-1">
                   {t("oracle.cosmic.planet_moon_title")}
                 </h4>
-                <div className="text-sm font-medium text-indigo-900">
+                <div className="text-sm font-medium text-nps-text-bright">
                   {cosmicData.planet_moon!.theme}
                 </div>
-                <p className="text-xs text-indigo-700 mt-1">
+                <p className="text-xs text-nps-oracle-accent mt-1">
                   {cosmicData.planet_moon!.message}
                 </p>
               </div>

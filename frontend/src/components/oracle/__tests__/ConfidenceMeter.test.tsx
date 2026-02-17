@@ -48,14 +48,14 @@ describe("ConfidenceMeter", () => {
     const conf: ConfidenceData = { score: 80, level: "high", factors: "4" };
     render(<ConfidenceMeter confidence={conf} boosts={[]} />);
     const fill = screen.getByTestId("confidence-fill");
-    expect(fill.className).toContain("bg-blue-600");
+    expect(fill.className).toContain("bg-nps-oracle-accent");
   });
 
   it("shows correct color for low confidence", () => {
     const conf: ConfidenceData = { score: 55, level: "low", factors: "2" };
     render(<ConfidenceMeter confidence={conf} boosts={[]} />);
     const fill = screen.getByTestId("confidence-fill");
-    expect(fill.className).toContain("bg-red-600");
+    expect(fill.className).toContain("bg-nps-error");
   });
 
   it("displays completeness breakdown", () => {
