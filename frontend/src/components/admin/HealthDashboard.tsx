@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { adminHealth } from "@/services/api";
+import { StaggerChildren } from "@/components/common/StaggerChildren";
+import { FadeIn } from "@/components/common/FadeIn";
 import type { DetailedHealth, ServiceStatus } from "@/types";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -68,7 +70,7 @@ function ServiceCard({
     "";
 
   return (
-    <div className="bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg p-4">
+    <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
       <div className="flex items-center gap-2 mb-2">
         <StatusIndicator status={service.status} />
         <span className="text-sm font-medium text-[var(--nps-text-bright)]">
@@ -124,10 +126,10 @@ export function HealthDashboard() {
           {Array.from({ length: 7 }).map((_, i) => (
             <div
               key={i}
-              className="bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg p-4 animate-pulse"
+              className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 animate-pulse"
             >
-              <div className="h-4 bg-gray-700 rounded w-2/3 mb-2" />
-              <div className="h-3 bg-gray-700 rounded w-1/2" />
+              <div className="h-4 bg-[var(--nps-glass-glow)] rounded w-2/3 mb-2" />
+              <div className="h-3 bg-[var(--nps-glass-glow)] rounded w-1/2" />
             </div>
           ))}
         </div>
@@ -137,11 +139,11 @@ export function HealthDashboard() {
 
   if (error && !health) {
     return (
-      <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
+      <div className="bg-red-500/10 backdrop-blur-sm border border-red-500/30 rounded-xl p-4">
         <p className="text-red-400 text-sm">{error}</p>
         <button
           onClick={fetchHealth}
-          className="mt-2 text-sm text-blue-400 hover:text-blue-300"
+          className="mt-2 text-sm text-[var(--nps-accent)] hover:text-[var(--nps-text-bright)] transition-colors"
         >
           Retry
         </button>
@@ -154,48 +156,56 @@ export function HealthDashboard() {
   return (
     <div className="space-y-4">
       {/* System info bar */}
-      <div className="bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg p-4">
-        <div className="flex flex-wrap items-center gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <StatusIndicator status={health.status} />
-            <span className="font-medium text-[var(--nps-text-bright)] capitalize">
-              {health.status}
+      <FadeIn delay={0}>
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4">
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <StatusIndicator status={health.status} />
+              <span className="font-medium text-[var(--nps-text-bright)] capitalize">
+                {health.status}
+              </span>
+            </div>
+            <span className="text-[var(--nps-text-dim)]">
+              Uptime: {formatUptime(health.uptime_seconds)}
+            </span>
+            <span className="text-[var(--nps-text-dim)]">
+              Memory: {health.system.process_memory_mb} MB
+            </span>
+            <span className="text-[var(--nps-text-dim)]">
+              CPUs: {health.system.cpu_count}
+            </span>
+            <span className="text-[var(--nps-text-dim)]">
+              Python {health.system.python_version}
             </span>
           </div>
-          <span className="text-[var(--nps-text-dim)]">
-            Uptime: {formatUptime(health.uptime_seconds)}
-          </span>
-          <span className="text-[var(--nps-text-dim)]">
-            Memory: {health.system.process_memory_mb} MB
-          </span>
-          <span className="text-[var(--nps-text-dim)]">
-            CPUs: {health.system.cpu_count}
-          </span>
-          <span className="text-[var(--nps-text-dim)]">
-            Python {health.system.python_version}
-          </span>
         </div>
-      </div>
+      </FadeIn>
 
       {/* Service cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <StaggerChildren
+        staggerMs={40}
+        baseDelay={80}
+        className="grid grid-cols-2 md:grid-cols-4 gap-4"
+      >
         {Object.entries(health.services).map(([name, service]) => (
           <ServiceCard key={name} name={name} service={service} />
         ))}
-      </div>
+      </StaggerChildren>
 
       {/* Footer with last refresh + refresh button */}
-      <div className="flex items-center justify-between text-xs text-[var(--nps-text-dim)]">
-        <span>
-          Last refresh: {lastRefresh ? lastRefresh.toLocaleTimeString() : "—"}
-        </span>
-        <button
-          onClick={fetchHealth}
-          className="px-3 py-1 bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded text-[var(--nps-text-dim)] hover:text-[var(--nps-text-bright)] transition-colors"
-        >
-          Refresh Now
-        </button>
-      </div>
+      <FadeIn delay={240}>
+        <div className="flex items-center justify-between text-xs text-[var(--nps-text-dim)]">
+          <span>
+            Last refresh: {lastRefresh ? lastRefresh.toLocaleTimeString() : "—"}
+          </span>
+          <button
+            onClick={fetchHealth}
+            className="px-3 py-1.5 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text-dim)] hover:text-[var(--nps-text-bright)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
+          >
+            Refresh Now
+          </button>
+        </div>
+      </FadeIn>
     </div>
   );
 }

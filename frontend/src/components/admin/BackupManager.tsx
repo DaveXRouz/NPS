@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { admin as adminApi } from "@/services/api";
+import { FadeIn } from "@/components/common/FadeIn";
 import type {
   BackupInfo,
   BackupListResponse,
@@ -10,24 +11,29 @@ import type {
   BackupDeleteResponse,
 } from "@/types";
 
-const TYPE_BADGES: Record<string, { bg: string; text: string; label: string }> =
-  {
-    oracle_full: {
-      bg: "bg-blue-500/20",
-      text: "text-blue-400",
-      label: "Oracle Full",
-    },
-    oracle_data: {
-      bg: "bg-cyan-500/20",
-      text: "text-cyan-400",
-      label: "Oracle Data",
-    },
-    full_database: {
-      bg: "bg-purple-500/20",
-      text: "text-purple-400",
-      label: "Full DB",
-    },
-  };
+const TYPE_BADGES: Record<
+  string,
+  { bg: string; text: string; border: string; label: string }
+> = {
+  oracle_full: {
+    bg: "bg-blue-500/20",
+    text: "text-blue-400",
+    border: "border border-blue-500/30",
+    label: "Oracle Full",
+  },
+  oracle_data: {
+    bg: "bg-cyan-500/20",
+    text: "text-cyan-400",
+    border: "border border-cyan-500/30",
+    label: "Oracle Data",
+  },
+  full_database: {
+    bg: "bg-purple-500/20",
+    text: "text-purple-400",
+    border: "border border-purple-500/30",
+    label: "Full DB",
+  },
+};
 
 function formatRelativeTime(isoDate: string): string {
   const date = new Date(isoDate);
@@ -149,171 +155,180 @@ export function BackupManager() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-[var(--nps-text-bright)]">
-          {t("admin.backup_manager")}
-        </h2>
-        <div className="relative">
-          <button
-            onClick={() => setShowCreateMenu(!showCreateMenu)}
-            disabled={triggerBackup.isPending}
-            className="px-4 py-2 bg-[var(--nps-accent)] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
-          >
-            {triggerBackup.isPending
-              ? t("admin.backup_in_progress")
-              : t("admin.trigger_backup")}
-          </button>
-          {showCreateMenu && (
-            <div className="absolute end-0 mt-1 w-52 bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg shadow-lg z-10">
-              {[
-                {
-                  type: "oracle_full",
-                  label: t("admin.backup_type_oracle_full"),
-                },
-                {
-                  type: "oracle_data",
-                  label: t("admin.backup_type_oracle_data"),
-                },
-                {
-                  type: "full_database",
-                  label: t("admin.backup_type_full_database"),
-                },
-              ].map((opt) => (
-                <button
-                  key={opt.type}
-                  onClick={() => handleTriggerBackup(opt.type)}
-                  className="w-full text-start px-4 py-2 text-sm text-[var(--nps-text)] hover:bg-[var(--nps-bg-hover)] first:rounded-t-lg last:rounded-b-lg"
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          )}
+      <FadeIn delay={0}>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-[var(--nps-text-bright)]">
+            {t("admin.backup_manager")}
+          </h2>
+          <div className="relative">
+            <button
+              onClick={() => setShowCreateMenu(!showCreateMenu)}
+              disabled={triggerBackup.isPending}
+              className="px-4 py-2 bg-[var(--nps-accent)] text-white rounded-xl text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity shadow-[0_0_8px_var(--nps-glass-glow)]"
+            >
+              {triggerBackup.isPending
+                ? t("admin.backup_in_progress")
+                : t("admin.trigger_backup")}
+            </button>
+            {showCreateMenu && (
+              <div className="absolute end-0 mt-2 w-52 bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl shadow-lg z-10 overflow-hidden">
+                {[
+                  {
+                    type: "oracle_full",
+                    label: t("admin.backup_type_oracle_full"),
+                  },
+                  {
+                    type: "oracle_data",
+                    label: t("admin.backup_type_oracle_data"),
+                  },
+                  {
+                    type: "full_database",
+                    label: t("admin.backup_type_full_database"),
+                  },
+                ].map((opt) => (
+                  <button
+                    key={opt.type}
+                    onClick={() => handleTriggerBackup(opt.type)}
+                    className="w-full text-start px-4 py-3 text-sm text-[var(--nps-text)] hover:bg-[var(--nps-glass-glow)] transition-colors duration-150 border-b border-[var(--nps-glass-border)] last:border-b-0"
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </FadeIn>
 
       {/* Status banner */}
       {statusMessage && (
-        <div
-          role="alert"
-          className={`px-4 py-3 rounded-lg text-sm font-medium ${
-            statusMessage.type === "success"
-              ? "bg-green-500/20 text-green-400 border border-green-500/30"
-              : "bg-red-500/20 text-red-400 border border-red-500/30"
-          }`}
-        >
-          {statusMessage.text}
-        </div>
+        <FadeIn delay={0}>
+          <div
+            role="alert"
+            className={`px-4 py-3 rounded-xl text-sm font-medium backdrop-blur-sm ${
+              statusMessage.type === "success"
+                ? "bg-green-500/15 text-green-400 border border-green-500/30"
+                : "bg-red-500/15 text-red-400 border border-red-500/30"
+            }`}
+          >
+            {statusMessage.text}
+          </div>
+        </FadeIn>
       )}
 
       {/* Schedule info */}
-      <div className="bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg p-4">
-        <h3 className="text-sm font-medium text-[var(--nps-text-bright)] mb-2">
-          {t("admin.backup_schedule")}
-        </h3>
-        <ul className="text-xs text-[var(--nps-text-dim)] space-y-1">
-          <li>{t("admin.backup_schedule_daily")}</li>
-          <li>{t("admin.backup_schedule_weekly")}</li>
-        </ul>
-        <p className="text-xs text-[var(--nps-text-dim)] mt-2">
-          {t("admin.backup_retention")}:{" "}
-          {backupList?.retention_policy ?? "Oracle: 30 days, Full: 60 days"}
-        </p>
-      </div>
+      <FadeIn delay={80}>
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4">
+          <h3 className="text-sm font-medium text-[var(--nps-text-bright)] mb-2">
+            {t("admin.backup_schedule")}
+          </h3>
+          <ul className="text-xs text-[var(--nps-text-dim)] space-y-1">
+            <li>{t("admin.backup_schedule_daily")}</li>
+            <li>{t("admin.backup_schedule_weekly")}</li>
+          </ul>
+          <p className="text-xs text-[var(--nps-text-dim)] mt-2">
+            {t("admin.backup_retention")}:{" "}
+            {backupList?.retention_policy ?? "Oracle: 30 days, Full: 60 days"}
+          </p>
+        </div>
+      </FadeIn>
 
       {/* Backup table */}
-      {isLoading ? (
-        <div className="text-center py-8 text-[var(--nps-text-dim)]">
-          {t("common.loading")}
-        </div>
-      ) : backups.length === 0 ? (
-        <div className="text-center py-8 text-[var(--nps-text-dim)]">
-          {t("admin.no_backups")}
-        </div>
-      ) : (
-        <div className="bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-[var(--nps-border)]">
-                <th className="text-start px-4 py-3 text-xs text-[var(--nps-text-dim)] font-medium">
-                  Filename
-                </th>
-                <th className="text-start px-4 py-3 text-xs text-[var(--nps-text-dim)] font-medium">
-                  {t("admin.backup_type")}
-                </th>
-                <th className="text-start px-4 py-3 text-xs text-[var(--nps-text-dim)] font-medium">
-                  {t("admin.backup_date")}
-                </th>
-                <th className="text-start px-4 py-3 text-xs text-[var(--nps-text-dim)] font-medium">
-                  {t("admin.backup_size")}
-                </th>
-                <th className="text-end px-4 py-3 text-xs text-[var(--nps-text-dim)] font-medium">
-                  {t("admin.col_actions")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {backups.map((backup: BackupInfo) => {
-                const badge = TYPE_BADGES[backup.type] ?? {
-                  bg: "bg-gray-500/20",
-                  text: "text-gray-400",
-                  label: backup.type,
-                };
-                return (
-                  <tr
-                    key={backup.filename}
-                    className="border-b border-[var(--nps-border)] last:border-b-0"
-                  >
-                    <td
-                      className="px-4 py-3 text-[var(--nps-text)] truncate max-w-[200px]"
-                      title={backup.filename}
+      <FadeIn delay={160}>
+        {isLoading ? (
+          <div className="text-center py-8 text-[var(--nps-text-dim)]">
+            {t("common.loading")}
+          </div>
+        ) : backups.length === 0 ? (
+          <div className="text-center py-8 text-[var(--nps-text-dim)] bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl">
+            {t("admin.no_backups")}
+          </div>
+        ) : (
+          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[var(--nps-glass-border)]">
+                  <th className="text-start px-4 py-3 text-xs text-[var(--nps-text-dim)] font-medium">
+                    Filename
+                  </th>
+                  <th className="text-start px-4 py-3 text-xs text-[var(--nps-text-dim)] font-medium">
+                    {t("admin.backup_type")}
+                  </th>
+                  <th className="text-start px-4 py-3 text-xs text-[var(--nps-text-dim)] font-medium">
+                    {t("admin.backup_date")}
+                  </th>
+                  <th className="text-start px-4 py-3 text-xs text-[var(--nps-text-dim)] font-medium">
+                    {t("admin.backup_size")}
+                  </th>
+                  <th className="text-end px-4 py-3 text-xs text-[var(--nps-text-dim)] font-medium">
+                    {t("admin.col_actions")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {backups.map((backup: BackupInfo) => {
+                  const badge = TYPE_BADGES[backup.type] ?? {
+                    bg: "bg-gray-500/20",
+                    text: "text-gray-400",
+                    border: "border border-gray-500/30",
+                    label: backup.type,
+                  };
+                  return (
+                    <tr
+                      key={backup.filename}
+                      className="border-b border-[var(--nps-glass-border)] last:border-b-0 hover:bg-[var(--nps-glass-glow)] transition-colors duration-150"
                     >
-                      {backup.filename}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`px-2 py-0.5 rounded text-xs font-medium ${badge.bg} ${badge.text}`}
+                      <td
+                        className="px-4 py-3 text-[var(--nps-text)] truncate max-w-[200px]"
+                        title={backup.filename}
                       >
-                        {badge.label}
-                      </span>
-                    </td>
-                    <td
-                      className="px-4 py-3 text-[var(--nps-text-dim)]"
-                      title={new Date(backup.timestamp).toLocaleString()}
-                    >
-                      {formatRelativeTime(backup.timestamp)}
-                    </td>
-                    <td className="px-4 py-3 text-[var(--nps-text-dim)]">
-                      {backup.size_human}
-                    </td>
-                    <td className="px-4 py-3 text-end space-x-2">
-                      <button
-                        onClick={() => setRestoreTarget(backup.filename)}
-                        disabled={restoreBackup.isPending}
-                        className="px-2 py-1 text-xs bg-amber-500/20 text-amber-400 rounded hover:bg-amber-500/30 disabled:opacity-50"
+                        {backup.filename}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-2.5 py-1 rounded-md text-xs font-medium ${badge.bg} ${badge.text} ${badge.border}`}
+                        >
+                          {badge.label}
+                        </span>
+                      </td>
+                      <td
+                        className="px-4 py-3 text-[var(--nps-text-dim)]"
+                        title={new Date(backup.timestamp).toLocaleString()}
                       >
-                        {t("admin.restore_backup")}
-                      </button>
-                      <button
-                        onClick={() => setDeleteTarget(backup.filename)}
-                        disabled={deleteBackup.isPending}
-                        className="px-2 py-1 text-xs bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 disabled:opacity-50"
-                      >
-                        {t("admin.delete_backup")}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+                        {formatRelativeTime(backup.timestamp)}
+                      </td>
+                      <td className="px-4 py-3 text-[var(--nps-text-dim)]">
+                        {backup.size_human}
+                      </td>
+                      <td className="px-4 py-3 text-end space-x-2">
+                        <button
+                          onClick={() => setRestoreTarget(backup.filename)}
+                          disabled={restoreBackup.isPending}
+                          className="px-2.5 py-1.5 text-xs bg-amber-500/15 text-amber-400 border border-amber-500/40 rounded-lg hover:bg-amber-500/25 hover:shadow-[0_0_8px_rgba(245,158,11,0.2)] disabled:opacity-50 transition-all duration-200"
+                        >
+                          {t("admin.restore_backup")}
+                        </button>
+                        <button
+                          onClick={() => setDeleteTarget(backup.filename)}
+                          disabled={deleteBackup.isPending}
+                          className="px-2.5 py-1.5 text-xs bg-red-500/15 text-red-400 border border-red-500/40 rounded-lg hover:bg-red-500/25 hover:shadow-[0_0_8px_rgba(239,68,68,0.2)] disabled:opacity-50 transition-all duration-200"
+                        >
+                          {t("admin.delete_backup")}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </FadeIn>
 
       {/* Restore confirmation modal */}
       {restoreTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-6 max-w-md w-full mx-4 shadow-[0_0_24px_var(--nps-glass-glow)]">
             <h3 className="text-lg font-semibold text-[var(--nps-text-bright)] mb-2">
               {t("admin.backup_confirm_restore_title")}
             </h3>
@@ -328,7 +343,7 @@ export function BackupManager() {
               value={restoreConfirmText}
               onChange={(e) => setRestoreConfirmText(e.target.value)}
               placeholder="RESTORE"
-              className="w-full px-3 py-2 bg-[var(--nps-bg)] border border-[var(--nps-border)] rounded text-sm text-[var(--nps-text)] mb-4"
+              className="w-full px-3 py-2 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-sm text-[var(--nps-text)] mb-4 focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-200"
             />
             <div className="flex justify-end gap-2">
               <button
@@ -336,7 +351,7 @@ export function BackupManager() {
                   setRestoreTarget(null);
                   setRestoreConfirmText("");
                 }}
-                className="px-4 py-2 text-sm text-[var(--nps-text-dim)] hover:text-[var(--nps-text)]"
+                className="px-4 py-2 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
               >
                 {t("common.cancel")}
               </button>
@@ -345,7 +360,7 @@ export function BackupManager() {
                 disabled={
                   restoreConfirmText !== "RESTORE" || restoreBackup.isPending
                 }
-                className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg disabled:opacity-50 hover:bg-amber-700"
+                className="px-4 py-2 text-sm bg-amber-600 text-white rounded-lg disabled:opacity-50 hover:bg-amber-700 transition-colors"
               >
                 {restoreBackup.isPending
                   ? t("admin.restore_in_progress")
@@ -358,8 +373,8 @@ export function BackupManager() {
 
       {/* Delete confirmation modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg p-6 max-w-md w-full mx-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-6 max-w-md w-full mx-4 shadow-[0_0_24px_var(--nps-glass-glow)]">
             <h3 className="text-lg font-semibold text-[var(--nps-text-bright)] mb-2">
               {t("admin.delete_backup")}
             </h3>
@@ -369,14 +384,14 @@ export function BackupManager() {
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setDeleteTarget(null)}
-                className="px-4 py-2 text-sm text-[var(--nps-text-dim)] hover:text-[var(--nps-text)]"
+                className="px-4 py-2 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
               >
                 {t("common.cancel")}
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteBackup.isPending}
-                className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg disabled:opacity-50 hover:bg-red-700"
+                className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg disabled:opacity-50 hover:bg-red-700 transition-colors"
               >
                 {t("common.delete")}
               </button>

@@ -7,6 +7,7 @@ import {
   useResetPassword,
   useUpdateStatus,
 } from "@/hooks/useAdmin";
+import { FadeIn } from "@/components/common/FadeIn";
 import type { UserSortField, SortOrder } from "@/types";
 
 export default function AdminUsers() {
@@ -79,38 +80,44 @@ export default function AdminUsers() {
 
   if (error) {
     return (
-      <div className="text-center py-8 text-red-400">
-        {t("admin.error_load_users")}
-      </div>
+      <FadeIn delay={0}>
+        <div className="text-center py-8 bg-red-500/10 backdrop-blur-sm border border-red-500/30 rounded-xl text-red-400">
+          {t("admin.error_load_users")}
+        </div>
+      </FadeIn>
     );
   }
 
   return (
     <div>
-      <h2 className="text-lg font-semibold text-[var(--nps-text-bright)] mb-4">
-        {t("admin.users_title")}
-      </h2>
-      <UserTable
-        users={data?.users || []}
-        total={data?.total || 0}
-        loading={isLoading}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        onSort={handleSort}
-        onSearch={handleSearch}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
-        onPageSizeChange={(size) => {
-          setPageSize(size);
-          setPage(0);
-        }}
-        currentUserId={currentUserId}
-        onRoleChange={handleRoleChange}
-        onResetPassword={handleResetPassword}
-        onStatusChange={handleStatusChange}
-        tempPassword={tempPassword}
-      />
+      <FadeIn delay={0}>
+        <h2 className="text-lg font-semibold text-[var(--nps-text-bright)] mb-4">
+          {t("admin.users_title")}
+        </h2>
+      </FadeIn>
+      <FadeIn delay={80}>
+        <UserTable
+          users={data?.users || []}
+          total={data?.total || 0}
+          loading={isLoading}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={handleSort}
+          onSearch={handleSearch}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(0);
+          }}
+          currentUserId={currentUserId}
+          onRoleChange={handleRoleChange}
+          onResetPassword={handleResetPassword}
+          onStatusChange={handleStatusChange}
+          tempPassword={tempPassword}
+        />
+      </FadeIn>
     </div>
   );
 }

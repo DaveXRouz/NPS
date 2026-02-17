@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Search } from "lucide-react";
 import type { AdminOracleProfile, ProfileSortField, SortOrder } from "@/types";
 import { ProfileActions } from "./ProfileActions";
 
@@ -68,24 +69,27 @@ export function ProfileTable({
   return (
     <div className="space-y-4">
       {/* Search */}
-      <input
-        type="text"
-        value={searchInput}
-        onChange={(e) => setSearchInput(e.target.value)}
-        placeholder={t("admin.search_profiles")}
-        className="w-full max-w-sm px-3 py-2 bg-[var(--nps-bg)] border border-[var(--nps-border)] rounded text-sm text-[var(--nps-text)] placeholder:text-[var(--nps-text-dim)]"
-      />
+      <div className="relative w-full max-w-sm">
+        <Search className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--nps-text-dim)] pointer-events-none" />
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder={t("admin.search_profiles")}
+          className="w-full ps-10 pe-4 py-2 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] placeholder:text-[var(--nps-text-dim)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-200"
+        />
+      </div>
 
       {/* Table */}
-      <div className="overflow-x-auto border border-[var(--nps-border)] rounded-lg">
+      <div className="overflow-x-auto bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[var(--nps-border)] bg-[var(--nps-bg-card)]">
+            <tr className="border-b border-[var(--nps-glass-border)]">
               {columns.map((col) => (
                 <th
                   key={col.key}
                   onClick={() => onSort(col.key)}
-                  className="px-4 py-3 text-start font-medium text-[var(--nps-text-dim)] cursor-pointer hover:text-[var(--nps-text)] select-none"
+                  className="px-4 py-3 text-start font-medium text-[var(--nps-text-dim)] cursor-pointer hover:text-[var(--nps-text)] hover:bg-[var(--nps-glass-glow)] select-none transition-colors duration-150"
                 >
                   {col.label}
                   <SortArrow
@@ -117,11 +121,11 @@ export function ProfileTable({
               Array.from({ length: 5 }).map((_, i) => (
                 <tr
                   key={`skeleton-${i}`}
-                  className="border-b border-[var(--nps-border)]"
+                  className="border-b border-[var(--nps-glass-border)]"
                 >
                   {Array.from({ length: 8 }).map((_, j) => (
                     <td key={j} className="px-4 py-3">
-                      <div className="h-4 bg-[var(--nps-bg-hover)] rounded animate-pulse" />
+                      <div className="h-4 bg-[var(--nps-glass-glow)] rounded animate-pulse" />
                     </td>
                   ))}
                 </tr>
@@ -142,10 +146,10 @@ export function ProfileTable({
                 return (
                   <tr
                     key={profile.id}
-                    className={`border-b border-[var(--nps-border)] ${
+                    className={`border-b border-[var(--nps-glass-border)] transition-all duration-150 ${
                       isDeleted
-                        ? "opacity-50"
-                        : "hover:bg-[var(--nps-bg-hover)]"
+                        ? "opacity-40 hover:opacity-60"
+                        : "hover:bg-[var(--nps-glass-glow)]"
                     }`}
                   >
                     <td className="px-4 py-3 text-[var(--nps-text)]">
@@ -173,11 +177,11 @@ export function ProfileTable({
                     </td>
                     <td className="px-4 py-3">
                       {isDeleted ? (
-                        <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-red-500/20 text-red-400">
+                        <span className="inline-block px-2.5 py-1 rounded-md text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
                           {t("admin.status_deleted")}
                         </span>
                       ) : (
-                        <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-green-500/20 text-green-400">
+                        <span className="inline-block px-2.5 py-1 rounded-md text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
                           {t("admin.status_active")}
                         </span>
                       )}
@@ -201,7 +205,7 @@ export function ProfileTable({
             <select
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="bg-[var(--nps-bg)] border border-[var(--nps-border)] rounded px-2 py-1 text-[var(--nps-text)]"
+              className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg px-2 py-1 text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] transition-all duration-200"
             >
               {[10, 20, 50].map((n) => (
                 <option key={n} value={n}>
@@ -212,14 +216,14 @@ export function ProfileTable({
             <button
               onClick={() => onPageChange(page - 1)}
               disabled={page === 0}
-              className="px-3 py-1 border border-[var(--nps-border)] rounded disabled:opacity-30 hover:bg-[var(--nps-bg-hover)]"
+              className="px-3 py-1.5 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
             >
               {t("admin.page_prev")}
             </button>
             <button
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages - 1}
-              className="px-3 py-1 border border-[var(--nps-border)] rounded disabled:opacity-30 hover:bg-[var(--nps-bg-hover)]"
+              className="px-3 py-1.5 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
             >
               {t("admin.page_next")}
             </button>

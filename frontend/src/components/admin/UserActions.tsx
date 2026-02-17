@@ -47,12 +47,12 @@ export function UserActions({
           title={
             isSelf ? t("admin.cannot_modify_self") : t("admin.action_edit_role")
           }
-          className="px-2 py-1 text-xs border border-[var(--nps-border)] rounded hover:bg-[var(--nps-bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
+          className="px-2.5 py-1.5 text-xs bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
         >
           {t("admin.action_edit_role")}
         </button>
         {showRoleMenu && !isSelf && (
-          <div className="absolute top-full start-0 mt-1 bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded shadow-lg z-10 min-w-[120px]">
+          <div className="absolute top-full start-0 mt-1 bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl shadow-lg z-10 min-w-[120px] overflow-hidden">
             {ROLES.filter((r) => r !== user.role).map((role) => (
               <button
                 key={role}
@@ -60,7 +60,7 @@ export function UserActions({
                   onRoleChange(user.id, role);
                   setShowRoleMenu(false);
                 }}
-                className="block w-full text-start px-3 py-2 text-xs hover:bg-[var(--nps-bg-hover)] text-[var(--nps-text)]"
+                className="block w-full text-start px-3 py-2 text-xs text-[var(--nps-text)] hover:bg-[var(--nps-glass-glow)] transition-colors duration-150"
               >
                 {t(`admin.role_${role}`)}
               </button>
@@ -72,7 +72,7 @@ export function UserActions({
       {/* Reset password */}
       <button
         onClick={() => setConfirmAction("reset")}
-        className="px-2 py-1 text-xs border border-[var(--nps-border)] rounded hover:bg-[var(--nps-bg-hover)]"
+        className="px-2.5 py-1.5 text-xs bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
       >
         {t("admin.action_reset_password")}
       </button>
@@ -84,10 +84,10 @@ export function UserActions({
         }
         disabled={isSelf && user.is_active}
         title={isSelf ? t("admin.cannot_modify_self") : undefined}
-        className={`px-2 py-1 text-xs border rounded hover:bg-[var(--nps-bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed ${
+        className={`px-2.5 py-1.5 text-xs backdrop-blur-sm rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 ${
           user.is_active
-            ? "border-red-500/50 text-red-400"
-            : "border-green-500/50 text-green-400"
+            ? "bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20 hover:shadow-[0_0_8px_rgba(239,68,68,0.2)]"
+            : "bg-green-500/10 border border-green-500/40 text-green-400 hover:bg-green-500/20 hover:shadow-[0_0_8px_rgba(34,197,94,0.2)]"
         }`}
       >
         {user.is_active
@@ -97,8 +97,8 @@ export function UserActions({
 
       {/* Confirmation modal */}
       {confirmAction && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg p-6 max-w-sm w-full mx-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-6 max-w-sm w-full mx-4 shadow-[0_0_24px_var(--nps-glass-glow)]">
             <p className="text-[var(--nps-text)] mb-4">
               {confirmAction === "reset" &&
                 t("admin.confirm_password_reset", {
@@ -112,13 +112,13 @@ export function UserActions({
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setConfirmAction(null)}
-                className="px-4 py-2 text-sm border border-[var(--nps-border)] rounded hover:bg-[var(--nps-bg-hover)]"
+                className="px-4 py-2 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
               >
                 {t("common.cancel")}
               </button>
               <button
                 onClick={handleConfirm}
-                className="px-4 py-2 text-sm bg-[var(--nps-accent)] text-white rounded hover:opacity-90"
+                className="px-4 py-2 text-sm bg-[var(--nps-accent)] text-white rounded-lg hover:opacity-90 transition-opacity"
               >
                 {t("common.confirm")}
               </button>
@@ -129,17 +129,17 @@ export function UserActions({
 
       {/* Show temp password */}
       {tempPassword && confirmAction === null && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg p-6 max-w-sm w-full mx-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-6 max-w-sm w-full mx-4 shadow-[0_0_24px_var(--nps-glass-glow)]">
             <p className="text-[var(--nps-text)] mb-2">
               {t("admin.password_reset_success", { password: tempPassword })}
             </p>
-            <code className="block p-2 bg-[var(--nps-bg)] rounded text-sm font-mono text-[var(--nps-text-bright)] mb-4 select-all">
+            <code className="block p-3 bg-black/30 backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-sm font-mono text-[var(--nps-text-bright)] mb-4 select-all">
               {tempPassword}
             </code>
             <button
               onClick={() => onResetPassword("")}
-              className="w-full px-4 py-2 text-sm bg-[var(--nps-accent)] text-white rounded hover:opacity-90"
+              className="w-full px-4 py-2 text-sm bg-[var(--nps-accent)] text-white rounded-lg hover:opacity-90 transition-opacity"
             >
               {t("common.close")}
             </button>
