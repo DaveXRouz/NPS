@@ -8,7 +8,7 @@ import {
   type ReadingType,
 } from "@/components/oracle/ReadingTypeSelector";
 import { OracleConsultationForm } from "@/components/oracle/OracleConsultationForm";
-import { LoadingAnimation } from "@/components/oracle/LoadingAnimation";
+import { CalculationAnimation } from "@/components/oracle/CalculationAnimation";
 import { ReadingResults } from "@/components/oracle/ReadingResults";
 import { MultiUserSelector } from "@/components/oracle/MultiUserSelector";
 import { UserForm } from "@/components/oracle/UserForm";
@@ -262,9 +262,10 @@ export default function Oracle() {
               {t(`oracle.type_${readingType}_title`)}
             </h3>
             {isLoading ? (
-              <LoadingAnimation
-                step={readingProgress.progress}
-                total={100}
+              <CalculationAnimation
+                readingType={readingType}
+                step={readingProgress.step}
+                progress={readingProgress.progress}
                 message={
                   readingProgress.message || t("oracle.loading_generating")
                 }

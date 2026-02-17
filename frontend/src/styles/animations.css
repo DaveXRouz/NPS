@@ -164,6 +164,61 @@
   }
 }
 
+@keyframes nps-heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.15);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.1);
+  }
+  56% {
+    transform: scale(1);
+  }
+}
+
+@keyframes nps-line-grow {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--nps-line-height, 24px);
+    opacity: 1;
+  }
+}
+
+@keyframes nps-check-in {
+  from {
+    opacity: 0;
+    transform: scale(0.5) rotate(-45deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes nps-celebration {
+  0% {
+    box-shadow: 0 0 0 0 var(--nps-glass-glow);
+  }
+  50% {
+    box-shadow:
+      0 0 20px 4px var(--nps-glass-glow),
+      0 0 40px 8px rgba(79, 195, 247, 0.05);
+  }
+  100% {
+    box-shadow: 0 0 0 0 var(--nps-glass-glow);
+  }
+}
+
 /* === Utility Classes === */
 
 .nps-animate-fade-in {
@@ -214,6 +269,22 @@
 
 .nps-animate-number-reveal {
   animation: nps-number-reveal var(--nps-duration-md) ease-out forwards;
+}
+
+.nps-animate-heartbeat {
+  animation: nps-heartbeat 1.2s ease-in-out infinite;
+}
+
+.nps-animate-line-grow {
+  animation: nps-line-grow var(--nps-duration-md) ease-out forwards;
+}
+
+.nps-animate-check-in {
+  animation: nps-check-in var(--nps-duration-sm) ease-out forwards;
+}
+
+.nps-animate-celebration {
+  animation: nps-celebration 1.5s ease-in-out;
 }
 
 /* === Stagger Delay Classes === */
