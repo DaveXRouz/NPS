@@ -2511,6 +2511,79 @@ Final session of the 45-session Oracle rebuild. Expanded security audit script f
 
 ---
 
+## Railway Deployment — 2026-02-17
+
+**Terminal:** SINGLE
+**Block:** Production Deployment to Railway
+**Task:** Deploy NPS to Railway with PostgreSQL, configure all env vars, get app running
+
+### Completed (across 2 context windows):
+
+**Context Window 1 — Fixes:**
+
+1. Railway port configuration (`railway.toml` port 8000, health check)
+2. Frontend bundling in Docker (`Dockerfile.railway` 3-stage build)
+3. `VITE_API_KEY` build arg for frontend auth
+4. Railway entrypoint script (`scripts/railway-entrypoint.sh`), CORS auto-detection, `init.sql` copy
+
+**Commits:** `c4a6d4f`, `7a59d74`, `a3583ef`, `55c7d3f`
+
+**Context Window 2 — Railway API Setup:**
+
+1. Authenticated via Railway GraphQL API (project-scoped token, CLI doesn't work)
+2. Created PostgreSQL service via `serviceCreate` with Docker image + volume
+3. Set all env vars on web service (API_SECRET_KEY, NPS_ENCRYPTION_KEY, NPS_ENCRYPTION_SALT, ANTHROPIC_API_KEY, PG vars)
+4. Cleared cached `startCommand` override that was preventing entrypoint.sh from running
+5. Fixed `.dockerignore` blocking `scripts/railway-entrypoint.sh` (added negation pattern)
+6. Docker build succeeds, container starts, health endpoint returns 200
+
+**Commit:** `d2b9a6a` (.dockerignore fix)
+
+### Blocker — PostgreSQL Private Networking:
+
+The custom Docker image PostgreSQL service (created via `serviceCreate` API) does NOT get Railway's native private networking. DNS `postgresql.railway.internal` never resolves. Tried:
+
+- Redeploying both services after private network creation
+- `privateNetworkEndpointCreateOrGet` mutation
+- Reference variables (`${{PostgreSQL.RAILWAY_PRIVATE_DOMAIN}}`) — resolved empty
+- IPv6 egress — not available on Hobby plan
+
+**Resolution:** Deleted the custom PostgreSQL service and all manually-set PG env vars. Railway's native database plugins (created from dashboard "Add Database" button) have special internal networking that can't be replicated via API.
+
+### Current State:
+
+- Web service: running at `web-production-a5179.up.railway.app`, health returns `{"status":"healthy","database":"initializing"}`
+- PostgreSQL: **DELETED** — needs to be re-created as native Railway database
+- All non-PG env vars are set correctly on web service
+- All PG-related env vars have been removed (Railway native DB will auto-inject them)
+
+### Next Session — Steps to Complete Deployment:
+
+1. **User action required:** In Railway dashboard, click "+ New" → "Database" → "Add PostgreSQL" — this creates a native Railway database with auto-networking
+2. After native PostgreSQL exists, Railway auto-injects `DATABASE_URL`, `DATABASE_PRIVATE_URL`, `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` as reference variables into the web service
+3. May need to manually set `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` on web service using reference variables like `${{Postgres.PGHOST}}`
+4. Redeploy web service
+5. Verify health returns `{"database":"ready"}`
+6. Verify `init.sql` runs (entrypoint script uses `psql` to execute it)
+7. Verify dashboard at `https://web-production-a5179.up.railway.app/dashboard`
+
+### Railway Resource IDs:
+
+- Project: `d94abd6e-6a80-4376-b3f5-2f75ab4fd702`
+- Web service: `3dd53b88-f957-4da9-821d-724899f43718`
+- Environment (production): `a5a3d037-bf4c-47d2-bc42-c09abc5efc56`
+- Railway API token: (user's project-scoped token, use via GraphQL API at `https://backboard.railway.app/graphql/v2`)
+- Web domain: `web-production-a5179.up.railway.app`
+
+### Key Files:
+
+- `Dockerfile.railway` — 3-stage build (node→python builder→python runtime)
+- `scripts/railway-entrypoint.sh` — waits for PG, runs init.sql, starts uvicorn
+- `railway.toml` — Dockerfile build config, port 8000, health check
+- `api/app/config.py` — `effective_database_url` priority chain handles Railway vars
+
+---
+
 ## Cross-Terminal Dependencies
 
 > Only used in multi-terminal mode. Track what each terminal needs from others.
