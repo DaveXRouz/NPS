@@ -16,7 +16,6 @@ vi.mock("react-i18next", () => ({
         "oracle.location_country": "Country",
         "oracle.location_city": "City",
         "oracle.location_coordinates": "Coordinates",
-        "oracle.location_search_country": "Search country...",
         "oracle.location_select_city": "Select city",
         "oracle.location_no_cities": "No cities available",
         "oracle.location_manual_coords": "Enter coordinates manually",
@@ -94,13 +93,11 @@ beforeEach(() => {
 });
 
 describe("LocationSelector", () => {
-  it("renders country search input", async () => {
+  it("renders country dropdown", async () => {
     await act(async () => {
       render(<LocationSelector value={null} onChange={vi.fn()} />);
     });
-    expect(
-      screen.getByPlaceholderText("Search country..."),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Country")).toBeInTheDocument();
   });
 
   it("fetches countries on mount", async () => {
@@ -112,8 +109,7 @@ describe("LocationSelector", () => {
     });
   });
 
-  it("filters countries by search text", async () => {
-    const user = userEvent.setup();
+  it("shows all countries in dropdown", async () => {
     await act(async () => {
       render(<LocationSelector value={null} onChange={vi.fn()} />);
     });
@@ -122,15 +118,11 @@ describe("LocationSelector", () => {
       expect(screen.getByLabelText("Country")).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText("Search country...");
-    await user.type(searchInput, "Iran");
-
-    // The country select should show Iran but not United States
     const countrySelect = screen.getByLabelText("Country");
     const options = countrySelect.querySelectorAll("option");
     const optionTexts = Array.from(options).map((o) => o.textContent);
     expect(optionTexts).toContain("Iran");
-    expect(optionTexts).not.toContain("United States");
+    expect(optionTexts).toContain("United States");
   });
 
   it("selects country and loads cities", async () => {

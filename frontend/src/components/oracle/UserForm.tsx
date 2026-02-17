@@ -153,16 +153,16 @@ export function UserForm({
     >
       <div
         ref={dialogRef}
-        className="bg-nps-bg-card border border-nps-oracle-border rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className="bg-nps-bg-card border border-nps-oracle-border rounded-lg p-4 sm:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-nps-oracle-accent mb-4">
+        <h3 className="text-lg font-semibold text-nps-oracle-accent mb-3">
           {isEdit ? t("oracle.edit_profile") : t("oracle.new_profile")}
         </h3>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* ─── Section 1: Identity ─── */}
-          <fieldset className="space-y-3">
+          <fieldset className="space-y-2">
             <legend className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
               {t("oracle.section_identity")}
             </legend>
@@ -233,7 +233,7 @@ export function UserForm({
           </fieldset>
 
           {/* ─── Section 2: Family ─── */}
-          <fieldset className="space-y-3 pt-2">
+          <fieldset className="space-y-2 pt-1">
             <legend className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
               {t("oracle.section_family")}
             </legend>
@@ -294,7 +294,7 @@ export function UserForm({
           </fieldset>
 
           {/* ─── Section 3: Location ─── */}
-          <fieldset className="space-y-3 pt-2">
+          <fieldset className="space-y-2 pt-1">
             <legend className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
               {t("oracle.section_location")}
             </legend>
@@ -315,89 +315,92 @@ export function UserForm({
           </fieldset>
 
           {/* ─── Section 4: Profile Details ─── */}
-          <fieldset className="space-y-3 pt-2">
+          <fieldset className="space-y-2 pt-1">
             <legend className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
               {t("oracle.section_details")}
             </legend>
 
-            {/* Gender */}
-            <div>
-              <label
-                htmlFor="gender-select"
-                className="block text-sm text-nps-text-dim mb-1"
-              >
-                {t("oracle.field_gender")}
-              </label>
-              <select
-                id="gender-select"
-                value={form.gender ?? ""}
-                onChange={(e) =>
-                  handleFieldChange("gender", e.target.value || undefined)
-                }
-                className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
-                data-testid="gender-select"
-              >
-                <option value="">{t("oracle.gender_unset")}</option>
-                <option value="male">{t("oracle.gender_male")}</option>
-                <option value="female">{t("oracle.gender_female")}</option>
-              </select>
-            </div>
-
-            {/* Heart Rate BPM */}
-            <div>
-              <label
-                htmlFor="heart-rate-input"
-                className="block text-sm text-nps-text-dim mb-1"
-              >
-                {t("oracle.field_heart_rate")}
-              </label>
-              <input
-                id="heart-rate-input"
-                type="number"
-                min={30}
-                max={220}
-                value={form.heart_rate_bpm ?? ""}
-                onChange={(e) =>
-                  handleFieldChange(
-                    "heart_rate_bpm",
-                    e.target.value ? Number(e.target.value) : undefined,
-                  )
-                }
-                aria-invalid={!!errors.heart_rate_bpm}
-                className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
-                  errors.heart_rate_bpm
-                    ? "border-nps-error"
-                    : "border-nps-border"
-                }`}
-                data-testid="heart-rate-input"
-              />
-              {errors.heart_rate_bpm && (
-                <p className="text-nps-error text-xs mt-1" role="alert">
-                  {errors.heart_rate_bpm}
-                </p>
-              )}
-              {form.birthday && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const age = Math.floor(
-                      (Date.now() - new Date(form.birthday).getTime()) /
-                        31557600000,
-                    );
-                    let avg = 72;
-                    if (age >= 18 && age <= 25) avg = 73;
-                    else if (age <= 35) avg = 74;
-                    else if (age <= 45) avg = 75;
-                    else if (age <= 55) avg = 76;
-                    else if (age <= 65) avg = 75;
-                    else if (age > 65) avg = 73;
-                    handleFieldChange("heart_rate_bpm", avg);
-                  }}
-                  className="mt-1 text-xs text-nps-oracle-accent hover:underline"
+            {/* Gender + Heart Rate — side by side on desktop */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              {/* Gender */}
+              <div className="flex-1">
+                <label
+                  htmlFor="gender-select"
+                  className="block text-sm text-nps-text-dim mb-1"
                 >
-                  {t("oracle.heart_rate_avg_label")}
-                </button>
-              )}
+                  {t("oracle.field_gender")}
+                </label>
+                <select
+                  id="gender-select"
+                  value={form.gender ?? ""}
+                  onChange={(e) =>
+                    handleFieldChange("gender", e.target.value || undefined)
+                  }
+                  className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
+                  data-testid="gender-select"
+                >
+                  <option value="">{t("oracle.gender_unset")}</option>
+                  <option value="male">{t("oracle.gender_male")}</option>
+                  <option value="female">{t("oracle.gender_female")}</option>
+                </select>
+              </div>
+
+              {/* Heart Rate BPM */}
+              <div className="flex-1">
+                <label
+                  htmlFor="heart-rate-input"
+                  className="block text-sm text-nps-text-dim mb-1"
+                >
+                  {t("oracle.field_heart_rate")}
+                </label>
+                <input
+                  id="heart-rate-input"
+                  type="number"
+                  min={30}
+                  max={220}
+                  value={form.heart_rate_bpm ?? ""}
+                  onChange={(e) =>
+                    handleFieldChange(
+                      "heart_rate_bpm",
+                      e.target.value ? Number(e.target.value) : undefined,
+                    )
+                  }
+                  aria-invalid={!!errors.heart_rate_bpm}
+                  className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
+                    errors.heart_rate_bpm
+                      ? "border-nps-error"
+                      : "border-nps-border"
+                  }`}
+                  data-testid="heart-rate-input"
+                />
+                {errors.heart_rate_bpm && (
+                  <p className="text-nps-error text-xs mt-1" role="alert">
+                    {errors.heart_rate_bpm}
+                  </p>
+                )}
+                {form.birthday && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const age = Math.floor(
+                        (Date.now() - new Date(form.birthday).getTime()) /
+                          31557600000,
+                      );
+                      let avg = 72;
+                      if (age >= 18 && age <= 25) avg = 73;
+                      else if (age <= 35) avg = 74;
+                      else if (age <= 45) avg = 75;
+                      else if (age <= 55) avg = 76;
+                      else if (age <= 65) avg = 75;
+                      else if (age > 65) avg = 73;
+                      handleFieldChange("heart_rate_bpm", avg);
+                    }}
+                    className="mt-1 text-xs text-nps-oracle-accent hover:underline"
+                  >
+                    {t("oracle.heart_rate_avg_label")}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Timezone */}
