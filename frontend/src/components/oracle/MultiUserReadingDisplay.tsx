@@ -46,7 +46,7 @@ export default function MultiUserReadingDisplay({
           <button
             onClick={onClose}
             className="text-nps-text-dim hover:text-nps-text"
-            aria-label="Close"
+            aria-label={t("common.close")}
           >
             &times;
           </button>
@@ -282,7 +282,7 @@ export default function MultiUserReadingDisplay({
         {result.ai_interpretation && (
           <details className="border border-nps-border rounded-lg">
             <summary className="px-4 py-2 cursor-pointer text-sm font-medium text-nps-oracle-accent">
-              AI Interpretation
+              {t("oracle.ai_interpretation")}
             </summary>
             <div className="px-4 pb-4 text-sm text-nps-text-dim whitespace-pre-wrap">
               {result.ai_interpretation.full_text}

@@ -2,6 +2,8 @@
  * NPS API client — typed fetch wrappers for all endpoints.
  */
 
+import i18n from "@/i18n/config";
+
 const API_BASE = "/api";
 
 export class ApiError extends Error {
@@ -24,6 +26,19 @@ export class ApiError extends Error {
   }
 }
 
+const HTTP_ERROR_KEYS: Record<number, string> = {
+  401: "errors.unauthorized",
+  403: "errors.forbidden",
+  404: "errors.not_found",
+};
+
+function localizedHttpError(status: number): string {
+  const key = HTTP_ERROR_KEYS[status];
+  if (key) return i18n.t(key);
+  if (status >= 500) return i18n.t("errors.server");
+  return `HTTP ${status}`;
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE}${path}`;
   const headers: Record<string, string> = {
@@ -40,14 +55,14 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   try {
     response = await fetch(url, { ...options, headers });
   } catch {
-    throw new ApiError("Network error", 0);
+    throw new ApiError(i18n.t("errors.network"), 0);
   }
 
   if (!response.ok) {
     const body = await response
       .json()
       .catch(() => ({ detail: response.statusText }));
-    const detail = body.detail || `HTTP ${response.status}`;
+    const detail = body.detail || localizedHttpError(response.status);
     throw new ApiError(detail, response.status, detail);
   }
 

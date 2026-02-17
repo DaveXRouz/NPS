@@ -1,4 +1,5 @@
 import { useState, useEffect, type ReactNode, type ComponentType } from "react";
+import { useTranslation } from "react-i18next";
 import { XCircle, CheckCircle, AlertTriangle, Info } from "lucide-react";
 import {
   ToastContext,
@@ -60,6 +61,7 @@ function ToastCard({
   toast: ToastItem;
   onDismiss: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const isRtl =
     typeof document !== "undefined" && document.documentElement.dir === "rtl";
   const Icon = ICON_MAP[toast.type];
@@ -79,7 +81,7 @@ function ToastCard({
         type="button"
         onClick={() => onDismiss(toast.id)}
         className="flex-shrink-0 text-nps-text-dim hover:text-nps-text transition-colors"
-        aria-label="Dismiss"
+        aria-label={t("common.dismiss")}
       >
         &times;
       </button>

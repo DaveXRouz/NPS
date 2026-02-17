@@ -200,7 +200,7 @@ export function ExportShareMenu({
       {menuOpen && (
         <div
           role="menu"
-          aria-label="Export and share options"
+          aria-label={t("oracle.export_share_options")}
           className="absolute end-0 top-full mt-1 min-w-[180px] bg-nps-bg-card border border-nps-border/40 rounded shadow-lg z-50 py-1"
         >
           {menuItems.map((item) => (

@@ -45,7 +45,7 @@ export default function Admin() {
         <StaggerChildren
           staggerMs={40}
           baseDelay={80}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+          className="grid grid-cols-2 md:grid-cols-4 gap-4"
         >
           <StatCard label={t("admin.total_users")} value={stats.total_users} />
           <StatCard
@@ -65,7 +65,7 @@ export default function Admin() {
 
       {/* Tab navigation */}
       <FadeIn delay={160}>
-        <div className="flex gap-2 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-xl p-2">
+        <div className="flex flex-wrap gap-2 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-xl p-2">
           <NavLink
             to="/admin/users"
             className={({ isActive }) => tabClass(isActive)}

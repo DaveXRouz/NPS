@@ -180,7 +180,7 @@ export function HeartbeatInput({ value, onChange }: HeartbeatInputProps) {
               type="button"
               onClick={handleClear}
               className="px-2 py-2 text-xs text-nps-text-dim hover:text-nps-text border border-nps-border rounded"
-              aria-label="Clear heart rate"
+              aria-label={t("oracle.heartbeat_clear")}
               data-testid="heartbeat-clear"
             >
               ✕

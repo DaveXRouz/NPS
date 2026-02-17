@@ -155,9 +155,9 @@ export default function Oracle() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+    <div className="flex flex-col md:flex-row gap-4 lg:gap-6">
       {/* LEFT PANEL */}
-      <aside className="w-full lg:w-80 lg:flex-shrink-0 lg:sticky lg:top-6 lg:self-start space-y-4">
+      <aside className="w-full md:w-72 lg:w-80 md:flex-shrink-0 md:sticky md:top-6 md:self-start space-y-4">
         {/* User Profile Card */}
         <FadeIn delay={0}>
           <section className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-lg p-4 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300">
@@ -256,7 +256,7 @@ export default function Oracle() {
           <section
             id="oracle-form-panel"
             role="tabpanel"
-            className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-lg p-4 lg:p-6 min-h-[300px] hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300"
+            className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-lg p-4 lg:p-6 min-h-[200px] md:min-h-[300px] hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300"
           >
             <h3 className="text-sm font-semibold text-[var(--nps-accent)] mb-4">
               {t(`oracle.type_${readingType}_title`)}

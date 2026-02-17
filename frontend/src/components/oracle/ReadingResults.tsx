@@ -56,7 +56,7 @@ export const ReadingResults = React.memo(function ReadingResults({
           ref={tablistRef}
           className="flex gap-1 overflow-x-auto bg-[var(--nps-glass-bg)] backdrop-blur-sm rounded-lg p-1 border border-[var(--nps-glass-border)]"
           role="tablist"
-          aria-label="Reading results"
+          aria-label={t("oracle.reading_results")}
           onKeyDown={handleKeyDown}
         >
           {TABS.map((tab) => (

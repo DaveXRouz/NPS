@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
 interface StarRatingProps {
   value: number;
@@ -39,6 +40,7 @@ export function StarRating({
   readonly = false,
   size = "md",
 }: StarRatingProps) {
+  const { t } = useTranslation();
   const [hoverValue, setHoverValue] = useState(0);
   const sizeClass = SIZE_MAP[size];
 
@@ -73,7 +75,7 @@ export function StarRating({
     <div
       className="inline-flex gap-0.5"
       role="radiogroup"
-      aria-label="Rate this reading"
+      aria-label={t("oracle.star_rating_label")}
       tabIndex={readonly ? -1 : 0}
       onKeyDown={handleKeyDown}
       dir="ltr"
