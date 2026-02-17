@@ -167,13 +167,13 @@ export default function FC60StampDisplay({
       >
         <span>{stamp.weekday.token}</span>
       </span>
-      <span className="text-gray-400">-</span>
+      <span className="text-nps-text-dim">-</span>
       <AnimalBadge
         token={stamp.month.token}
         label={`${t("oracle.fc60_month")} ${stamp.month.index}`}
         showTooltip={showTooltips}
       />
-      <span className="text-gray-400">-</span>
+      <span className="text-nps-text-dim">-</span>
       <TokenBadge
         segment={stamp.dom}
         label={`${t("oracle.fc60_day")} ${stamp.dom.value ?? ""}`}
@@ -195,13 +195,13 @@ export default function FC60StampDisplay({
             label={`${t("oracle.fc60_hour")} ${stamp.time.hour.value ?? ""}`}
             showTooltip={showTooltips}
           />
-          <span className="text-gray-400">-</span>
+          <span className="text-nps-text-dim">-</span>
           <TokenBadge
             segment={stamp.time.minute}
             label={`${t("oracle.fc60_minute")} ${stamp.time.minute.value ?? ""}`}
             showTooltip={showTooltips}
           />
-          <span className="text-gray-400">-</span>
+          <span className="text-nps-text-dim">-</span>
           <TokenBadge
             segment={stamp.time.second}
             label={`${t("oracle.fc60_second")} ${stamp.time.second.value ?? ""}`}
@@ -215,7 +215,7 @@ export default function FC60StampDisplay({
         <button
           type="button"
           onClick={handleCopy}
-          className="ms-2 p-1 text-gray-400 hover:text-gray-200 transition-colors"
+          className="ms-2 p-1 text-nps-text-dim hover:text-nps-text transition-colors"
           aria-label={t("oracle.fc60_copy")}
           title={t("oracle.fc60_copy")}
         >

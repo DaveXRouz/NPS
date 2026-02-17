@@ -91,7 +91,7 @@ export function StarRating({
           onMouseLeave={() => !readonly && setHoverValue(0)}
           className={`transition-colors ${
             readonly ? "cursor-default" : "cursor-pointer hover:scale-110"
-          } ${star <= displayValue ? "text-yellow-400" : "text-gray-600"}`}
+          } ${star <= displayValue ? "text-yellow-400" : "text-nps-text-dim"}`}
           data-testid={`star-${star}`}
         >
           <StarIcon filled={star <= displayValue} className={sizeClass} />
