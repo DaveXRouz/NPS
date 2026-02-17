@@ -104,11 +104,12 @@ export const oracle = {
         include_ai: true,
       }),
     }),
-  name: (name: string, userId?: number, system?: string) =>
+  name: (name: string, userId?: number, system?: string, motherName?: string) =>
     request<import("@/types").NameReading>("/oracle/name", {
       method: "POST",
       body: JSON.stringify({
         name,
+        ...(motherName ? { mother_name: motherName } : {}),
         user_id: userId,
         numerology_system: system || "pythagorean",
         include_ai: true,

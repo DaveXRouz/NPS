@@ -1,13 +1,18 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import type { FrameworkReadingResponse, ReadingProgressEvent } from "@/types";
+import type { FrameworkReadingResponse } from "@/types";
 import { useSubmitTimeReading } from "@/hooks/useOracleReadings";
+import { useReadingProgress } from "@/hooks/useReadingProgress";
 
 interface TimeReadingFormProps {
   userId: number;
   userName: string;
   onResult: (result: FrameworkReadingResponse) => void;
-  onProgress?: (event: ReadingProgressEvent) => void;
+  onProgress?: (progress: {
+    step: string;
+    progress: number;
+    message: string;
+  }) => void;
 }
 
 function pad2(n: number): string {
@@ -27,31 +32,27 @@ export default function TimeReadingForm({
   const [hour, setHour] = useState(now.getHours());
   const [minute, setMinute] = useState(now.getMinutes());
   const [second, setSecond] = useState(0);
-  const [progress, setProgress] = useState<ReadingProgressEvent | null>(null);
-  const ws = useRef<WebSocket | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const mutation = useSubmitTimeReading();
+  const readingProgress = useReadingProgress();
 
-  // WebSocket for progress updates
+  // Forward progress events to parent
   useEffect(() => {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/api/oracle/ws`;
-    try {
-      ws.current = new WebSocket(wsUrl);
-      ws.current.onmessage = (event: MessageEvent) => {
-        const data = JSON.parse(event.data) as ReadingProgressEvent;
-        if (data.reading_type === "time") {
-          setProgress(data);
-          onProgress?.(data);
-        }
-      };
-    } catch {
-      // WebSocket not available in test/dev — ignore
+    if (readingProgress.isActive && onProgress) {
+      onProgress({
+        step: readingProgress.step,
+        progress: readingProgress.progress,
+        message: readingProgress.message,
+      });
     }
-    return () => {
-      ws.current?.close();
-    };
-  }, [onProgress]);
+  }, [
+    readingProgress.isActive,
+    readingProgress.step,
+    readingProgress.progress,
+    readingProgress.message,
+    onProgress,
+  ]);
 
   const handleUseCurrentTime = useCallback(() => {
     const d = new Date();
@@ -63,7 +64,7 @@ export default function TimeReadingForm({
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      setProgress(null);
+      setError(null);
       const signValue = `${pad2(hour)}:${pad2(minute)}:${pad2(second)}`;
       mutation.mutate(
         {
@@ -75,13 +76,17 @@ export default function TimeReadingForm({
         },
         {
           onSuccess: (data) => {
-            setProgress(null);
             onResult(data);
+          },
+          onError: (err) => {
+            const msg =
+              err instanceof Error ? err.message : t("oracle.error_submit");
+            setError(msg);
           },
         },
       );
     },
-    [hour, minute, second, userId, i18n.language, mutation, onResult],
+    [hour, minute, second, userId, i18n.language, mutation, onResult, t],
   );
 
   const hourOptions = Array.from({ length: 24 }, (_, i) => i);
@@ -188,27 +193,39 @@ export default function TimeReadingForm({
       </button>
 
       {/* Progress indicator */}
-      {mutation.isPending && progress && (
+      {mutation.isPending && readingProgress.isActive && (
         <div className="bg-nps-oracle-bg border border-nps-oracle-border rounded p-3 text-sm text-nps-oracle-accent">
           <div className="flex items-center gap-2">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-nps-oracle-accent border-t-transparent" />
-            <span>{progress.message}</span>
+            <span>{readingProgress.message}</span>
           </div>
           <div className="mt-2 h-1.5 rounded-full bg-nps-border">
             <div
               className="h-1.5 rounded-full bg-nps-oracle-accent transition-all"
-              style={{
-                width: `${(progress.step / progress.total) * 100}%`,
-              }}
+              style={{ width: `${readingProgress.progress}%` }}
             />
           </div>
         </div>
       )}
 
+      {/* Error display */}
+      <div aria-live="polite">
+        {error && (
+          <p
+            className="text-xs text-nps-bg-danger"
+            role="alert"
+            data-testid="time-error"
+          >
+            {error}
+          </p>
+        )}
+      </div>
+
       {/* Submit button */}
       <button
         type="submit"
         disabled={mutation.isPending}
+        aria-busy={mutation.isPending}
         className="w-full rounded bg-[var(--nps-accent)] px-4 py-2 text-[var(--nps-bg)] font-medium hover:bg-[var(--nps-accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {mutation.isPending

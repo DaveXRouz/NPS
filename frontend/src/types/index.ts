@@ -128,6 +128,7 @@ export interface QuestionResponse {
 
 export interface NameReadingRequest {
   name: string;
+  mother_name?: string;
   user_id?: number;
   numerology_system?: string;
   include_ai?: boolean;

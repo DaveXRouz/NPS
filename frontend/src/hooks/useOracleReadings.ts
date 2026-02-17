@@ -24,6 +24,7 @@ export function useSubmitReading() {
   return useMutation({
     mutationFn: (datetime?: string) => oracle.reading(datetime),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
+    ...retryConfig,
   });
 }
 
@@ -36,15 +37,22 @@ export function useSubmitQuestion() {
       system?: string;
     }) => oracle.question(params.question, params.userId, params.system),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
+    ...retryConfig,
   });
 }
 
 export function useSubmitName() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (params: { name: string; userId?: number; system?: string }) =>
-      oracle.name(params.name, params.userId, params.system),
+    mutationFn: (params: {
+      name: string;
+      motherName?: string;
+      userId?: number;
+      system?: string;
+    }) =>
+      oracle.name(params.name, params.userId, params.system, params.motherName),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
+    ...retryConfig,
   });
 }
 
@@ -54,6 +62,7 @@ export function useSubmitTimeReading() {
     mutationFn: (data: import("@/types").TimeReadingRequest) =>
       oracle.timeReading(data),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
+    ...retryConfig,
   });
 }
 
@@ -78,6 +87,7 @@ export function useGenerateDailyReading() {
       });
       qc.invalidateQueries({ queryKey: HISTORY_KEY });
     },
+    ...retryConfig,
   });
 }
 
@@ -87,6 +97,7 @@ export function useSubmitMultiUserReading() {
     mutationFn: (data: import("@/types").MultiUserFrameworkRequest) =>
       oracle.multiUserFrameworkReading(data),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
+    ...retryConfig,
   });
 }
 
