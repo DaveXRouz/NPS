@@ -84,7 +84,7 @@ export function ProfileSection() {
           placeholder={t("settings.current_password")}
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-nps-bg-main border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim focus:outline-none focus:border-nps-accent"
+          className="w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim focus:outline-none focus:border-nps-accent"
           required
         />
         <input
@@ -92,7 +92,7 @@ export function ProfileSection() {
           placeholder={t("settings.new_password")}
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-nps-bg-main border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim focus:outline-none focus:border-nps-accent"
+          className="w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim focus:outline-none focus:border-nps-accent"
           required
           minLength={8}
         />
@@ -101,7 +101,7 @@ export function ProfileSection() {
           placeholder={t("settings.confirm_password")}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-nps-bg-main border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim focus:outline-none focus:border-nps-accent"
+          className="w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim focus:outline-none focus:border-nps-accent"
           required
           minLength={8}
         />

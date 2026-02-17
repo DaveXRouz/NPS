@@ -70,7 +70,7 @@ export function PreferencesSection() {
               className={`px-4 py-1.5 text-sm rounded border transition-colors ${
                 currentLocale === lang
                   ? "bg-nps-accent text-white border-nps-accent"
-                  : "bg-nps-bg-main text-nps-text-dim border-nps-border hover:border-nps-accent"
+                  : "bg-nps-bg-card text-nps-text-dim border-nps-border hover:border-nps-accent"
               }`}
             >
               {lang === "en" ? "English" : "فارسی"}
@@ -93,7 +93,7 @@ export function PreferencesSection() {
               className={`px-4 py-1.5 text-sm rounded border transition-colors ${
                 currentTheme === theme
                   ? "bg-nps-accent text-white border-nps-accent"
-                  : "bg-nps-bg-main text-nps-text-dim border-nps-border hover:border-nps-accent"
+                  : "bg-nps-bg-card text-nps-text-dim border-nps-border hover:border-nps-accent"
               }`}
             >
               {t(`settings.theme_${theme}`)}
@@ -110,7 +110,7 @@ export function PreferencesSection() {
         <select
           value={currentTimezone}
           onChange={(e) => save("timezone", e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-nps-bg-main border border-nps-border rounded text-nps-text-bright focus:outline-none focus:border-nps-accent"
+          className="w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright focus:outline-none focus:border-nps-accent"
         >
           {TIMEZONES.map((tz) => (
             <option key={tz} value={tz}>
@@ -134,7 +134,7 @@ export function PreferencesSection() {
               className={`px-4 py-1.5 text-sm rounded border transition-colors ${
                 currentSystem === sys
                   ? "bg-nps-accent text-white border-nps-accent"
-                  : "bg-nps-bg-main text-nps-text-dim border-nps-border hover:border-nps-accent"
+                  : "bg-nps-bg-card text-nps-text-dim border-nps-border hover:border-nps-accent"
               }`}
             >
               {t(`settings.numerology_${sys}`)}

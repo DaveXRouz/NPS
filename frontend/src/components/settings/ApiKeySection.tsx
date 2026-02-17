@@ -58,8 +58,8 @@ export function ApiKeySection() {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-2">
-        <div className="h-12 bg-nps-bg-main rounded" />
-        <div className="h-12 bg-nps-bg-main rounded" />
+        <div className="h-12 bg-nps-bg-card rounded" />
+        <div className="h-12 bg-nps-bg-card rounded" />
       </div>
     );
   }
@@ -74,7 +74,7 @@ export function ApiKeySection() {
           <p className="text-xs text-yellow-300 font-semibold">
             {t("settings.api_key_warning")}
           </p>
-          <code className="block text-xs text-yellow-200 bg-nps-bg-main p-2 rounded break-all">
+          <code className="block text-xs text-yellow-200 bg-nps-bg-card p-2 rounded break-all">
             {newKeyValue}
           </code>
           <button
@@ -97,7 +97,7 @@ export function ApiKeySection() {
       {keyList.map((k) => (
         <div
           key={k.id}
-          className="flex items-center justify-between bg-nps-bg-main border border-nps-border rounded p-3"
+          className="flex items-center justify-between bg-nps-bg-card border border-nps-border rounded p-3"
         >
           <div className="min-w-0 flex-1">
             <p className="text-sm text-nps-text-bright font-medium truncate">
@@ -148,7 +148,7 @@ export function ApiKeySection() {
 
       {/* Create form */}
       {showForm ? (
-        <div className="bg-nps-bg-main border border-nps-border rounded p-3 space-y-2">
+        <div className="bg-nps-bg-card border border-nps-border rounded p-3 space-y-2">
           <input
             type="text"
             placeholder={t("settings.api_key_name")}
