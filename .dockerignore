@@ -10,7 +10,14 @@ infrastructure/
 integration/
 scripts/
 backups/
-frontend/
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/e2e-results/
+frontend/e2e-report/
+frontend/e2e/
+frontend/desktop-gui/
+frontend/.env
 services/scanner/
 services/tgbot/
 **/__pycache__

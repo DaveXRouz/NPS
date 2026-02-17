@@ -1,6 +1,21 @@
-# NPS API — Railway deployment (repo root build context)
+# NPS API + Frontend — Railway deployment (repo root build context)
 
-# ─── Stage 1: Builder ───
+# ─── Stage 0: Frontend Builder ───
+FROM node:20-alpine AS frontend-builder
+
+WORKDIR /app
+
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --prefer-offline
+
+COPY frontend/index.html frontend/vite.config.ts frontend/tsconfig.json \
+     frontend/tsconfig.node.json frontend/tailwind.config.ts \
+     frontend/postcss.config.js ./
+COPY frontend/src ./src
+
+RUN npm run build
+
+# ─── Stage 1: Python Builder ───
 FROM python:3.11-slim AS builder
 
 WORKDIR /build
@@ -32,9 +47,18 @@ COPY services/oracle /services/oracle
 # Copy numerology framework (oracle_service/__init__.py adds "/" to sys.path)
 COPY numerology_ai_framework /numerology_ai_framework
 
+# Copy compiled frontend assets
+# Path must be /frontend/dist to match main.py resolution:
+#   Path(__file__).parent.parent.parent / "frontend" / "dist"
+#   /app/app/main.py → / → /frontend/dist
+COPY --from=frontend-builder /app/dist /frontend/dist
+
 # Non-root user + backups dir
 RUN groupadd -r api && useradd -r -g api -u 1001 api && \
     mkdir -p /app/backups && chown -R api:api /app /app/backups
+
+# /frontend/dist is root-owned but readable by all (StaticFiles only reads)
+RUN chmod -R a+rX /frontend/dist
 
 ENV PYTHONPATH="/services/oracle:/services/oracle/oracle_service:/:/app"
 ENV BACKUP_DIR=/app/backups
