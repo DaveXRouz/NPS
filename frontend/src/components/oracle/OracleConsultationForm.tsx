@@ -141,6 +141,9 @@ export function OracleConsultationForm({
           <NameReadingForm
             userId={userId}
             userName={userName}
+            userNamePersian={selectedUsers?.primary.name_persian}
+            userMotherName={selectedUsers?.primary.mother_name}
+            userMotherNamePersian={selectedUsers?.primary.mother_name_persian}
             onResult={(data: NameReading) => {
               onResult({ type: "name", data });
               onLoadingChange(false);
