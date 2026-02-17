@@ -67,6 +67,10 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_format: str = "json"
 
+    # Railway auto-sets these
+    railway_public_domain: str = ""
+    railway_environment_name: str = ""
+
     # Direct URL overrides (Railway/Heroku set these automatically)
     database_url: str = ""
     database_private_url: str = ""  # Railway internal networking (faster)
@@ -111,7 +115,13 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> list[str]:
-        return [o.strip() for o in self.api_cors_origins.split(",")]
+        origins = [o.strip() for o in self.api_cors_origins.split(",") if o.strip()]
+        # Auto-add Railway public domain for CORS (avoids manual API_CORS_ORIGINS config)
+        if self.railway_public_domain:
+            railway_origin = f"https://{self.railway_public_domain}"
+            if railway_origin not in origins:
+                origins.append(railway_origin)
+        return origins
 
     class Config:
         env_file = str(_v4_env) if _v4_env.is_file() else ".env"

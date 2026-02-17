@@ -58,6 +58,13 @@ COPY numerology_ai_framework /numerology_ai_framework
 #   /app/app/main.py → / → /frontend/dist
 COPY --from=frontend-builder /app/dist /frontend/dist
 
+# Copy database init script (idempotent CREATE IF NOT EXISTS)
+COPY database/init.sql /app/init.sql
+
+# Copy Railway entrypoint script
+COPY scripts/railway-entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Non-root user + backups dir
 RUN groupadd -r api && useradd -r -g api -u 1001 api && \
     mkdir -p /app/backups && chown -R api:api /app /app/backups
@@ -72,4 +79,4 @@ EXPOSE 8000
 
 USER api
 
-CMD sh -c "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 2 --log-level warning"
+CMD ["/app/entrypoint.sh"]
