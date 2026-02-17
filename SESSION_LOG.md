@@ -10,7 +10,7 @@
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
 **Sessions completed:** 45 of 45 (COMPLETE)
-**Last session:** Session 45 — Security Audit & Production Deployment (FINAL)
+**Last session:** Railway Deployment Fix — PostgreSQL provisioned, app fully operational
 **Current block:** Testing & Deployment (Sessions 41-45) — COMPLETE
 
 ---
@@ -2550,30 +2550,76 @@ The custom Docker image PostgreSQL service (created via `serviceCreate` API) doe
 
 **Resolution:** Deleted the custom PostgreSQL service and all manually-set PG env vars. Railway's native database plugins (created from dashboard "Add Database" button) have special internal networking that can't be replicated via API.
 
-### Current State:
+### Current State (after Context Window 2):
 
-- Web service: running at `web-production-a5179.up.railway.app`, health returns `{"status":"healthy","database":"initializing"}`
+- Web service: running, health returns `{"status":"healthy","database":"initializing"}`
 - PostgreSQL: **DELETED** — needs to be re-created as native Railway database
-- All non-PG env vars are set correctly on web service
-- All PG-related env vars have been removed (Railway native DB will auto-inject them)
+- All non-PG env vars set correctly, PG vars removed
 
-### Next Session — Steps to Complete Deployment:
+---
 
-1. **User action required:** In Railway dashboard, click "+ New" → "Database" → "Add PostgreSQL" — this creates a native Railway database with auto-networking
-2. After native PostgreSQL exists, Railway auto-injects `DATABASE_URL`, `DATABASE_PRIVATE_URL`, `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` as reference variables into the web service
-3. May need to manually set `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` on web service using reference variables like `${{Postgres.PGHOST}}`
-4. Redeploy web service
-5. Verify health returns `{"database":"ready"}`
-6. Verify `init.sql` runs (entrypoint script uses `psql` to execute it)
-7. Verify dashboard at `https://web-production-a5179.up.railway.app/dashboard`
+## Railway Deployment Fix — 2026-02-17
+
+**Terminal:** SINGLE
+**Block:** Production Deployment — PostgreSQL Provisioning & Env Var Cleanup
+**Task:** Add PostgreSQL to Railway, fix stale env vars, get database connected
+
+### Context Window 3 — Database Provisioning & Full Fix:
+
+**Diagnosis:** App had no PostgreSQL service (never provisioned). Health returned `"database": "initializing"` because `PGHOST` was unset — entrypoint skipped DB init. Additionally, `REDIS_HOST=redis`, `ORACLE_GRPC_HOST=oracle-service`, `SCANNER_GRPC_HOST=scanner-service` pointed to non-existent Docker Compose DNS names, and `TELEGRAM_ENABLED=true` with no bot token.
+
+**Actions:**
+
+1. Deployed PostgreSQL template via Railway CLI (`deploy-template` with standard PostgreSQL — 165K active projects)
+2. Verified Postgres service active with connection details at `postgres.railway.internal:5432`
+3. Railway did NOT auto-inject DB vars into `web` service — manually set 12 variables in one batch:
+   - `DATABASE_URL`, `DATABASE_PRIVATE_URL` → `postgresql://postgres:...@postgres.railway.internal:5432/railway`
+   - `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` → Railway Postgres values
+   - `POSTGRES_DB=railway` (was empty)
+   - `REDIS_HOST=localhost` (was `redis` — DNS failure → clean graceful fallback)
+   - `ORACLE_GRPC_HOST=localhost` (was `oracle-service`)
+   - `SCANNER_GRPC_HOST=localhost` (was `scanner-service`)
+   - `TELEGRAM_ENABLED=false` (no bot token)
+4. Triggered redeploy via `railway redeploy` (local `railway up` failed due to OrbStack broken symlinks on host machine — not a code issue)
+5. Fixed GIN index syntax error in `database/init.sql:404` — `USING GIN` must precede column list
+6. Pushed fix to GitHub → Railway auto-deployed from `main` branch
+
+**Commits:** `fe77688` (GIN index syntax fix)
+
+### Verification Results:
+
+| Check                                                  | Result                                                                                                                                         |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Deploy logs: "PostgreSQL is ready"                     | Yes (waited 0s)                                                                                                                                |
+| Deploy logs: "Database schema initialization complete" | Yes, clean (no SQL errors)                                                                                                                     |
+| Deploy logs: "Redis unavailable (non-fatal)"           | Yes (expected)                                                                                                                                 |
+| Deploy logs: no psql errors                            | Yes (GIN index fix confirmed)                                                                                                                  |
+| `GET /api/health`                                      | `{"status":"healthy","version":"4.0.0","database":"ready"}`                                                                                    |
+| `GET /api/health/ready`                                | `{"status":"healthy","checks":{"database":"healthy","redis":"not_connected","scanner_service":"not_deployed","oracle_service":"direct_mode"}}` |
+| Build logs                                             | Clean, no errors or warnings                                                                                                                   |
+
+### Current State (FINAL):
+
+| Component                    | Status                                                        |
+| ---------------------------- | ------------------------------------------------------------- |
+| Web service                  | Fully operational, connected to PostgreSQL                    |
+| PostgreSQL (Railway managed) | Active, schema bootstrapped, `postgres.railway.internal:5432` |
+| Redis                        | Not deployed, graceful fallback (cache bypassed)              |
+| Oracle gRPC                  | Not deployed, direct mode (legacy imports)                    |
+| Scanner gRPC                 | Not deployed, stub only                                       |
+| Telegram                     | Disabled (no bot token)                                       |
+| CORS                         | Working (Railway domain auto-added by `config.py`)            |
+| Health                       | `{"status":"healthy","database":"ready"}`                     |
 
 ### Railway Resource IDs:
 
 - Project: `d94abd6e-6a80-4376-b3f5-2f75ab4fd702`
 - Web service: `3dd53b88-f957-4da9-821d-724899f43718`
+- Postgres service: `efc8031a-1f0c-4a97-9f6f-9e8518aa1134`
 - Environment (production): `a5a3d037-bf4c-47d2-bc42-c09abc5efc56`
-- Railway API token: (user's project-scoped token, use via GraphQL API at `https://backboard.railway.app/graphql/v2`)
 - Web domain: `web-production-a5179.up.railway.app`
+- Postgres internal: `postgres.railway.internal:5432`
+- Postgres public: `tramway.proxy.rlwy.net:55836`
 
 ### Key Files:
 
@@ -2581,6 +2627,13 @@ The custom Docker image PostgreSQL service (created via `serviceCreate` API) doe
 - `scripts/railway-entrypoint.sh` — waits for PG, runs init.sql, starts uvicorn
 - `railway.toml` — Dockerfile build config, port 8000, health check
 - `api/app/config.py` — `effective_database_url` priority chain handles Railway vars
+- `database/init.sql` — idempotent schema (GIN index syntax fixed)
+
+### Notes:
+
+- `railway up` (local upload) fails on this machine due to OrbStack broken symlinks in `/Users/hamzeh/OrbStack/docker/containers/`. Use `railway redeploy` or push to GitHub for auto-deploy instead.
+- Railway auto-deploys on push to `main` — no manual deploy needed for code changes.
+- Railway template deploy does NOT auto-inject reference variables into existing services. Must manually set `DATABASE_URL`, `PGHOST`, etc. on `web` service after adding a database.
 
 ---
 
