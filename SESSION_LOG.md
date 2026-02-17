@@ -10,7 +10,7 @@
 **Plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
 **Sessions completed:** 45 of 45 (COMPLETE)
-**Last session:** Railway Deployment Fix — PostgreSQL provisioned, app fully operational
+**Last session:** Full Audit Fix — 8 bugs resolved (API key 500, Telegram bot URL, healthchecks, scheduler backoff, import paths)
 **Current block:** Testing & Deployment (Sessions 41-45) — COMPLETE
 
 ---
@@ -2634,6 +2634,40 @@ The custom Docker image PostgreSQL service (created via `serviceCreate` API) doe
 - `railway up` (local upload) fails on this machine due to OrbStack broken symlinks in `/Users/hamzeh/OrbStack/docker/containers/`. Use `railway redeploy` or push to GitHub for auto-deploy instead.
 - Railway auto-deploys on push to `main` — no manual deploy needed for code changes.
 - Railway template deploy does NOT auto-inject reference variables into existing services. Must manually set `DATABASE_URL`, `PGHOST`, etc. on `web` service after adding a database.
+
+---
+
+## Full Audit Fix — 2026-02-17
+
+**Terminal:** SINGLE
+**Block:** Post-build Maintenance — Bug Fixes
+**Task:** Resolve 8 confirmed bugs identified by deep audit of all Docker containers, services, and deployment config
+
+### Bugs Fixed (8):
+
+1. **API Key Creation 500 (P0):** ORM column type mismatch — DB schema defines `scopes TEXT[]` but ORM mapped as `JSON`. Created `StringArray` TypeDecorator (ARRAY on PostgreSQL, JSON on SQLite for test compat). Removed `scopes if scopes else None` → always pass the list.
+2. **Telegram Bot httpx URL Resolution (P0):** httpx RFC 3986 resolution strips `/api` prefix when paths have leading `/`. Added trailing `/` to `base_url` and removed leading `/` from all 6 API paths in `scheduler.py` and `client.py`. Also updated `docker-compose.yml` env var.
+3. **Telegram Bot Service Key (P1):** Replaced fragile nested `${TELEGRAM_BOT_SERVICE_KEY:-${API_SECRET_KEY}}` with simple `${TELEGRAM_BOT_SERVICE_KEY:-changeme}` default.
+4. **Oracle Alerter Healthcheck (P1):** Replaced always-true `os.getpid() > 0` healthcheck with `pgrep -f oracle_alerts`.
+5. **Scheduler Circuit Breaker + Backoff (P1):** Added exponential backoff on consecutive failures (60s→120s→240s→...→15min cap). Previously ran every 60s forever generating endless error logs.
+6. **Oracle HTTP Sidecar Logging (P2):** Changed `logger.debug` → `logger.warning` for sidecar import failure — was invisible in production logs.
+7. **DailyScheduler Import Path for Railway (P2):** Added dual import path (`services.oracle.oracle_service.daily_scheduler` then `oracle_service.daily_scheduler`) for Docker Compose and Railway compatibility.
+8. **gRPC Healthcheck Future-Proofing (P2):** Replaced deprecated `grpc.channel_ready_future()` with socket check in both Oracle Dockerfile and docker-compose.yml.
+
+### Files Modified (9):
+
+- `api/app/orm/api_key.py` — `StringArray` TypeDecorator, `JSON` → `ARRAY(String)` on PG
+- `api/app/routers/auth.py` — Removed `if scopes else None`
+- `api/app/main.py` — Dual import path for DailyScheduler
+- `services/tgbot/config.py` — Trailing `/` on default API_BASE_URL
+- `services/tgbot/scheduler.py` — Relative paths + exponential backoff
+- `services/tgbot/client.py` — Relative paths (3 endpoints)
+- `docker-compose.yml` — Service key default, alerter healthcheck, oracle healthcheck, bot URL
+- `services/oracle/oracle_service/server.py` — `debug` → `warning` for sidecar import
+- `services/oracle/Dockerfile` — Socket check replaces deprecated gRPC check
+
+**Tests:** 1,547 all passing (581 API + 300 Oracle + 666 Frontend)
+**Commit:** `69e860c`
 
 ---
 
