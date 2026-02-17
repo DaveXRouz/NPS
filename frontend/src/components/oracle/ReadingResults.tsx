@@ -54,7 +54,7 @@ export const ReadingResults = React.memo(function ReadingResults({
       <div className="flex items-center justify-between gap-2">
         <div
           ref={tablistRef}
-          className="flex gap-1 overflow-x-auto"
+          className="flex gap-1 overflow-x-auto bg-[var(--nps-glass-bg)] backdrop-blur-sm rounded-lg p-1 border border-[var(--nps-glass-border)]"
           role="tablist"
           aria-label="Reading results"
           onKeyDown={handleKeyDown}
@@ -69,10 +69,10 @@ export const ReadingResults = React.memo(function ReadingResults({
               aria-controls={`tabpanel-${tab}`}
               tabIndex={activeTab === tab ? 0 : -1}
               onClick={() => setActiveTab(tab)}
-              className={`px-3 py-1 min-h-[44px] sm:min-h-0 text-xs rounded transition-colors whitespace-nowrap ${
+              className={`px-3 py-1.5 min-h-[44px] sm:min-h-0 text-xs rounded-md transition-all duration-200 whitespace-nowrap ${
                 activeTab === tab
-                  ? "bg-nps-oracle-accent text-nps-bg font-medium"
-                  : "text-nps-text-dim hover:text-nps-text"
+                  ? "bg-[var(--nps-accent)] text-white font-medium shadow-[0_0_8px_var(--nps-glass-glow)]"
+                  : "text-[var(--nps-text-dim)] hover:text-[var(--nps-text)] hover:bg-[var(--nps-bg-hover)]"
               }`}
             >
               {tabLabels[tab]}
@@ -99,7 +99,7 @@ export const ReadingResults = React.memo(function ReadingResults({
         >
           {/* Confidence meter at top of summary */}
           {(confidence || boosts.length > 0) && (
-            <div className="mb-3 p-3 bg-nps-bg-card border border-nps-border/30 rounded">
+            <div className="mb-3 p-3 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg">
               <ConfidenceMeter
                 confidence={confidence ?? null}
                 boosts={boosts}
@@ -119,15 +119,15 @@ export const ReadingResults = React.memo(function ReadingResults({
         >
           <DetailsTab result={result} />
           {/* Heartbeat display */}
-          <div className="mt-3 p-3 bg-nps-bg-card border border-nps-border/30 rounded">
-            <h4 className="text-xs font-medium text-nps-text-dim mb-2">
+          <div className="mt-3 p-3 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg">
+            <h4 className="text-xs font-medium text-[var(--nps-text-dim)] mb-2">
               {t("oracle.details_heartbeat")}
             </h4>
             <HeartbeatDisplay heartbeat={heartbeat ?? null} />
           </div>
           {/* Location element display */}
-          <div className="mt-3 p-3 bg-nps-bg-card border border-nps-border/30 rounded">
-            <h4 className="text-xs font-medium text-nps-text-dim mb-2">
+          <div className="mt-3 p-3 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg">
+            <h4 className="text-xs font-medium text-[var(--nps-text-dim)] mb-2">
               {t("oracle.details_location_element")}
             </h4>
             <LocationDisplay location={location ?? null} />

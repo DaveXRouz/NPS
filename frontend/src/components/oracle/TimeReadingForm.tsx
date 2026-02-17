@@ -92,93 +92,102 @@ export default function TimeReadingForm({
   const hourOptions = Array.from({ length: 24 }, (_, i) => i);
   const minuteSecondOptions = Array.from({ length: 60 }, (_, i) => i);
 
+  const selectClasses =
+    "bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg px-4 py-3 text-sm text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-200 min-w-[72px] min-h-[44px]";
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 text-start"
+      className="space-y-5 text-start nps-animate-fade-in"
       dir={isRTL ? "rtl" : "ltr"}
     >
-      <div className="text-sm text-nps-text-dim">
+      <div className="text-sm text-[var(--nps-text-dim)]">
         {t("oracle.consulting_for", { name: userName })}
       </div>
 
-      <h3 className="text-lg font-semibold">
+      <h3 className="text-lg font-semibold text-[var(--nps-text-bright)]">
         {t("oracle.time_reading_title")}
       </h3>
 
       {/* Time selectors */}
-      <div className="flex items-center gap-2">
-        <div className="flex flex-col">
-          <label
-            htmlFor="hour-select"
-            className="text-xs text-nps-text-dim mb-1"
-          >
-            {t("oracle.hour_label")}
-          </label>
-          <select
-            id="hour-select"
-            aria-label={t("oracle.hour_label")}
-            value={hour}
-            onChange={(e) => setHour(Number(e.target.value))}
-            className="bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
-            disabled={mutation.isPending}
-          >
-            {hourOptions.map((h) => (
-              <option key={h} value={h}>
-                {pad2(h)}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-4">
+        <div className="flex items-center gap-3 justify-center">
+          <div className="flex flex-col">
+            <label
+              htmlFor="hour-select"
+              className="text-xs text-[var(--nps-text-dim)] mb-1.5 text-center"
+            >
+              {t("oracle.hour_label")}
+            </label>
+            <select
+              id="hour-select"
+              aria-label={t("oracle.hour_label")}
+              value={hour}
+              onChange={(e) => setHour(Number(e.target.value))}
+              className={selectClasses}
+              disabled={mutation.isPending}
+            >
+              {hourOptions.map((h) => (
+                <option key={h} value={h}>
+                  {pad2(h)}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <span className="mt-5 text-lg font-bold">:</span>
+          <span className="mt-5 text-xl font-bold text-[var(--nps-accent)] opacity-60">
+            :
+          </span>
 
-        <div className="flex flex-col">
-          <label
-            htmlFor="minute-select"
-            className="text-nps-text-dim text-xs mb-1"
-          >
-            {t("oracle.minute_label")}
-          </label>
-          <select
-            id="minute-select"
-            aria-label={t("oracle.minute_label")}
-            value={minute}
-            onChange={(e) => setMinute(Number(e.target.value))}
-            className="bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
-            disabled={mutation.isPending}
-          >
-            {minuteSecondOptions.map((m) => (
-              <option key={m} value={m}>
-                {pad2(m)}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div className="flex flex-col">
+            <label
+              htmlFor="minute-select"
+              className="text-xs text-[var(--nps-text-dim)] mb-1.5 text-center"
+            >
+              {t("oracle.minute_label")}
+            </label>
+            <select
+              id="minute-select"
+              aria-label={t("oracle.minute_label")}
+              value={minute}
+              onChange={(e) => setMinute(Number(e.target.value))}
+              className={selectClasses}
+              disabled={mutation.isPending}
+            >
+              {minuteSecondOptions.map((m) => (
+                <option key={m} value={m}>
+                  {pad2(m)}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <span className="mt-5 text-lg font-bold">:</span>
+          <span className="mt-5 text-xl font-bold text-[var(--nps-accent)] opacity-60">
+            :
+          </span>
 
-        <div className="flex flex-col">
-          <label
-            htmlFor="second-select"
-            className="text-nps-text-dim text-xs mb-1"
-          >
-            {t("oracle.second_label")}
-          </label>
-          <select
-            id="second-select"
-            aria-label={t("oracle.second_label")}
-            value={second}
-            onChange={(e) => setSecond(Number(e.target.value))}
-            className="bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
-            disabled={mutation.isPending}
-          >
-            {minuteSecondOptions.map((s) => (
-              <option key={s} value={s}>
-                {pad2(s)}
-              </option>
-            ))}
-          </select>
+          <div className="flex flex-col">
+            <label
+              htmlFor="second-select"
+              className="text-xs text-[var(--nps-text-dim)] mb-1.5 text-center"
+            >
+              {t("oracle.second_label")}
+            </label>
+            <select
+              id="second-select"
+              aria-label={t("oracle.second_label")}
+              value={second}
+              onChange={(e) => setSecond(Number(e.target.value))}
+              className={selectClasses}
+              disabled={mutation.isPending}
+            >
+              {minuteSecondOptions.map((s) => (
+                <option key={s} value={s}>
+                  {pad2(s)}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -186,22 +195,35 @@ export default function TimeReadingForm({
       <button
         type="button"
         onClick={handleUseCurrentTime}
-        className="text-sm text-nps-oracle-accent hover:text-nps-oracle-accent/80 transition-colors"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border border-[var(--nps-accent)]/20 hover:bg-[var(--nps-accent)]/20 transition-colors text-xs"
         disabled={mutation.isPending}
       >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
         {t("oracle.use_current_time")}
       </button>
 
       {/* Progress indicator */}
       {mutation.isPending && readingProgress.isActive && (
-        <div className="bg-nps-oracle-bg border border-nps-oracle-border rounded p-3 text-sm text-nps-oracle-accent">
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 text-sm text-[var(--nps-accent)]">
           <div className="flex items-center gap-2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-nps-oracle-accent border-t-transparent" />
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--nps-accent)] border-t-transparent" />
             <span>{readingProgress.message}</span>
           </div>
-          <div className="mt-2 h-1.5 rounded-full bg-nps-border">
+          <div className="mt-2 h-1.5 rounded-full bg-[var(--nps-border)]">
             <div
-              className="h-1.5 rounded-full bg-nps-oracle-accent transition-all"
+              className="h-1.5 rounded-full bg-[var(--nps-accent)] transition-all duration-300"
               style={{ width: `${readingProgress.progress}%` }}
             />
           </div>
@@ -226,8 +248,11 @@ export default function TimeReadingForm({
         type="submit"
         disabled={mutation.isPending}
         aria-busy={mutation.isPending}
-        className="w-full rounded bg-[var(--nps-accent)] px-4 py-2 text-[var(--nps-bg)] font-medium hover:bg-[var(--nps-accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full rounded-lg bg-gradient-to-r from-[var(--nps-accent)] to-[var(--nps-accent-hover)] px-4 py-3 text-[var(--nps-bg)] font-medium hover:shadow-[0_0_16px_var(--nps-glass-glow)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
       >
+        {mutation.isPending && (
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--nps-bg)] border-t-transparent" />
+        )}
         {mutation.isPending
           ? t("oracle.generating_reading")
           : t("oracle.submit_reading")}

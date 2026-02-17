@@ -160,7 +160,7 @@ export default function Oracle() {
       <aside className="w-full lg:w-80 lg:flex-shrink-0 lg:sticky lg:top-6 lg:self-start space-y-4">
         {/* User Profile Card */}
         <FadeIn delay={0}>
-          <section className="bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg p-4">
+          <section className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-lg p-4 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300">
             <h3 className="text-sm font-semibold text-[var(--nps-accent)] mb-3">
               {t("oracle.user_profile")}
             </h3>
@@ -236,7 +236,7 @@ export default function Oracle() {
 
         {/* Reading Type Card */}
         <FadeIn delay={100}>
-          <section className="bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg p-4">
+          <section className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-lg p-4 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300">
             <h3 className="text-sm font-semibold text-[var(--nps-accent)] mb-3">
               {t("oracle.reading_type")}
             </h3>
@@ -256,7 +256,7 @@ export default function Oracle() {
           <section
             id="oracle-form-panel"
             role="tabpanel"
-            className="bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg p-4 lg:p-6 min-h-[300px]"
+            className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-lg p-4 lg:p-6 min-h-[300px] hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300"
           >
             <h3 className="text-sm font-semibold text-[var(--nps-accent)] mb-4">
               {t(`oracle.type_${readingType}_title`)}
@@ -293,7 +293,7 @@ export default function Oracle() {
         <SlideIn key={resultKey} from="bottom">
           <section
             ref={resultsRef}
-            className="bg-[var(--nps-bg-card)] border border-[var(--nps-border)] rounded-lg p-4 lg:p-6"
+            className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-lg p-4 lg:p-6 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300"
           >
             <h3 className="text-sm font-semibold text-[var(--nps-accent)] mb-3">
               {t("oracle.reading_results")}

@@ -99,7 +99,7 @@ export function ReadingHistory() {
         </p>
         <button
           onClick={() => refetch()}
-          className="text-xs text-nps-accent hover:underline"
+          className="text-xs text-[var(--nps-accent)] hover:underline"
         >
           {t("common.retry")}
         </button>
@@ -123,7 +123,7 @@ export function ReadingHistory() {
     <div className="space-y-3">
       {/* Stats bar */}
       {stats && (
-        <div className="flex gap-4 text-[10px] text-nps-text-dim">
+        <div className="flex gap-4 text-[10px] text-[var(--nps-text-dim)]">
           <span>
             {t("oracle.stats_total", { count: stats.total_readings })}
           </span>
@@ -140,15 +140,15 @@ export function ReadingHistory() {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder={t("oracle.search_placeholder")}
-          className="flex-1 px-2 py-1 text-xs bg-nps-bg-input border border-nps-border rounded text-nps-text placeholder-nps-text-dim focus:outline-none focus:border-nps-oracle-accent"
+          className="flex-1 px-3 py-1.5 text-xs bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] placeholder-[var(--nps-text-dim)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-200"
         />
         <button
           type="button"
           onClick={() => setFavoritesOnly(!favoritesOnly)}
-          className={`px-2 py-1 text-xs rounded border transition-colors ${
+          className={`px-2.5 py-1.5 text-xs rounded-lg border transition-all duration-200 ${
             favoritesOnly
-              ? "border-amber-500 text-amber-400 bg-amber-500/10"
-              : "border-nps-border text-nps-text-dim hover:text-nps-text"
+              ? "border-amber-500/40 text-amber-400 bg-amber-500/10 shadow-[0_0_8px_rgba(245,158,11,0.1)]"
+              : "border-[var(--nps-glass-border)] text-[var(--nps-text-dim)] hover:text-[var(--nps-text)] bg-[var(--nps-glass-bg)]"
           }`}
           title={t("oracle.filter_favorites")}
         >
@@ -165,9 +165,9 @@ export function ReadingHistory() {
             setDateFrom(e.target.value);
             setPage(0);
           }}
-          className="px-2 py-1 text-[10px] bg-nps-bg-input border border-nps-border rounded text-nps-text focus:outline-none focus:border-nps-oracle-accent"
+          className="px-2 py-1 text-[10px] bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] transition-all duration-200"
         />
-        <span className="text-xs text-nps-text-dim self-center">
+        <span className="text-xs text-[var(--nps-text-dim)] self-center">
           {t("oracle.date_to_label")}
         </span>
         <input
@@ -177,7 +177,7 @@ export function ReadingHistory() {
             setDateTo(e.target.value);
             setPage(0);
           }}
-          className="px-2 py-1 text-[10px] bg-nps-bg-input border border-nps-border rounded text-nps-text focus:outline-none focus:border-nps-oracle-accent"
+          className="px-2 py-1 text-[10px] bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] transition-all duration-200"
         />
       </div>
 
@@ -194,10 +194,10 @@ export function ReadingHistory() {
             role="tab"
             aria-selected={filter === f.key}
             onClick={() => handleFilterChange(f.key)}
-            className={`px-2 py-0.5 text-xs rounded transition-colors ${
+            className={`px-3 py-1 text-xs rounded-full border transition-all duration-200 ${
               filter === f.key
-                ? "bg-nps-oracle-accent text-nps-bg"
-                : "bg-nps-bg-input text-nps-text-dim hover:text-nps-text"
+                ? "bg-[var(--nps-accent)]/20 text-[var(--nps-accent)] border-[var(--nps-accent)]/30 shadow-[0_0_6px_var(--nps-glass-glow)]"
+                : "bg-[var(--nps-glass-bg)] text-[var(--nps-text-dim)] border-[var(--nps-glass-border)] hover:text-[var(--nps-text)] hover:border-[var(--nps-text-dim)]/30"
             }`}
           >
             {f.label}
@@ -218,7 +218,7 @@ export function ReadingHistory() {
         <>
           <StaggerChildren
             staggerMs={30}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
           >
             {data.readings.map((reading) => (
               <ReadingCard
@@ -233,7 +233,7 @@ export function ReadingHistory() {
 
           {/* Pagination */}
           <div className="flex items-center justify-between text-xs">
-            <span className="text-nps-text-dim">
+            <span className="text-[var(--nps-text-dim)]">
               {t("oracle.history_count", { count: data.total })}
             </span>
             {totalPages > 1 && (
@@ -242,11 +242,11 @@ export function ReadingHistory() {
                   type="button"
                   disabled={page === 0}
                   onClick={() => setPage((p) => p - 1)}
-                  className="px-2 py-1 bg-nps-bg-input text-nps-text-dim rounded disabled:opacity-30 hover:text-nps-text transition-colors"
+                  className="px-2.5 py-1 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] text-[var(--nps-text-dim)] rounded-lg disabled:opacity-30 hover:text-[var(--nps-text)] hover:border-[var(--nps-accent)]/30 transition-all duration-200"
                 >
                   &lsaquo;
                 </button>
-                <span className="text-nps-text-dim px-2">
+                <span className="text-[var(--nps-text-dim)] px-2">
                   {t("oracle.page_indicator", {
                     current: page + 1,
                     total: totalPages,
@@ -256,7 +256,7 @@ export function ReadingHistory() {
                   type="button"
                   disabled={page >= totalPages - 1}
                   onClick={() => setPage((p) => p + 1)}
-                  className="px-2 py-1 bg-nps-bg-input text-nps-text-dim rounded disabled:opacity-30 hover:text-nps-text transition-colors"
+                  className="px-2.5 py-1 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] text-[var(--nps-text-dim)] rounded-lg disabled:opacity-30 hover:text-[var(--nps-text)] hover:border-[var(--nps-accent)]/30 transition-all duration-200"
                 >
                   &rsaquo;
                 </button>

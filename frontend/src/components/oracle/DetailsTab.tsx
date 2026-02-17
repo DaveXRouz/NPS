@@ -21,24 +21,24 @@ function DetailSection({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="border border-nps-border rounded">
+    <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
-        className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-nps-text hover:bg-nps-bg-input transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-[var(--nps-accent)] hover:bg-[var(--nps-bg-hover)] transition-colors"
       >
         {title}
         <ChevronDown
           size={14}
-          className={`text-nps-text-dim transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`text-[var(--nps-text-dim)] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>
       <div
-        className="nps-section-content border-t border-nps-border"
+        className="nps-section-content border-t border-[var(--nps-border)]/30"
         data-open={open}
       >
-        <div className="px-3 pb-3 pt-2">{children}</div>
+        <div className="px-4 pb-3 pt-2">{children}</div>
       </div>
     </div>
   );
@@ -46,9 +46,9 @@ function DetailSection({
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex justify-between py-1 text-xs">
-      <span className="text-nps-text-dim">{label}</span>
-      <span className="text-nps-text">{value}</span>
+    <div className="flex justify-between py-1.5 text-xs border-b border-[var(--nps-border)]/20 last:border-0">
+      <span className="text-[var(--nps-text-dim)]">{label}</span>
+      <span className="text-[var(--nps-text-bright)]">{value}</span>
     </div>
   );
 }
@@ -318,10 +318,10 @@ function NameDetails({
       <DetailSection title={t("oracle.details_letters")}>
         <table className="w-full text-xs mt-1">
           <thead>
-            <tr className="text-nps-text-dim border-b border-nps-border">
-              <th className="text-start py-1">{t("oracle.letter_column")}</th>
-              <th className="text-end py-1">{t("oracle.details_value")}</th>
-              <th className="text-end py-1">{t("oracle.element")}</th>
+            <tr className="text-[var(--nps-text-dim)] border-b border-[var(--nps-border)]">
+              <th className="text-start py-2">{t("oracle.letter_column")}</th>
+              <th className="text-end py-2">{t("oracle.details_value")}</th>
+              <th className="text-end py-2">{t("oracle.element")}</th>
             </tr>
           </thead>
           <tbody>
@@ -330,10 +330,19 @@ function NameDetails({
                 l: { letter: string; value: number; element: string },
                 i: number,
               ) => (
-                <tr key={i} className="border-b border-nps-border/30">
-                  <td className="py-1 text-nps-text">{l.letter}</td>
-                  <td className="py-1 text-end text-nps-text">{l.value}</td>
-                  <td className="py-1 text-end text-nps-text">{l.element}</td>
+                <tr
+                  key={i}
+                  className="border-b border-[var(--nps-border)]/20 last:border-0"
+                >
+                  <td className="py-1.5 text-[var(--nps-text-bright)]">
+                    {l.letter}
+                  </td>
+                  <td className="py-1.5 text-end text-[var(--nps-text)]">
+                    {l.value}
+                  </td>
+                  <td className="py-1.5 text-end text-[var(--nps-text)]">
+                    {l.element}
+                  </td>
                 </tr>
               ),
             )}

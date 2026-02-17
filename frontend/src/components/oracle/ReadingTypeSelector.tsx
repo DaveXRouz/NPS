@@ -144,10 +144,10 @@ export function ReadingTypeSelector({
             aria-controls="oracle-form-panel"
             disabled={disabled}
             onClick={() => onChange(type)}
-            className={`flex items-center gap-2 px-3 py-2 text-sm rounded transition-colors whitespace-nowrap ${
+            className={`flex items-center gap-2 px-3 py-2.5 text-sm rounded-lg border transition-all duration-200 whitespace-nowrap ${
               isActive
-                ? "bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border-s-0 md:border-s-2 border-b-2 md:border-b-0 border-[var(--nps-accent)]"
-                : "text-[var(--nps-text-dim)] hover:bg-[var(--nps-bg-hover)]"
+                ? "bg-[var(--nps-accent)]/15 text-[var(--nps-accent)] border-[var(--nps-accent)]/30 shadow-[0_0_8px_var(--nps-glass-glow)]"
+                : "text-[var(--nps-text-dim)] hover:bg-[var(--nps-bg-hover)] border-transparent"
             } ${disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-pointer"}`}
           >
             {icon}

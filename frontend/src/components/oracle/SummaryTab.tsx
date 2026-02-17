@@ -82,25 +82,31 @@ function ReadingSummary({
           title={t("oracle.section_core_identity")}
           icon={<Hash size={16} />}
         >
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2">
-            <NumerologyNumberDisplay
-              number={data.numerology.life_path}
-              label={t("oracle.life_path")}
-              meaning={data.numerology.interpretation || ""}
-              size="md"
-            />
-            <NumerologyNumberDisplay
-              number={data.numerology.day_vibration}
-              label={t("oracle.day_vibration")}
-              meaning=""
-              size="sm"
-            />
-            <NumerologyNumberDisplay
-              number={data.numerology.personal_year}
-              label={t("oracle.personal_year")}
-              meaning=""
-              size="sm"
-            />
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 nps-animate-number-reveal">
+              <NumerologyNumberDisplay
+                number={data.numerology.life_path}
+                label={t("oracle.life_path")}
+                meaning={data.numerology.interpretation || ""}
+                size="md"
+              />
+            </div>
+            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 nps-animate-number-reveal nps-delay-1">
+              <NumerologyNumberDisplay
+                number={data.numerology.day_vibration}
+                label={t("oracle.day_vibration")}
+                meaning=""
+                size="sm"
+              />
+            </div>
+            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 nps-animate-number-reveal nps-delay-2">
+              <NumerologyNumberDisplay
+                number={data.numerology.personal_year}
+                label={t("oracle.personal_year")}
+                meaning=""
+                size="sm"
+              />
+            </div>
           </div>
         </ReadingSection>
       )}
@@ -113,38 +119,42 @@ function ReadingSummary({
         >
           <div className="grid grid-cols-2 gap-3 pt-2 text-sm">
             {data.fc60 && (
-              <div>
-                <span className="text-xs text-nps-text-dim">
+              <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3">
+                <span className="text-xs text-[var(--nps-text-dim)]">
                   {t("oracle.element")}
                 </span>
-                <p className="text-nps-text">{data.fc60.element}</p>
+                <p className="text-[var(--nps-text-bright)] font-medium">
+                  {data.fc60.element}
+                </p>
               </div>
             )}
             {data.fc60 && (
-              <div>
-                <span className="text-xs text-nps-text-dim">
+              <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3">
+                <span className="text-xs text-[var(--nps-text-dim)]">
                   {t("oracle.energy")}
                 </span>
-                <p className="text-nps-text">{data.fc60.energy_level}</p>
+                <p className="text-[var(--nps-text-bright)] font-medium">
+                  {data.fc60.energy_level}
+                </p>
               </div>
             )}
             {data.moon && (
-              <div>
-                <span className="text-xs text-nps-text-dim">
+              <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3">
+                <span className="text-xs text-[var(--nps-text-dim)]">
                   {t("oracle.details_moon_phase")}
                 </span>
-                <p className="text-nps-text flex items-center gap-1.5">
+                <p className="text-[var(--nps-text)] flex items-center gap-1.5">
                   <MoonPhaseIcon phaseName={data.moon.phase_name} size={16} />
                   {data.moon.phase_name} ({data.moon.illumination}%)
                 </p>
               </div>
             )}
             {data.ganzhi && (
-              <div>
-                <span className="text-xs text-nps-text-dim">
+              <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3">
+                <span className="text-xs text-[var(--nps-text-dim)]">
                   {t("oracle.details_chinese_cosmology")}
                 </span>
-                <p className="text-nps-text">
+                <p className="text-[var(--nps-text)]">
                   {data.ganzhi.year_animal} &middot; {data.ganzhi.stem_element}
                 </p>
               </div>
@@ -188,7 +198,7 @@ function ReadingSummary({
           icon={<Sparkles size={16} />}
         >
           <FadeIn delay={300}>
-            <div className="pt-2 bg-nps-oracle-accent/5 rounded p-3 -mx-1">
+            <div className="pt-2 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-4 border-s-2 border-s-[var(--nps-accent)]">
               <TranslatedReading reading={data.ai_interpretation} />
             </div>
           </FadeIn>
@@ -311,25 +321,31 @@ function NameSummary({
         title={t("oracle.section_core_identity")}
         icon={<Hash size={16} />}
       >
-        <div className="grid grid-cols-3 gap-4 pt-2">
-          <NumerologyNumberDisplay
-            number={data.expression}
-            label={t("oracle.expression")}
-            meaning=""
-            size="md"
-          />
-          <NumerologyNumberDisplay
-            number={data.soul_urge}
-            label={t("oracle.soul_urge")}
-            meaning=""
-            size="md"
-          />
-          <NumerologyNumberDisplay
-            number={data.personality}
-            label={t("oracle.personality")}
-            meaning=""
-            size="md"
-          />
+        <div className="grid grid-cols-3 gap-3 pt-2">
+          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 nps-animate-number-reveal">
+            <NumerologyNumberDisplay
+              number={data.expression}
+              label={t("oracle.expression")}
+              meaning=""
+              size="md"
+            />
+          </div>
+          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 nps-animate-number-reveal nps-delay-1">
+            <NumerologyNumberDisplay
+              number={data.soul_urge}
+              label={t("oracle.soul_urge")}
+              meaning=""
+              size="md"
+            />
+          </div>
+          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 nps-animate-number-reveal nps-delay-2">
+            <NumerologyNumberDisplay
+              number={data.personality}
+              label={t("oracle.personality")}
+              meaning=""
+              size="md"
+            />
+          </div>
         </div>
       </ReadingSection>
 
@@ -338,24 +354,39 @@ function NameSummary({
           title={t("oracle.details_letters")}
           icon={<Type size={16} />}
         >
-          <table className="w-full text-xs mt-2">
-            <thead>
-              <tr className="text-nps-text-dim border-b border-nps-border">
-                <th className="text-start py-1">{t("oracle.letter_column")}</th>
-                <th className="text-end py-1">{t("oracle.details_value")}</th>
-                <th className="text-end py-1">{t("oracle.element")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.letter_breakdown.map((l, i) => (
-                <tr key={i} className="border-b border-nps-border/30">
-                  <td className="py-1 text-nps-text">{l.letter}</td>
-                  <td className="py-1 text-end text-nps-text">{l.value}</td>
-                  <td className="py-1 text-end text-nps-text">{l.element}</td>
+          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg overflow-hidden mt-2">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[var(--nps-text-dim)] border-b border-[var(--nps-border)]">
+                  <th className="text-start py-2 px-3">
+                    {t("oracle.letter_column")}
+                  </th>
+                  <th className="text-end py-2 px-3">
+                    {t("oracle.details_value")}
+                  </th>
+                  <th className="text-end py-2 px-3">{t("oracle.element")}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.letter_breakdown.map((l, i) => (
+                  <tr
+                    key={i}
+                    className="border-b border-[var(--nps-border)]/30 last:border-0"
+                  >
+                    <td className="py-1.5 px-3 text-[var(--nps-text-bright)]">
+                      {l.letter}
+                    </td>
+                    <td className="py-1.5 px-3 text-end text-[var(--nps-text)]">
+                      {l.value}
+                    </td>
+                    <td className="py-1.5 px-3 text-end text-[var(--nps-text)]">
+                      {l.element}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </ReadingSection>
       )}
 
