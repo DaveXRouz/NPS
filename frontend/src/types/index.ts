@@ -153,6 +153,17 @@ export interface NameReading {
   reading_id: number | null;
 }
 
+export type QuestionCategory =
+  | "love"
+  | "career"
+  | "health"
+  | "finance"
+  | "family"
+  | "spiritual"
+  | "general";
+
+export type QuestionMood = "calm" | "anxious" | "curious" | "desperate";
+
 export interface QuestionReadingRequest {
   question: string;
   user_id?: number;
