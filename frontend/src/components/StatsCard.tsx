@@ -56,7 +56,7 @@ export const StatsCard = React.memo(function StatsCard({
     <div
       role="group"
       aria-label={label}
-      className="bg-nps-bg-card border border-nps-border rounded-lg p-4 min-h-[72px]"
+      className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 min-h-[72px] transition-all duration-300 hover:border-nps-oracle-accent/40 hover:shadow-[0_0_12px_var(--nps-glass-glow)] hover:-translate-y-0.5"
     >
       <div className="flex items-center gap-1.5">
         {icon && <span className="w-4 h-4 text-nps-text-dim">{icon}</span>}

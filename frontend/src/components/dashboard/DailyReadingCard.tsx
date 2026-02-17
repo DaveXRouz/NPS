@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { MoonPhaseIcon } from "@/components/common/icons";
 
 interface DailyInsightResponse {
   date: string;
@@ -29,7 +30,7 @@ export function DailyReadingCard({
   if (isLoading) {
     return (
       <div
-        className="bg-nps-bg-card border border-nps-border rounded-xl p-6 animate-pulse"
+        className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-6 animate-pulse"
         data-testid="daily-loading"
       >
         <div className="h-5 w-40 bg-nps-bg-elevated rounded mb-3" />
@@ -42,7 +43,7 @@ export function DailyReadingCard({
   if (isError) {
     return (
       <div
-        className="bg-nps-bg-card border border-nps-error/30 rounded-xl p-6"
+        className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-nps-error/30 rounded-xl p-6"
         data-testid="daily-error"
       >
         <h2 className="text-lg font-semibold text-nps-text-bright">
@@ -64,7 +65,7 @@ export function DailyReadingCard({
   if (!dailyReading) {
     return (
       <div
-        className="bg-nps-bg-card border border-nps-oracle-border rounded-xl p-6"
+        className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-6"
         data-testid="daily-empty"
       >
         <h2 className="text-lg font-semibold text-nps-text-bright">
@@ -86,27 +87,59 @@ export function DailyReadingCard({
 
   return (
     <div
-      className="bg-nps-bg-card border border-nps-oracle-border rounded-xl p-6"
+      className="relative overflow-hidden rounded-xl"
+      style={{
+        background:
+          "linear-gradient(135deg, rgba(15, 26, 46, 0.85) 0%, rgba(79, 195, 247, 0.06) 100%)",
+      }}
       data-testid="daily-card"
     >
-      <h2 className="text-lg font-semibold text-nps-text-bright">
-        {t("dashboard.daily_reading")}
-      </h2>
-      <p className="text-sm text-nps-text mt-2">{dailyReading.summary}</p>
-      {dailyReading.fc60_stamp && (
-        <p className="text-xs text-nps-text-dim mt-2 font-mono">
-          {dailyReading.fc60_stamp}
+      {/* Glassmorphism overlay */}
+      <div className="absolute inset-0 backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl pointer-events-none" />
+
+      {/* Content */}
+      <div className="relative z-10 p-6">
+        {/* Header with moon phase */}
+        <div className="flex items-start justify-between mb-4">
+          <h2 className="text-lg font-semibold text-nps-text-bright">
+            {t("dashboard.daily_reading")}
+          </h2>
+          {dailyReading.moon_phase && (
+            <MoonPhaseIcon phaseName={dailyReading.moon_phase} size={28} />
+          )}
+        </div>
+
+        {/* Summary */}
+        <p className="text-sm text-nps-text leading-relaxed mb-4">
+          {dailyReading.summary}
         </p>
-      )}
-      {dailyReading.advice && dailyReading.advice.length > 0 && (
-        <ul className="mt-2 space-y-1">
-          {dailyReading.advice.map((item, i) => (
-            <li key={i} className="text-sm text-nps-text-dim">
-              {item}
-            </li>
-          ))}
-        </ul>
-      )}
+
+        {/* FC60 stamp badge */}
+        {dailyReading.fc60_stamp && (
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-nps-oracle-accent/10 border border-nps-oracle-accent/25 rounded-lg mb-4">
+            <span className="text-xs font-mono text-nps-oracle-accent">
+              {dailyReading.fc60_stamp}
+            </span>
+          </div>
+        )}
+
+        {/* Advice list */}
+        {dailyReading.advice && dailyReading.advice.length > 0 && (
+          <ul className="space-y-2">
+            {dailyReading.advice.map((item, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-2 text-sm text-nps-text-dim"
+              >
+                <span className="text-nps-oracle-accent mt-0.5 shrink-0">
+                  •
+                </span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

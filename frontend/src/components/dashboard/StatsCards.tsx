@@ -10,7 +10,8 @@ interface StatsCardsProps {
 
 function formatConfidence(value: number | null, locale: string): string {
   if (value === null) return "—";
-  const pct = Math.round(value * 100);
+  // Backend may send 85 (already a percentage) or 0.85 (decimal)
+  const pct = value > 1 ? Math.round(value) : Math.round(value * 100);
   return (
     new Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en-US").format(pct) + "%"
   );

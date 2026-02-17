@@ -16,6 +16,9 @@
   --nps-accent-hover: #059669;
   --nps-accent-dim: #065f46;
   --nps-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1);
+  --nps-glass-bg: rgba(17, 17, 17, 0.6);
+  --nps-glass-border: rgba(79, 195, 247, 0.15);
+  --nps-glass-glow: rgba(79, 195, 247, 0.1);
 }
 
 :root.light {
@@ -33,4 +36,7 @@
   --nps-accent-hover: #047857;
   --nps-accent-dim: #d1fae5;
   --nps-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --nps-glass-bg: rgba(249, 250, 251, 0.7);
+  --nps-glass-border: rgba(5, 150, 105, 0.2);
+  --nps-glass-glow: rgba(5, 150, 105, 0.08);
 }

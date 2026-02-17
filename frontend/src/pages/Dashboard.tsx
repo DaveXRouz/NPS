@@ -41,12 +41,12 @@ export default function Dashboard() {
   } = useDailyReading();
 
   return (
-    <div className="space-y-6">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <h2 className="sr-only">{t("dashboard.title")}</h2>
-      <FadeIn delay={0}>
+      <FadeIn delay={0} className="lg:col-span-12">
         <WelcomeBanner isLoading={dailyLoading} />
       </FadeIn>
-      <FadeIn delay={80}>
+      <FadeIn delay={80} className="lg:col-span-8">
         <DailyReadingCard
           dailyReading={parseDailyInsight(daily)}
           isLoading={dailyLoading}
@@ -54,19 +54,19 @@ export default function Dashboard() {
           onRetry={() => retryDaily()}
         />
       </FadeIn>
-      <FadeIn delay={160}>
+      <FadeIn delay={160} className="lg:col-span-4">
+        <QuickActions />
+      </FadeIn>
+      <FadeIn delay={240} className="lg:col-span-12">
         <StatsCards stats={stats} isLoading={statsLoading} />
       </FadeIn>
-      <FadeIn delay={240}>
+      <FadeIn delay={320} className="lg:col-span-12">
         <RecentReadings
           readings={recent?.readings ?? []}
           isLoading={recentLoading}
           isError={false}
           total={recent?.total ?? 0}
         />
-      </FadeIn>
-      <FadeIn delay={320}>
-        <QuickActions />
       </FadeIn>
     </div>
   );

@@ -127,6 +127,43 @@
   }
 }
 
+@keyframes nps-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 6px var(--nps-glass-glow);
+  }
+  50% {
+    box-shadow:
+      0 0 12px var(--nps-glass-glow),
+      0 0 20px var(--nps-glass-glow);
+  }
+}
+
+@keyframes nps-gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes nps-number-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(6px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
 /* === Utility Classes === */
 
 .nps-animate-fade-in {
@@ -164,6 +201,19 @@
 .nps-animate-height-expand {
   overflow: hidden;
   animation: nps-height-expand var(--nps-duration-md) ease forwards;
+}
+
+.nps-animate-glow-pulse {
+  animation: nps-glow-pulse 3s ease-in-out infinite;
+}
+
+.nps-animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: nps-gradient-shift 6s ease infinite;
+}
+
+.nps-animate-number-reveal {
+  animation: nps-number-reveal var(--nps-duration-md) ease-out forwards;
 }
 
 /* === Stagger Delay Classes === */

@@ -32,6 +32,13 @@ function TypeBadge({ type }: { type: string }) {
   );
 }
 
+function getConfidence(reading: StoredReading): number | null {
+  const result = reading.reading_result;
+  if (!result) return null;
+  const val = typeof result.confidence === "number" ? result.confidence : null;
+  return val;
+}
+
 export function RecentReadings({
   readings,
   isLoading,
@@ -51,7 +58,7 @@ export function RecentReadings({
           {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
-              className="bg-nps-bg-card border border-nps-border rounded-lg p-4 animate-pulse"
+              className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 animate-pulse"
             >
               <div className="h-4 w-16 bg-nps-bg-elevated rounded mb-2" />
               <div className="h-3 w-24 bg-nps-bg-elevated rounded mb-2" />
@@ -82,7 +89,7 @@ export function RecentReadings({
       </div>
 
       {readings.length === 0 ? (
-        <div className="bg-nps-bg-card border border-nps-border rounded-xl p-6 text-center">
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-6 text-center">
           <p className="text-nps-text-dim mb-3">
             {t("dashboard.recent_empty")}
           </p>
@@ -95,27 +102,49 @@ export function RecentReadings({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {readings.map((reading) => (
-            <button
-              key={reading.id}
-              onClick={() => navigate(`/oracle?reading=${reading.id}`)}
-              className="bg-nps-bg-card border border-nps-border rounded-lg p-4 text-start hover:border-nps-oracle-accent transition-colors"
-              data-testid="reading-card"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <TypeBadge type={reading.sign_type} />
-                <span className="text-xs text-nps-text-dim">
-                  {new Date(reading.created_at).toLocaleDateString()}
-                </span>
-              </div>
-              <p className="text-sm text-nps-text line-clamp-2">
-                {reading.question ||
-                  reading.sign_value ||
-                  reading.ai_interpretation?.slice(0, 80) ||
-                  "—"}
-              </p>
-            </button>
-          ))}
+          {readings.map((reading) => {
+            const confidence = getConfidence(reading);
+            return (
+              <button
+                key={reading.id}
+                onClick={() => navigate(`/oracle?reading=${reading.id}`)}
+                className="group bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 text-start transition-all duration-300 hover:border-nps-oracle-accent/40 hover:shadow-[0_0_12px_var(--nps-glass-glow)] hover:scale-[1.01]"
+                data-testid="reading-card"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <TypeBadge type={reading.sign_type} />
+                  <span className="text-xs text-nps-text-dim">
+                    {new Date(reading.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <p className="text-sm text-nps-text line-clamp-2 mb-3">
+                  {reading.question ||
+                    reading.sign_value ||
+                    reading.ai_interpretation?.slice(0, 80) ||
+                    "—"}
+                </p>
+                {confidence !== null && (
+                  <div className="flex items-center gap-2 text-xs text-nps-text-dim">
+                    <span>{t("dashboard.confidence", "Confidence")}</span>
+                    <div className="flex-1 h-1.5 bg-nps-bg-card rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-nps-oracle-accent/60 to-nps-oracle-accent transition-all duration-500"
+                        style={{
+                          width: `${confidence > 1 ? Math.round(confidence) : Math.round(confidence * 100)}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="font-mono tabular-nums">
+                      {confidence > 1
+                        ? Math.round(confidence)
+                        : Math.round(confidence * 100)}
+                      %
+                    </span>
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
