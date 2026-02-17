@@ -36,7 +36,7 @@ async def link_account(chat_id: int, username: str | None, api_key: str) -> dict
     client = await get_client()
     try:
         resp = await client.post(
-            "/telegram/link",
+            "telegram/link",
             json={
                 "telegram_chat_id": chat_id,
                 "telegram_username": username,
@@ -56,7 +56,7 @@ async def get_status(chat_id: int) -> dict | None:
     """Call GET /telegram/status/{chat_id} to get link info."""
     client = await get_client()
     try:
-        resp = await client.get(f"/telegram/status/{chat_id}")
+        resp = await client.get(f"telegram/status/{chat_id}")
         if resp.status_code == 200:
             return resp.json()
         return None
@@ -69,7 +69,7 @@ async def get_profile(chat_id: int) -> list[dict]:
     """Call GET /telegram/profile/{chat_id} to get Oracle profiles."""
     client = await get_client()
     try:
-        resp = await client.get(f"/telegram/profile/{chat_id}")
+        resp = await client.get(f"telegram/profile/{chat_id}")
         if resp.status_code == 200:
             return resp.json()
         return []

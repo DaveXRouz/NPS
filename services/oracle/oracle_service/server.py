@@ -550,7 +550,9 @@ def serve(port=None):
         http_port = int(os.environ.get("ORACLE_HTTP_PORT", "9090"))
         start_http_server(_health_fn, _metrics_fn, port=http_port)
     except ImportError:
-        logger.debug("devops.monitoring not available, HTTP sidecar disabled")
+        logger.warning(
+            "devops.monitoring not available — HTTP sidecar disabled (alerter will not work)"
+        )
     except Exception as e:
         logger.warning("Failed to start HTTP monitoring sidecar: %s", e)
 

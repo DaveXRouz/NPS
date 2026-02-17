@@ -69,7 +69,7 @@ class DailyScheduler:
         logger.info("Daily scheduler stopped")
 
     async def _run_loop(self) -> None:
-        """Main scheduler loop — runs every 60 seconds."""
+        """Main scheduler loop — runs every 60 seconds with exponential backoff."""
         while self._running:
             try:
                 await self._check_and_deliver()
@@ -80,16 +80,21 @@ class DailyScheduler:
                 self._consecutive_failures += 1
                 if self._consecutive_failures >= _MAX_CONSECUTIVE_FAILURES:
                     logger.error(
-                        "Scheduler: %d consecutive failures", self._consecutive_failures
+                        "Scheduler: %d consecutive failures, backing off",
+                        self._consecutive_failures,
                     )
                 else:
                     logger.warning("Scheduler cycle error", exc_info=True)
-            await asyncio.sleep(_CYCLE_INTERVAL)
+            # Exponential backoff: 60s, 120s, 240s, ... capped at 15 min
+            delay = min(
+                _CYCLE_INTERVAL * (2 ** min(self._consecutive_failures, 4)), 900
+            )
+            await asyncio.sleep(delay)
 
     async def _check_and_deliver(self) -> None:
         """Query pending users and deliver daily insights."""
         client = await self._get_client()
-        resp = await client.get("/telegram/daily/pending")
+        resp = await client.get("telegram/daily/pending")
         if resp.status_code == 401:
             logger.error(
                 "Scheduler auth failed (401). Check TELEGRAM_BOT_SERVICE_KEY / API_SECRET_KEY"
@@ -192,7 +197,7 @@ class DailyScheduler:
         today_str = date.today().isoformat()
         client = await self._get_client()
         resp = await client.post(
-            "/telegram/daily/delivered",
+            "telegram/daily/delivered",
             json={"chat_id": chat_id, "delivered_date": today_str},
         )
         if resp.status_code != 200:
@@ -204,6 +209,6 @@ class DailyScheduler:
         """Disable daily delivery for a user who blocked the bot."""
         client = await self._get_client()
         await client.put(
-            f"/telegram/daily/preferences/{chat_id}",
+            f"telegram/daily/preferences/{chat_id}",
             json={"daily_enabled": False},
         )

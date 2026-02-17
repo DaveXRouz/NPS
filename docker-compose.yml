@@ -135,7 +135,7 @@ services:
           "CMD",
           "python",
           "-c",
-          "import grpc; ch = grpc.insecure_channel('localhost:50052'); grpc.channel_ready_future(ch).result(timeout=2)",
+          "import socket; s = socket.create_connection(('localhost', 50052), timeout=2); s.close()",
         ]
       interval: 30s
       timeout: 5s
@@ -243,16 +243,10 @@ services:
           cpus: "0.1"
           memory: 64M
     healthcheck:
-      test:
-        [
-          "CMD",
-          "python",
-          "-c",
-          "import os, sys; sys.exit(0 if os.path.exists('/proc/1/status') or os.getpid() > 0 else 1)",
-        ]
+      test: ["CMD-SHELL", "pgrep -f oracle_alerts > /dev/null"]
       interval: 60s
       timeout: 5s
-      start_period: 10s
+      start_period: 30s
       retries: 3
     logging:
       driver: json-file
@@ -268,8 +262,8 @@ services:
     container_name: nps-telegram-bot
     env_file: .env
     environment:
-      TELEGRAM_BOT_API_URL: http://api:8000/api
-      TELEGRAM_BOT_SERVICE_KEY: ${TELEGRAM_BOT_SERVICE_KEY:-${API_SECRET_KEY}}
+      TELEGRAM_BOT_API_URL: http://api:8000/api/
+      TELEGRAM_BOT_SERVICE_KEY: ${TELEGRAM_BOT_SERVICE_KEY:-changeme}
       NPS_ADMIN_CHAT_ID: ${NPS_ADMIN_CHAT_ID:-}
     depends_on:
       api:

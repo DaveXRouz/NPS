@@ -333,7 +333,7 @@ def create_api_key(
         user_id=user.get("user_id"),
         key_hash=key_hash,
         name=request_body.name,
-        scopes=scopes if scopes else None,
+        scopes=scopes,
         expires_at=expires_at,
     )
     db.add(api_key)

@@ -103,8 +103,10 @@ async def lifespan(app: FastAPI):
     # Start daily reading scheduler (graceful fallback)
     daily_scheduler = None
     try:
-        from services.oracle.oracle_service.daily_scheduler import DailyScheduler
-
+        try:
+            from services.oracle.oracle_service.daily_scheduler import DailyScheduler
+        except ImportError:
+            from oracle_service.daily_scheduler import DailyScheduler
         daily_scheduler = DailyScheduler(db_session_factory=get_session_factory())
         await daily_scheduler.start()
     except Exception as exc:

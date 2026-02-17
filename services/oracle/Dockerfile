@@ -43,7 +43,7 @@ EXPOSE 50052
 EXPOSE 9090
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD python -c "import grpc; ch = grpc.insecure_channel('localhost:50052'); grpc.channel_ready_future(ch).result(timeout=2)"
+    CMD python -c "import socket; s = socket.create_connection(('localhost', 50052), timeout=2); s.close()"
 
 USER oracle
 
