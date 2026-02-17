@@ -8,6 +8,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 import app.orm.api_key  # noqa: F401
@@ -196,4 +197,14 @@ async def oracle_websocket(websocket: WebSocket):
 # Serve frontend build (must be LAST — catches all unmatched routes)
 frontend_dist = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
 if frontend_dist.is_dir():
-    app.mount("/", StaticFiles(directory=str(frontend_dist), html=True), name="frontend")
+    # Serve static assets (JS, CSS, images) directly
+    assets_dir = frontend_dist / "assets"
+    if assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="static-assets")
+
+    # SPA catch-all: serve index.html for any non-API route
+    _index_html = frontend_dist / "index.html"
+
+    @app.get("/{path:path}")
+    async def serve_spa(path: str):
+        return FileResponse(str(_index_html), media_type="text/html")
