@@ -153,7 +153,7 @@ export function UserForm({
     >
       <div
         ref={dialogRef}
-        className="bg-nps-bg-card border border-nps-oracle-border rounded-lg p-4 sm:p-6 w-full max-w-lg"
+        className="bg-nps-bg-card border border-nps-oracle-border rounded-lg p-4 sm:p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto shrink-0"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold text-nps-oracle-accent mb-3">
