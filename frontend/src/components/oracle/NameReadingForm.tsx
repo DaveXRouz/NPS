@@ -95,7 +95,7 @@ export function NameReadingForm({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t("oracle.name_input_placeholder")}
-            className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent pr-10"
+            className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent pe-10"
             data-testid="name-input"
           />
           <button

@@ -70,9 +70,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         } ${
           isOpen
             ? "translate-x-0"
-            : isRTL
-              ? "translate-x-full"
-              : "-translate-x-full"
+            : "ltr:-translate-x-full rtl:translate-x-full"
         }`}
       >
         {/* Header */}

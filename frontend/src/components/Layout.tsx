@@ -75,7 +75,7 @@ export const Layout = React.memo(function Layout() {
               fill="none"
               stroke="currentColor"
               strokeWidth={1.5}
-              className={`transition-transform ${sidebarCollapsed ? "rotate-180 rtl:rotate-0" : "rtl:rotate-180"}`}
+              className={`transition-transform ${sidebarCollapsed ? "ltr:rotate-180 rtl:rotate-0" : "ltr:rotate-0 rtl:rotate-180"}`}
             >
               <polyline points="15 18 9 12 15 6" />
             </svg>

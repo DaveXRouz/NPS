@@ -67,7 +67,7 @@ export function PersianKeyboard({
         aria-modal="true"
         aria-label={t("oracle.keyboard_persian")}
         dir="rtl"
-        className={`absolute left-0 right-0 z-50 bg-nps-bg-card border border-nps-oracle-border rounded-lg p-3 shadow-lg ${
+        className={`absolute inset-x-0 z-50 bg-nps-bg-card border border-nps-oracle-border rounded-lg p-3 shadow-lg ${
           positionAbove ? "bottom-full mb-1" : "top-full mt-1"
         }`}
       >

@@ -25,14 +25,6 @@
   text-align: right;
 }
 
-/* Fix sidebar transition direction */
-[dir="rtl"] .sidebar-enter {
-  transform: translateX(100%);
-}
-[dir="rtl"] .sidebar-enter-active {
-  transform: translateX(0);
-}
-
 /* Fix table alignment */
 [dir="rtl"] th,
 [dir="rtl"] td {
