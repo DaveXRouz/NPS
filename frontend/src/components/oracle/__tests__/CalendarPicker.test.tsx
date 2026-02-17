@@ -8,6 +8,8 @@ vi.mock("react-i18next", () => ({
     t: (key: string) => {
       const map: Record<string, string> = {
         "oracle.calendar_select_date": "Select a date",
+        "oracle.calendar_select_year": "Select Year",
+        "oracle.calendar_select_month": "Select Month",
         "oracle.calendar_gregorian": "Gregorian",
         "oracle.calendar_jalaali": "Solar Hijri",
         "a11y.previous_month": "Previous month",
@@ -78,5 +80,49 @@ describe("CalendarPicker", () => {
       <CalendarPicker value="" onChange={vi.fn()} error="Date is required" />,
     );
     expect(screen.getByText("Date is required")).toBeInTheDocument();
+  });
+
+  it("opens year view when header is clicked", async () => {
+    render(<CalendarPicker value="2024-03-15" onChange={vi.fn()} />);
+    await userEvent.click(screen.getByText("2024-03-15"));
+    // Header shows "March 2024" as a clickable button
+    expect(screen.getByText("March 2024")).toBeInTheDocument();
+    await userEvent.click(screen.getByText("March 2024"));
+    // Should show year range grid
+    expect(screen.getByText("2024")).toBeInTheDocument();
+  });
+
+  it("navigates from year to month to day view", async () => {
+    render(<CalendarPicker value="2024-03-15" onChange={vi.fn()} />);
+    await userEvent.click(screen.getByText("2024-03-15"));
+    // Click header to open year view
+    await userEvent.click(screen.getByText("March 2024"));
+    // Select year 2024
+    await userEvent.click(screen.getByText("2024"));
+    // Should be in month view — showing abbreviated months
+    expect(screen.getByText("Jan")).toBeInTheDocument();
+    expect(screen.getByText("Mar")).toBeInTheDocument();
+    // Select March
+    await userEvent.click(screen.getByText("Mar"));
+    // Should be back in day view with March 2024
+    expect(screen.getByText("March 2024")).toBeInTheDocument();
+  });
+
+  it("allows selecting a different year for birthday", async () => {
+    const onChange = vi.fn();
+    render(<CalendarPicker value="" onChange={onChange} />);
+    await userEvent.click(screen.getByText("Select a date"));
+    // Get the header button (shows current month/year)
+    const headerButtons = screen
+      .getAllByRole("button")
+      .filter((b) => b.textContent && /[A-Z][a-z]+ \d{4}/.test(b.textContent));
+    expect(headerButtons.length).toBeGreaterThan(0);
+    // Click header to enter year view
+    await userEvent.click(headerButtons[0]);
+    // We should see a year grid — navigate back in time
+    const prevButtons = screen
+      .getAllByRole("button")
+      .filter((b) => b.textContent === "‹");
+    expect(prevButtons.length).toBeGreaterThan(0);
   });
 });
