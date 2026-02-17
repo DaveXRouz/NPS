@@ -142,7 +142,7 @@ export function UserForm({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/60 flex items-start justify-center z-50 p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-label={isEdit ? t("oracle.edit_profile") : t("oracle.new_profile")}
@@ -153,7 +153,7 @@ export function UserForm({
     >
       <div
         ref={dialogRef}
-        className="bg-nps-bg-card border border-nps-oracle-border rounded-lg p-4 sm:p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className="bg-nps-bg-card border border-nps-oracle-border rounded-lg p-4 sm:p-6 w-full max-w-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold text-nps-oracle-accent mb-3">
@@ -378,28 +378,28 @@ export function UserForm({
                     {errors.heart_rate_bpm}
                   </p>
                 )}
-                {form.birthday && (
-                  <button
-                    type="button"
-                    onClick={() => {
+                <button
+                  type="button"
+                  onClick={() => {
+                    let avg = 72;
+                    if (form.birthday) {
                       const age = Math.floor(
                         (Date.now() - new Date(form.birthday).getTime()) /
                           31557600000,
                       );
-                      let avg = 72;
                       if (age >= 18 && age <= 25) avg = 73;
                       else if (age <= 35) avg = 74;
                       else if (age <= 45) avg = 75;
                       else if (age <= 55) avg = 76;
                       else if (age <= 65) avg = 75;
                       else if (age > 65) avg = 73;
-                      handleFieldChange("heart_rate_bpm", avg);
-                    }}
-                    className="mt-1 text-xs text-nps-oracle-accent hover:underline"
-                  >
-                    {t("oracle.heart_rate_avg_label")}
-                  </button>
-                )}
+                    }
+                    handleFieldChange("heart_rate_bpm", avg);
+                  }}
+                  className="mt-1 text-xs text-nps-oracle-accent hover:underline"
+                >
+                  {t("oracle.heart_rate_avg_label")}
+                </button>
               </div>
             </div>
 

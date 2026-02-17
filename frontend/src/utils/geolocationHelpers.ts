@@ -43,7 +43,8 @@ function authHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  const token = localStorage.getItem("nps_token");
+  const token =
+    localStorage.getItem("nps_token") || import.meta.env.VITE_API_KEY;
   if (token) headers["Authorization"] = `Bearer ${token}`;
   return headers;
 }
