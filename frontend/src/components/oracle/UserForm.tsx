@@ -233,7 +233,7 @@ export function UserForm({
           </fieldset>
 
           {/* ─── Section 2: Family ─── */}
-          <fieldset className="space-y-3 border-t border-nps-border/30 pt-4">
+          <fieldset className="space-y-3 pt-2">
             <legend className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
               {t("oracle.section_family")}
             </legend>
@@ -294,7 +294,7 @@ export function UserForm({
           </fieldset>
 
           {/* ─── Section 3: Location ─── */}
-          <fieldset className="space-y-3 border-t border-nps-border/30 pt-4">
+          <fieldset className="space-y-3 pt-2">
             <legend className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
               {t("oracle.section_location")}
             </legend>
@@ -315,7 +315,7 @@ export function UserForm({
           </fieldset>
 
           {/* ─── Section 4: Profile Details ─── */}
-          <fieldset className="space-y-3 border-t border-nps-border/30 pt-4">
+          <fieldset className="space-y-3 pt-2">
             <legend className="text-xs font-medium text-nps-text-dim uppercase tracking-wide mb-1">
               {t("oracle.section_details")}
             </legend>
@@ -375,6 +375,28 @@ export function UserForm({
                 <p className="text-nps-error text-xs mt-1" role="alert">
                   {errors.heart_rate_bpm}
                 </p>
+              )}
+              {form.birthday && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const age = Math.floor(
+                      (Date.now() - new Date(form.birthday).getTime()) /
+                        31557600000,
+                    );
+                    let avg = 72;
+                    if (age >= 18 && age <= 25) avg = 73;
+                    else if (age <= 35) avg = 74;
+                    else if (age <= 45) avg = 75;
+                    else if (age <= 55) avg = 76;
+                    else if (age <= 65) avg = 75;
+                    else if (age > 65) avg = 73;
+                    handleFieldChange("heart_rate_bpm", avg);
+                  }}
+                  className="mt-1 text-xs text-nps-oracle-accent hover:underline"
+                >
+                  {t("oracle.heart_rate_avg_label")}
+                </button>
               )}
             </div>
 

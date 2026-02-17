@@ -38,10 +38,22 @@ export interface City {
   timezone: string;
 }
 
+/** Build auth headers for API requests (matches api.ts pattern) */
+function authHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  const token = localStorage.getItem("nps_token");
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
+
 /** Fetch all countries from the location API */
 export async function fetchCountries(lang: string = "en"): Promise<Country[]> {
   try {
-    const resp = await fetch(`/api/location/countries?lang=${lang}`);
+    const resp = await fetch(`/api/location/countries?lang=${lang}`, {
+      headers: authHeaders(),
+    });
     if (!resp.ok) return [];
     const data = await resp.json();
     return data.countries;
@@ -58,6 +70,7 @@ export async function fetchCities(
   try {
     const resp = await fetch(
       `/api/location/countries/${countryCode}/cities?lang=${lang}`,
+      { headers: authHeaders() },
     );
     if (!resp.ok) return [];
     const data = await resp.json();
