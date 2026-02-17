@@ -142,7 +142,7 @@ export function UserForm({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 flex items-start justify-center z-50 p-4 overflow-y-auto"
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 overflow-hidden"
       role="dialog"
       aria-modal="true"
       aria-label={isEdit ? t("oracle.edit_profile") : t("oracle.new_profile")}
