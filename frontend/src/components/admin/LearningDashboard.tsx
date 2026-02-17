@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { AlertTriangle } from "lucide-react";
 import { StarRating } from "../oracle/StarRating";
 import * as api from "@/services/api";
 import type { OracleLearningStats } from "@/types";
@@ -217,7 +218,11 @@ export function LearningDashboard() {
       {/* Confidence warning */}
       {stats.total_feedback_count < 25 && (
         <p className="text-xs text-amber-400 text-center">
-          ⚠ Sample size is small ({stats.total_feedback_count} ratings). Results
+          <AlertTriangle
+            size={14}
+            className="inline-block me-1 align-text-bottom"
+          />
+          Sample size is small ({stats.total_feedback_count} ratings). Results
           become more reliable with 25+ ratings.
         </p>
       )}

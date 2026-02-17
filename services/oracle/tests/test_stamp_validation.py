@@ -138,6 +138,7 @@ class TestFormatStampForDisplay:
         assert display["month"]["index"] == 2
         assert display["time"] is not None
         assert display["time"]["half"] == "☀"
+        assert display["time"]["half_type"] == "day"
 
     def test_format_annotates_tokens(self):
         """Each token in display data includes animal_name and element_name."""

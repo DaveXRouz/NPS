@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 
 interface ReadingSectionProps {
   title: string;
-  icon?: string;
-  children: React.ReactNode;
+  icon?: ReactNode;
+  children: ReactNode;
   defaultOpen?: boolean;
   priority?: "high" | "medium" | "low";
   className?: string;
@@ -41,12 +42,17 @@ export function ReadingSection({
         aria-expanded={open}
       >
         <span className="flex items-center gap-2">
-          {icon && <span aria-hidden="true">{icon}</span>}
+          {icon && (
+            <span className="flex-shrink-0" aria-hidden="true">
+              {icon}
+            </span>
+          )}
           {title}
         </span>
-        <span className="text-nps-text-dim text-xs">
-          {open ? "\u25B2" : "\u25BC"}
-        </span>
+        <ChevronDown
+          size={14}
+          className={`text-nps-text-dim transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
       </button>
       {open && (
         <div className="px-4 pb-4 border-t border-nps-border/30">

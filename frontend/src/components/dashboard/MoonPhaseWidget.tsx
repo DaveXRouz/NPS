@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { MoonPhaseIcon } from "@/components/common/icons";
 
 interface MoonPhaseInfo {
   phase_name: string;
@@ -30,9 +31,11 @@ export function MoonPhaseWidget({ moonData, isLoading }: MoonPhaseWidgetProps) {
 
   return (
     <div className="flex items-center gap-2" data-testid="moon-widget">
-      <span className="text-xl" role="img" aria-label={moonData.phase_name}>
-        {moonData.emoji}
-      </span>
+      <MoonPhaseIcon
+        phaseName={moonData.phase_name}
+        size={24}
+        className="text-nps-text"
+      />
       <div className="text-sm">
         <span className="text-nps-text-bright">{moonData.phase_name}</span>
         <span className="text-nps-text-dim ms-2">

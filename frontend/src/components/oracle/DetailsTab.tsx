@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ChevronDown } from "lucide-react";
 import { NumerologyNumberDisplay } from "./NumerologyNumberDisplay";
 import { EmptyState } from "@/components/common/EmptyState";
+import { MoonPhaseIcon } from "@/components/common/icons";
 import type { ConsultationResult } from "@/types";
 
 interface DetailsTabProps {
@@ -27,9 +29,10 @@ function DetailSection({
         className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-nps-text hover:bg-nps-bg-input transition-colors"
       >
         {title}
-        <span className="nps-chevron text-nps-text-dim" data-open={open}>
-          {"\u25BC"}
-        </span>
+        <ChevronDown
+          size={14}
+          className={`text-nps-text-dim transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
       </button>
       <div
         className="nps-section-content border-t border-nps-border"
@@ -152,7 +155,12 @@ function ReadingDetails({
         <DetailSection title={t("oracle.details_moon_phase")}>
           <DataRow
             label={t("oracle.details_phase")}
-            value={`${moon.emoji} ${moon.phase_name}`}
+            value={
+              <span className="flex items-center gap-1.5">
+                <MoonPhaseIcon phaseName={moon.phase_name} size={14} />
+                {moon.phase_name}
+              </span>
+            }
           />
           <DataRow
             label={t("oracle.details_illumination")}

@@ -19,9 +19,9 @@ describe("EmptyState", () => {
 
   it("renders icon variant", () => {
     const { container } = render(<EmptyState icon="vault" title="No data" />);
-    // Should have an icon element
-    const icon = container.querySelector('[role="img"]');
-    expect(icon).toBeInTheDocument();
+    // Lucide icons render as SVG elements
+    const svg = container.querySelector("svg");
+    expect(svg).toBeInTheDocument();
   });
 
   it("action button calls onClick", async () => {

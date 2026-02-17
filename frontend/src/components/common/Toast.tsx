@@ -1,4 +1,5 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode, type ComponentType } from "react";
+import { XCircle, CheckCircle, AlertTriangle, Info } from "lucide-react";
 import {
   ToastContext,
   useToast,
@@ -28,11 +29,21 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 
-const ICON_MAP: Record<ToastItem["type"], string> = {
-  error: "\u274C",
-  success: "\u2705",
-  warning: "\u26A0\uFE0F",
-  info: "\u2139\uFE0F",
+const ICON_MAP: Record<
+  ToastItem["type"],
+  ComponentType<{ size?: number | string; className?: string }>
+> = {
+  error: XCircle,
+  success: CheckCircle,
+  warning: AlertTriangle,
+  info: Info,
+};
+
+const ICON_COLOR_MAP: Record<ToastItem["type"], string> = {
+  error: "text-nps-error",
+  success: "text-nps-success",
+  warning: "text-nps-warning",
+  info: "text-nps-accent",
 };
 
 const BORDER_MAP: Record<ToastItem["type"], string> = {
@@ -51,6 +62,7 @@ function ToastCard({
 }) {
   const isRtl =
     typeof document !== "undefined" && document.documentElement.dir === "rtl";
+  const Icon = ICON_MAP[toast.type];
 
   return (
     <div
@@ -59,7 +71,9 @@ function ToastCard({
         isRtl ? "animate-slide-in-left" : "animate-slide-in-right"
       }`}
     >
-      <span className="flex-shrink-0 mt-0.5">{ICON_MAP[toast.type]}</span>
+      <span className={`flex-shrink-0 mt-0.5 ${ICON_COLOR_MAP[toast.type]}`}>
+        <Icon size={18} />
+      </span>
       <span className="flex-1 break-words">{toast.message}</span>
       <button
         type="button"

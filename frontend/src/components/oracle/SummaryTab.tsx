@@ -1,4 +1,15 @@
 import { useTranslation } from "react-i18next";
+import {
+  Globe,
+  Hash,
+  Clock,
+  Link2,
+  Sparkles,
+  Lightbulb,
+  AlertTriangle,
+  HelpCircle,
+  Type,
+} from "lucide-react";
 import { TranslatedReading } from "./TranslatedReading";
 import { ReadingSection } from "./ReadingSection";
 import { NumerologyNumberDisplay } from "./NumerologyNumberDisplay";
@@ -8,6 +19,7 @@ import { ReadingFooter } from "./ReadingFooter";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FadeIn } from "@/components/common/FadeIn";
 import { StaggerChildren } from "@/components/common/StaggerChildren";
+import { MoonPhaseIcon } from "@/components/common/icons";
 import type { ConsultationResult } from "@/types";
 
 interface SummaryTabProps {
@@ -47,7 +59,7 @@ function ReadingSummary({
       {data.fc60_extended && (
         <ReadingSection
           title={t("oracle.section_universal_address")}
-          icon="\uD83C\uDF10"
+          icon={<Globe size={16} />}
         >
           <div className="space-y-2 pt-2">
             <p className="font-mono text-sm text-nps-text-bright">
@@ -68,7 +80,7 @@ function ReadingSummary({
       {data.numerology && (
         <ReadingSection
           title={t("oracle.section_core_identity")}
-          icon="\uD83D\uDD22"
+          icon={<Hash size={16} />}
         >
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2">
             <NumerologyNumberDisplay
@@ -95,7 +107,10 @@ function ReadingSummary({
 
       {/* Section 4: Right Now */}
       {(data.fc60 || data.moon || data.ganzhi) && (
-        <ReadingSection title={t("oracle.section_right_now")} icon="\u23F0">
+        <ReadingSection
+          title={t("oracle.section_right_now")}
+          icon={<Clock size={16} />}
+        >
           <div className="grid grid-cols-2 gap-3 pt-2 text-sm">
             {data.fc60 && (
               <div>
@@ -118,9 +133,9 @@ function ReadingSummary({
                 <span className="text-xs text-nps-text-dim">
                   {t("oracle.details_moon_phase")}
                 </span>
-                <p className="text-nps-text">
-                  {data.moon.emoji} {data.moon.phase_name} (
-                  {data.moon.illumination}%)
+                <p className="text-nps-text flex items-center gap-1.5">
+                  <MoonPhaseIcon phaseName={data.moon.phase_name} size={16} />
+                  {data.moon.phase_name} ({data.moon.illumination}%)
                 </p>
               </div>
             )}
@@ -139,7 +154,10 @@ function ReadingSummary({
       )}
 
       {/* Section 5: Patterns */}
-      <ReadingSection title={t("oracle.section_patterns")} icon="\uD83D\uDD17">
+      <ReadingSection
+        title={t("oracle.section_patterns")}
+        icon={<Link2 size={16} />}
+      >
         <div className="flex gap-2 flex-wrap pt-2">
           {data.synchronicities && data.synchronicities.length > 0 ? (
             data.synchronicities.map((s, i) => (
@@ -165,7 +183,10 @@ function ReadingSummary({
 
       {/* Section 6: The Message (AI Interpretation) */}
       {data.ai_interpretation && (
-        <ReadingSection title={t("oracle.section_message")} icon="\u2728">
+        <ReadingSection
+          title={t("oracle.section_message")}
+          icon={<Sparkles size={16} />}
+        >
           <FadeIn delay={300}>
             <div className="pt-2 bg-nps-oracle-accent/5 rounded p-3 -mx-1">
               <TranslatedReading reading={data.ai_interpretation} />
@@ -175,7 +196,10 @@ function ReadingSummary({
       )}
 
       {/* Section 7: Today's Advice */}
-      <ReadingSection title={t("oracle.section_advice")} icon="\uD83D\uDCA1">
+      <ReadingSection
+        title={t("oracle.section_advice")}
+        icon={<Lightbulb size={16} />}
+      >
         <div className="pt-2 border-s-2 border-nps-oracle-accent/30 ps-3">
           <TranslatedReading reading={data.summary} />
         </div>
@@ -185,7 +209,7 @@ function ReadingSummary({
       {balanceWarnings.length > 0 && (
         <ReadingSection
           title={t("oracle.section_caution")}
-          icon="\u26A0\uFE0F"
+          icon={<AlertTriangle size={16} />}
           priority="high"
         >
           <div className="pt-2 space-y-1">
@@ -224,7 +248,10 @@ function QuestionSummary({
         confidence={data.confidence ? data.confidence.score / 100 : undefined}
       />
 
-      <ReadingSection title={t("oracle.section_core_identity")} icon="\u2753">
+      <ReadingSection
+        title={t("oracle.section_core_identity")}
+        icon={<HelpCircle size={16} />}
+      >
         <div className="pt-2 space-y-2">
           <NumerologyNumberDisplay
             number={data.question_number}
@@ -246,7 +273,10 @@ function QuestionSummary({
       </ReadingSection>
 
       {data.ai_interpretation && (
-        <ReadingSection title={t("oracle.section_message")} icon="\u2728">
+        <ReadingSection
+          title={t("oracle.section_message")}
+          icon={<Sparkles size={16} />}
+        >
           <div className="pt-2">
             <TranslatedReading reading={data.ai_interpretation} />
           </div>
@@ -279,7 +309,7 @@ function NameSummary({
 
       <ReadingSection
         title={t("oracle.section_core_identity")}
-        icon="\uD83D\uDD22"
+        icon={<Hash size={16} />}
       >
         <div className="grid grid-cols-3 gap-4 pt-2">
           <NumerologyNumberDisplay
@@ -304,7 +334,10 @@ function NameSummary({
       </ReadingSection>
 
       {data.letter_breakdown && data.letter_breakdown.length > 0 && (
-        <ReadingSection title={t("oracle.details_letters")} icon="\uD83D\uDD24">
+        <ReadingSection
+          title={t("oracle.details_letters")}
+          icon={<Type size={16} />}
+        >
           <table className="w-full text-xs mt-2">
             <thead>
               <tr className="text-nps-text-dim border-b border-nps-border">
@@ -327,7 +360,10 @@ function NameSummary({
       )}
 
       {data.ai_interpretation && (
-        <ReadingSection title={t("oracle.section_message")} icon="\u2728">
+        <ReadingSection
+          title={t("oracle.section_message")}
+          icon={<Sparkles size={16} />}
+        >
           <div className="pt-2">
             <TranslatedReading reading={data.ai_interpretation} />
           </div>

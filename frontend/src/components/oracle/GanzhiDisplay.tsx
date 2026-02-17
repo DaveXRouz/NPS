@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Sun, Moon } from "lucide-react";
 import type { GanzhiFullData } from "@/types";
 
 interface GanzhiDisplayProps {
@@ -35,8 +36,12 @@ export default function GanzhiDisplay({
             >
               {ganzhi.year.element}
             </span>
-            <span className="text-sm text-nps-text-dim">
-              {ganzhi.year.polarity === "Yang" ? "\u2600" : "\uD83C\uDF19"}{" "}
+            <span className="text-sm text-nps-text-dim inline-flex items-center gap-1">
+              {ganzhi.year.polarity === "Yang" ? (
+                <Sun size={14} />
+              ) : (
+                <Moon size={14} />
+              )}
               {ganzhi.year.polarity}
             </span>
           </div>

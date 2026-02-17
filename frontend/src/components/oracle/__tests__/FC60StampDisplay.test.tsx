@@ -31,7 +31,7 @@ vi.mock("react-i18next", () => ({
 }));
 
 const mockStampAM: FC60StampData = {
-  fc60: "VE-OX-OXFI ☀OX-RUWU-RAWU",
+  fc60: "VE-OX-OXFI \u2600OX-RUWU-RAWU",
   j60: "TIFI-DRMT-GOER-PIMT",
   y60: "HOMT-ROFI",
   chk: "TIMT",
@@ -44,7 +44,8 @@ const mockStampAM: FC60StampData = {
   month: { token: "OX", animalName: "Ox", index: 2 },
   dom: { token: "OXFI", value: 6, animalName: "Ox", elementName: "Fire" },
   time: {
-    half: "☀",
+    half: "\u2600",
+    half_type: "day",
     hour: { token: "OX", animalName: "Ox", value: 1 },
     minute: {
       token: "RUWU",
@@ -58,9 +59,10 @@ const mockStampAM: FC60StampData = {
 
 const mockStampPM: FC60StampData = {
   ...mockStampAM,
-  fc60: "JO-OX-SNWA 🌙RA-RAWU-RAWU",
+  fc60: "JO-OX-SNWA \uD83C\uDF19RA-RAWU-RAWU",
   time: {
-    half: "🌙",
+    half: "\uD83C\uDF19",
+    half_type: "night",
     hour: { token: "RA", animalName: "Rat", value: 12 },
     minute: { token: "RAWU", value: 0, animalName: "Rat", elementName: "Wood" },
     second: { token: "RAWU", value: 0, animalName: "Rat", elementName: "Wood" },
@@ -142,16 +144,17 @@ describe("FC60StampDisplay", () => {
     expect(earthToken.className).toContain("text-amber-700");
   });
 
-  it("shows half-day marker (sun for AM)", () => {
+  it("shows Sun icon for AM (day) half", () => {
     render(<FC60StampDisplay stamp={mockStampAM} />);
-    expect(screen.getByText("☀")).toBeInTheDocument();
-    const sunEl = screen.getByText("☀");
-    expect(sunEl.className).toContain("text-yellow-400");
+    // Sun icon should render with yellow color class
+    const halfContainer = screen.getByTitle("Morning");
+    expect(halfContainer.className).toContain("text-yellow-400");
   });
 
-  it("shows half-day marker (moon for PM)", () => {
+  it("shows Moon icon for PM (night) half", () => {
     render(<FC60StampDisplay stamp={mockStampPM} />);
-    expect(screen.getByText("🌙")).toBeInTheDocument();
+    const halfContainer = screen.getByTitle("Afternoon");
+    expect(halfContainer.className).toContain("text-blue-300");
   });
 
   it("shows tooltips with animal names on hover", () => {
@@ -170,7 +173,7 @@ describe("FC60StampDisplay", () => {
     fireEvent.click(copyBtn);
 
     expect(mockClipboard.writeText).toHaveBeenCalledWith(
-      "VE-OX-OXFI ☀OX-RUWU-RAWU",
+      "VE-OX-OXFI \u2600OX-RUWU-RAWU",
     );
   });
 
@@ -191,7 +194,7 @@ describe("FC60StampDisplay", () => {
   it("has proper aria-label for accessibility", () => {
     render(<FC60StampDisplay stamp={mockStampAM} />);
     const container = screen.getByLabelText(
-      "FC60 stamp: VE-OX-OXFI ☀OX-RUWU-RAWU",
+      "FC60 stamp: VE-OX-OXFI \u2600OX-RUWU-RAWU",
     );
     expect(container).toBeInTheDocument();
   });

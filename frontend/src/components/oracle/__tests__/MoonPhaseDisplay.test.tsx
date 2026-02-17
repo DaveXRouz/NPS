@@ -31,9 +31,11 @@ const sampleMoon: MoonPhaseData = {
 };
 
 describe("MoonPhaseDisplay", () => {
-  it("renders moon emoji and phase name", () => {
-    render(<MoonPhaseDisplay moon={sampleMoon} />);
-    expect(screen.getByText("\uD83C\uDF15")).toBeInTheDocument();
+  it("renders moon phase icon and phase name", () => {
+    const { container } = render(<MoonPhaseDisplay moon={sampleMoon} />);
+    // MoonPhaseIcon renders an SVG with aria-hidden
+    const svg = container.querySelector("svg[aria-hidden='true']");
+    expect(svg).toBeInTheDocument();
     expect(screen.getByText("Full Moon")).toBeInTheDocument();
   });
 

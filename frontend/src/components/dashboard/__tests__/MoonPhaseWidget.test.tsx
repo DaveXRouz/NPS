@@ -13,13 +13,15 @@ vi.mock("react-i18next", () => ({
 }));
 
 describe("MoonPhaseWidget", () => {
-  it("renders moon emoji, phase name, and illumination", () => {
-    render(
+  it("renders moon phase icon, phase name, and illumination", () => {
+    const { container } = render(
       <MoonPhaseWidget
         moonData={{ phase_name: "Full Moon", illumination: 0.97, emoji: "🌕" }}
       />,
     );
-    expect(screen.getByText("🌕")).toBeInTheDocument();
+    // MoonPhaseIcon renders an SVG with aria-hidden
+    const svg = container.querySelector("svg[aria-hidden='true']");
+    expect(svg).toBeInTheDocument();
     expect(screen.getByText("Full Moon")).toBeInTheDocument();
     expect(screen.getByText("97% illuminated")).toBeInTheDocument();
   });

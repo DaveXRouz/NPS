@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Sun, Moon, Copy } from "lucide-react";
 import type { FC60StampData, FC60StampSegment } from "@/types";
 
 interface FC60StampDisplayProps {
@@ -145,10 +146,9 @@ export default function FC60StampDisplay({
     }
   };
 
-  const halfLabel =
-    stamp.time?.half === "☀"
-      ? t("oracle.fc60_half_am")
-      : t("oracle.fc60_half_pm");
+  const isDay =
+    stamp.time?.half_type === "day" || stamp.time?.half === "\u2600";
+  const halfLabel = isDay ? t("oracle.fc60_half_am") : t("oracle.fc60_half_pm");
 
   return (
     <div
@@ -185,10 +185,10 @@ export default function FC60StampDisplay({
         <>
           <span className="mx-1" />
           <span
-            className={stamp.time.half === "☀" ? "text-yellow-400" : ""}
+            className={`inline-flex items-center ${isDay ? "text-yellow-400" : "text-blue-300"}`}
             title={showTooltips ? halfLabel : undefined}
           >
-            {stamp.time.half}
+            {isDay ? <Sun size={14} /> : <Moon size={14} />}
           </span>
           <AnimalBadge
             token={stamp.time.hour.token}
@@ -224,20 +224,7 @@ export default function FC60StampDisplay({
               {t("oracle.fc60_copied")}
             </span>
           ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-              />
-            </svg>
+            <Copy size={16} />
           )}
         </button>
       )}

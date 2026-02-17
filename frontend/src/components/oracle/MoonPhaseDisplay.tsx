@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { MoonPhaseIcon } from "@/components/common/icons";
 import type { MoonPhaseData } from "@/types";
 
 interface MoonPhaseDisplayProps {
@@ -29,9 +30,11 @@ export default function MoonPhaseDisplay({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <span className="text-3xl" role="img" aria-label={moon.phase_name}>
-          {moon.emoji}
-        </span>
+        <MoonPhaseIcon
+          phaseName={moon.phase_name}
+          size={32}
+          className="text-nps-text"
+        />
         <span className="text-lg font-semibold">{moon.phase_name}</span>
       </div>
 

@@ -4,6 +4,7 @@ import {
   useDailyReading,
   useGenerateDailyReading,
 } from "@/hooks/useOracleReadings";
+import { MoonPhaseIcon } from "@/components/common/icons";
 import type { FrameworkReadingResponse, DailyInsights } from "@/types";
 
 interface DailyReadingCardProps {
@@ -116,9 +117,14 @@ export default function DailyReadingCard({
         <div className="space-y-3" data-testid="daily-insights">
           {/* Energy forecast */}
           <div className="flex items-start gap-2">
-            <span className="text-lg">
-              {(reading.moon as Record<string, string> | null)?.emoji ?? ""}
-            </span>
+            <MoonPhaseIcon
+              phaseName={
+                (reading.moon as Record<string, string> | null)?.phase_name ??
+                "New Moon"
+              }
+              size={24}
+              className="text-nps-text flex-shrink-0 mt-0.5"
+            />
             <div>
               <p className="text-sm font-medium text-nps-text">
                 {t("oracle.daily_energy_forecast")}

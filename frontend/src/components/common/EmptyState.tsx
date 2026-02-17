@@ -1,3 +1,7 @@
+import type { ComponentType } from "react";
+import { User, Lock, Search, Brain, Package } from "lucide-react";
+import { CrystalBallIcon } from "./icons";
+
 type IconVariant =
   | "readings"
   | "profiles"
@@ -16,13 +20,16 @@ interface EmptyStateProps {
   };
 }
 
-const ICON_MAP: Record<IconVariant, string> = {
-  readings: "\uD83D\uDD2E",
-  profiles: "\uD83D\uDC64",
-  vault: "\uD83D\uDD12",
-  search: "\uD83D\uDD0D",
-  learning: "\uD83E\uDDE0",
-  generic: "\uD83D\uDCE6",
+const ICON_MAP: Record<
+  IconVariant,
+  ComponentType<{ size?: number | string; className?: string }>
+> = {
+  readings: CrystalBallIcon,
+  profiles: User,
+  vault: Lock,
+  search: Search,
+  learning: Brain,
+  generic: Package,
 };
 
 export function EmptyState({
@@ -31,17 +38,15 @@ export function EmptyState({
   description,
   action,
 }: EmptyStateProps) {
+  const IconComponent = ICON_MAP[icon];
+
   return (
     <div
       className="flex flex-col items-center justify-center py-8 text-center"
       data-testid="empty-state"
     >
-      <span
-        className="text-5xl mb-3 text-nps-oracle-accent"
-        role="img"
-        aria-hidden="true"
-      >
-        {ICON_MAP[icon]}
+      <span className="mb-3 text-nps-oracle-accent" aria-hidden="true">
+        <IconComponent size={48} />
       </span>
       <p className="text-sm font-medium text-nps-text mb-1">{title}</p>
       {description && (

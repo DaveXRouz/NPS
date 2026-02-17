@@ -391,7 +391,8 @@ export interface FC60StampWeekday {
 }
 
 export interface FC60StampTime {
-  half: string; // "☀" or "🌙"
+  half: string;
+  half_type?: "day" | "night";
   hour: FC60StampSegment;
   minute: FC60StampSegment;
   second: FC60StampSegment;

@@ -1096,6 +1096,7 @@ def format_stamp_for_display(reading: Dict[str, Any]) -> Dict[str, Any]:
 
         time_data = {
             "half": half_marker,
+            "half_type": "day" if half_marker == "\u2600" else "night",
             "hour": hour_segment,
             "minute": minute_segment,
             "second": second_segment,
