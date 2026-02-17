@@ -32,7 +32,7 @@ export function ReadingCard({
   const dateStr = new Date(reading.created_at).toLocaleDateString();
 
   return (
-    <div className="group border border-nps-border rounded-lg p-3 hover:border-nps-oracle-accent/50 transition-colors">
+    <div className="group bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 cursor-pointer transition-all duration-300 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_12px_var(--nps-glass-glow)]">
       {/* Header row: type badge + date + actions */}
       <div className="flex items-center gap-2 mb-2">
         <span
@@ -59,7 +59,7 @@ export function ReadingCard({
             e.stopPropagation();
             onDelete(reading.id);
           }}
-          className="text-xs text-nps-text-dim opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:text-red-400 transition-all"
+          className="text-sm text-[var(--nps-text-dim)] opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:text-red-400 transition-all duration-200"
           title={t("oracle.delete_reading")}
         >
           &times;

@@ -17,11 +17,11 @@ export function ReadingDetail({
   const { t } = useTranslation();
 
   return (
-    <div className="border border-nps-border rounded-lg p-4 space-y-3">
+    <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-6 space-y-4 shadow-lg">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="px-2 py-0.5 text-[10px] rounded bg-nps-bg-input text-nps-text-dim font-medium">
+          <span className="px-2.5 py-1 text-xs rounded-full bg-[var(--nps-accent)]/20 text-[var(--nps-accent)] border border-[var(--nps-accent)]/30 font-medium">
             {reading.sign_type}
           </span>
           <span className="text-xs text-nps-text-dim">
@@ -32,7 +32,7 @@ export function ReadingDetail({
           <button
             type="button"
             onClick={() => onToggleFavorite(reading.id)}
-            className="text-sm hover:scale-110 transition-transform"
+            className="text-base transition-all duration-200 hover:scale-110 hover:text-amber-400"
             title={t("oracle.toggle_favorite")}
           >
             {reading.is_favorite ? "\u2605" : "\u2606"}
@@ -40,7 +40,7 @@ export function ReadingDetail({
           <button
             type="button"
             onClick={() => onDelete(reading.id)}
-            className="text-xs text-nps-text-dim hover:text-red-400 transition-colors"
+            className="text-sm text-[var(--nps-text-dim)] hover:text-red-400 transition-all duration-200"
             title={t("oracle.delete_reading")}
           >
             {t("oracle.delete_reading")}
@@ -48,7 +48,7 @@ export function ReadingDetail({
           <button
             type="button"
             onClick={onClose}
-            className="text-xs text-nps-text-dim hover:text-nps-text transition-colors"
+            className="text-sm text-[var(--nps-text-dim)] hover:text-[var(--nps-text)] transition-all duration-200"
           >
             {t("oracle.close_detail")}
           </button>
@@ -91,7 +91,7 @@ export function ReadingDetail({
           <h4 className="text-[10px] text-nps-text-dim uppercase tracking-wider mb-1">
             {t("oracle.reading_data")}
           </h4>
-          <pre className="text-[10px] text-nps-text-dim overflow-x-auto max-h-60 overflow-y-auto bg-nps-bg-input rounded p-2">
+          <pre className="text-[10px] text-[var(--nps-text-dim)] overflow-x-auto max-h-60 overflow-y-auto bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg p-3">
             {JSON.stringify(reading.reading_result, null, 2)}
           </pre>
         </div>
