@@ -189,8 +189,11 @@ describe("ReadingHistory", () => {
     await waitFor(() => {
       expect(screen.getByTitle("Toggle favorite")).toBeInTheDocument();
     });
-    // Filled star for favorite
-    expect(screen.getByTitle("Toggle favorite").textContent).toBe("\u2605");
+    // Filled star icon for favorite
+    const starBtn = screen.getByTitle("Toggle favorite");
+    const svg = starBtn.querySelector("svg");
+    expect(svg).toBeInTheDocument();
+    expect(svg?.classList.contains("fill-current")).toBe(true);
   });
 
   it("shows stats when available", async () => {

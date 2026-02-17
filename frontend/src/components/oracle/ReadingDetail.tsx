@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Star } from "lucide-react";
 import type { StoredReading } from "@/types";
 
 interface ReadingDetailProps {
@@ -35,7 +36,9 @@ export function ReadingDetail({
             className="text-base transition-all duration-200 hover:scale-110 hover:text-amber-400"
             title={t("oracle.toggle_favorite")}
           >
-            {reading.is_favorite ? "\u2605" : "\u2606"}
+            <Star
+              className={`w-4 h-4 ${reading.is_favorite ? "fill-current text-amber-400" : "text-current"}`}
+            />
           </button>
           <button
             type="button"

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Search } from "lucide-react";
+import { Search, ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import type { SystemUser, UserSortField, SortOrder } from "@/types";
 import { UserActions } from "./UserActions";
 
@@ -38,9 +38,12 @@ function SortArrow({
   sortBy: UserSortField;
   sortOrder: SortOrder;
 }) {
-  if (field !== sortBy) return <span className="opacity-30 ms-1">&#8597;</span>;
-  return (
-    <span className="ms-1">{sortOrder === "asc" ? "\u2191" : "\u2193"}</span>
+  if (field !== sortBy)
+    return <ChevronsUpDown className="w-3 h-3 opacity-30 ms-1 inline-block" />;
+  return sortOrder === "asc" ? (
+    <ChevronUp className="w-3 h-3 ms-1 inline-block" />
+  ) : (
+    <ChevronDown className="w-3 h-3 ms-1 inline-block" />
   );
 }
 
@@ -50,18 +53,22 @@ function formatDate(dateStr: string | null): string {
   return d.toLocaleDateString();
 }
 
-function formatRelative(dateStr: string | null, neverText: string): string {
+function formatRelative(
+  dateStr: string | null,
+  neverText: string,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string {
   if (!dateStr) return neverText;
   const d = new Date(dateStr);
   const now = new Date();
   const diff = now.getTime() - d.getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return t("common.just_now");
+  if (mins < 60) return t("common.minutes_ago", { count: mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t("common.hours_ago", { count: hours });
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
+  if (days < 30) return t("common.days_ago", { count: days });
   return d.toLocaleDateString();
 }
 
@@ -188,7 +195,7 @@ export function UserTable({
                     {formatDate(user.created_at)}
                   </td>
                   <td className="px-4 py-3 text-[var(--nps-text-dim)]">
-                    {formatRelative(user.last_login, t("admin.never"))}
+                    {formatRelative(user.last_login, t("admin.never"), t)}
                   </td>
                   <td className="px-4 py-3">
                     <span

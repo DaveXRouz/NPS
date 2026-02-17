@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Search } from "lucide-react";
+import { Search, ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
 import type { AdminOracleProfile, ProfileSortField, SortOrder } from "@/types";
 import { ProfileActions } from "./ProfileActions";
 
@@ -28,9 +28,12 @@ function SortArrow({
   sortBy: ProfileSortField;
   sortOrder: SortOrder;
 }) {
-  if (field !== sortBy) return <span className="opacity-30 ms-1">&#8597;</span>;
-  return (
-    <span className="ms-1">{sortOrder === "asc" ? "\u2191" : "\u2193"}</span>
+  if (field !== sortBy)
+    return <ChevronsUpDown className="w-3 h-3 opacity-30 ms-1 inline-block" />;
+  return sortOrder === "asc" ? (
+    <ChevronUp className="w-3 h-3 ms-1 inline-block" />
+  ) : (
+    <ChevronDown className="w-3 h-3 ms-1 inline-block" />
   );
 }
 

@@ -1,5 +1,6 @@
 import { useState, useRef, lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
+import { Keyboard } from "lucide-react";
 import type { OracleUser, OracleUserCreate, LocationData } from "@/types";
 import { LocationSelector } from "./LocationSelector";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
@@ -199,7 +200,7 @@ export function UserForm({
                   aria-label={t("oracle.keyboard_toggle")}
                   data-testid="keyboard-toggle-name_persian"
                 >
-                  ⌨
+                  <Keyboard className="w-4 h-4" />
                 </button>
               </div>
               {activeKeyboard === "name_persian" && (
@@ -274,7 +275,7 @@ export function UserForm({
                   aria-label={t("oracle.keyboard_toggle")}
                   data-testid="keyboard-toggle-mother_name_persian"
                 >
-                  ⌨
+                  <Keyboard className="w-4 h-4" />
                 </button>
               </div>
               {activeKeyboard === "mother_name_persian" && (

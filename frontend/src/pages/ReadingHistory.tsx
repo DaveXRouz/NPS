@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Search, ArrowLeft } from "lucide-react";
+import { Search, ArrowLeft, Star } from "lucide-react";
 import {
   useReadingHistory,
   useDeleteReading,
@@ -219,7 +219,9 @@ export function ReadingHistory() {
               }`}
               title={t("oracle.filter_favorites")}
             >
-              {favoritesOnly ? "\u2605" : "\u2606"}
+              <Star
+                className={`w-4 h-4 ${favoritesOnly ? "fill-current text-amber-400" : "text-current"}`}
+              />
             </button>
             <SortSelector value={sortBy} onChange={setSortBy} />
           </div>

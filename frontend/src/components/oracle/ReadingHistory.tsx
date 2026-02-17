@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Star } from "lucide-react";
 import {
   useReadingHistory,
   useDeleteReading,
@@ -152,7 +153,9 @@ export function ReadingHistory() {
           }`}
           title={t("oracle.filter_favorites")}
         >
-          {favoritesOnly ? "\u2605" : "\u2606"}
+          <Star
+            className={`w-3.5 h-3.5 ${favoritesOnly ? "fill-current text-amber-400" : "text-current"}`}
+          />
         </button>
       </div>
 

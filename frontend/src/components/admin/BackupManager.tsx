@@ -35,17 +35,20 @@ const TYPE_BADGES: Record<
   },
 };
 
-function formatRelativeTime(isoDate: string): string {
+function formatRelativeTime(
+  isoDate: string,
+  t: (key: string, opts?: Record<string, unknown>) => string,
+): string {
   const date = new Date(isoDate);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin} min ago`;
+  if (diffMin < 1) return t("common.just_now");
+  if (diffMin < 60) return t("common.minutes_ago", { count: diffMin });
   const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
+  if (diffHr < 24) return t("common.hours_ago", { count: diffHr });
   const diffDays = Math.floor(diffHr / 24);
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 7) return t("common.days_ago", { count: diffDays });
   return date.toLocaleDateString();
 }
 
@@ -295,7 +298,7 @@ export function BackupManager() {
                         className="px-4 py-3 text-[var(--nps-text-dim)]"
                         title={new Date(backup.timestamp).toLocaleString()}
                       >
-                        {formatRelativeTime(backup.timestamp)}
+                        {formatRelativeTime(backup.timestamp, t)}
                       </td>
                       <td className="px-4 py-3 text-[var(--nps-text-dim)]">
                         {backup.size_human}

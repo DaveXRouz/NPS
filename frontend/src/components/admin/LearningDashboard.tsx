@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Star as StarIcon } from "lucide-react";
 import { StarRating } from "../oracle/StarRating";
 import * as api from "@/services/api";
 import type { OracleLearningStats } from "@/types";
@@ -110,7 +110,10 @@ export function LearningDashboard() {
             const pct = (count / maxRatingCount) * 100;
             return (
               <div key={star} className="flex items-center gap-2 text-xs">
-                <span className="w-8 text-nps-text-dim text-end">{star}★</span>
+                <span className="w-8 text-nps-text-dim text-end flex items-center justify-end gap-0.5">
+                  {star}
+                  <StarIcon className="w-3 h-3 fill-current text-yellow-400" />
+                </span>
                 <div className="flex-1 h-3 bg-nps-bg rounded-full overflow-hidden">
                   <div
                     className="h-full bg-yellow-400 rounded-full transition-all"

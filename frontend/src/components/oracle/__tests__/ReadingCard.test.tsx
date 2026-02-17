@@ -54,7 +54,10 @@ describe("ReadingCard", () => {
         onDelete={vi.fn()}
       />,
     );
-    expect(screen.getByTitle("Toggle favorite").textContent).toBe("\u2605");
+    const starBtn = screen.getByTitle("Toggle favorite");
+    const svg = starBtn.querySelector("svg");
+    expect(svg).toBeInTheDocument();
+    expect(svg?.classList.contains("fill-current")).toBe(true);
   });
 
   it("calls onSelect when body clicked", async () => {

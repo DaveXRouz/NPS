@@ -1,5 +1,6 @@
 import React from "react";
 import { CountUp } from "./common/CountUp";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 interface StatsCardProps {
   label: string;
@@ -16,10 +17,10 @@ const TREND_STYLES = {
   flat: "text-nps-text-dim",
 } as const;
 
-const TREND_ARROWS = {
-  up: "\u2191",
-  down: "\u2193",
-  flat: "\u2192",
+const TREND_ICONS = {
+  up: TrendingUp,
+  down: TrendingDown,
+  flat: Minus,
 } as const;
 
 function parseNumericValue(value: string | number): {
@@ -81,8 +82,13 @@ export const StatsCard = React.memo(function StatsCard({
         )}
       </p>
       {trend && (
-        <p className={`text-xs mt-1 ${TREND_STYLES[trend.direction]}`}>
-          {TREND_ARROWS[trend.direction]} {trend.value}
+        <p
+          className={`text-xs mt-1 flex items-center gap-1 ${TREND_STYLES[trend.direction]}`}
+        >
+          {React.createElement(TREND_ICONS[trend.direction], {
+            className: "w-3 h-3",
+          })}{" "}
+          {trend.value}
         </p>
       )}
       {subtitle && <p className="text-xs text-nps-text-dim mt-1">{subtitle}</p>}
