@@ -35,7 +35,7 @@ class SystemUserListResponse(BaseModel):
 
 
 class RoleUpdateRequest(BaseModel):
-    role: str = Field(..., pattern=r"^(admin|user|readonly)$")
+    role: str = Field(..., pattern=r"^(admin|moderator|user|readonly)$")
 
 
 class StatusUpdateRequest(BaseModel):

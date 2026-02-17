@@ -484,7 +484,8 @@ def trigger_backup(
                 stdout=outfile,
                 stderr=subprocess.PIPE,
             )
-            dump.stdout.close()  # Allow dump to receive SIGPIPE if gzip exits
+            if dump.stdout:
+                dump.stdout.close()  # Allow dump to receive SIGPIPE if gzip exits
             _, gzip_err = gzip_proc.communicate(timeout=timeout)
             _, dump_err = dump.communicate(timeout=10)
 
@@ -526,6 +527,20 @@ def trigger_backup(
         return BackupTriggerResponse(
             status="failed",
             message="pg_dump not available in this environment",
+        )
+    except Exception as exc:
+        backup_path.unlink(missing_ok=True)
+        logger.exception("Backup trigger failed unexpectedly")
+        audit.log(
+            "admin.backup_trigger",
+            success=False,
+            ip_address=_get_client_ip(request),
+            details={"backup_type": body.backup_type, "error": str(exc)[:200]},
+        )
+        audit.db.commit()
+        return BackupTriggerResponse(
+            status="failed",
+            message=f"Backup failed: {exc!s}"[:200],
         )
 
     # Write metadata sidecar

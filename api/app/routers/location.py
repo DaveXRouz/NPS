@@ -117,10 +117,15 @@ def detect_location(request: Request):
             detail="Cannot detect location for local/test IP addresses",
         )
 
-    result = _svc.detect_location(ip)
+    try:
+        result = _svc.detect_location(ip)
+    except Exception:
+        logger.warning("IP geolocation failed for %s", ip)
+        result = None
+
     if result is None:
         raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail="External location service unavailable",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="IP geolocation service not available in this environment",
         )
     return LocationDetectResponse(**result)

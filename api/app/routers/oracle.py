@@ -192,7 +192,7 @@ def create_reading(
     response_model=QuestionReadingResponse,
     dependencies=[Depends(require_scope("oracle:write"))],
 )
-def create_question_sign(
+async def create_question_sign(
     body: QuestionReadingRequest,
     request: Request,
     _user: dict = Depends(get_current_user),
@@ -200,12 +200,25 @@ def create_question_sign(
     audit: AuditService = Depends(get_audit_service),
 ):
     """Question reading with numerological hashing and framework analysis."""
+    import asyncio
+
     try:
-        result = svc.get_question_reading_v2(
-            question=body.question,
-            user_id=body.user_id,
-            numerology_system=body.numerology_system,
-            include_ai=body.include_ai,
+        result = await asyncio.wait_for(
+            asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: svc.get_question_reading_v2(
+                    question=body.question,
+                    user_id=body.user_id,
+                    numerology_system=body.numerology_system,
+                    include_ai=body.include_ai,
+                ),
+            ),
+            timeout=15.0,
+        )
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="Question reading timed out — AI interpretation took too long",
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
@@ -234,7 +247,7 @@ def create_question_sign(
     response_model=NameReadingResponse,
     dependencies=[Depends(require_scope("oracle:write"))],
 )
-def create_name_reading(
+async def create_name_reading(
     body: NameReadingRequest,
     request: Request,
     _user: dict = Depends(get_current_user),
@@ -242,12 +255,25 @@ def create_name_reading(
     audit: AuditService = Depends(get_audit_service),
 ):
     """Name reading with framework numerology analysis."""
+    import asyncio
+
     try:
-        result = svc.get_name_reading_v2(
-            name=body.name,
-            user_id=body.user_id,
-            numerology_system=body.numerology_system,
-            include_ai=body.include_ai,
+        result = await asyncio.wait_for(
+            asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: svc.get_name_reading_v2(
+                    name=body.name,
+                    user_id=body.user_id,
+                    numerology_system=body.numerology_system,
+                    include_ai=body.include_ai,
+                ),
+            ),
+            timeout=15.0,
+        )
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="Name reading timed out — AI interpretation took too long",
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
@@ -547,6 +573,48 @@ async def create_framework_reading(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(exc),
         )
+
+
+# ─── Daily Reading Generation (POST) ─────────────────────────────────────────
+
+
+@router.post(
+    "/daily/reading",
+    dependencies=[Depends(require_scope("oracle:write"))],
+)
+async def create_daily_reading_endpoint(
+    request: Request,
+    _user: dict = Depends(get_current_user),
+    svc: OracleReadingService = Depends(get_oracle_reading_service),
+    audit: AuditService = Depends(get_audit_service),
+):
+    """Generate a daily reading for a user.
+
+    Delegates to the unified readings endpoint with reading_type='daily'.
+    """
+    body_raw = await request.json()
+    body_raw.setdefault("reading_type", "daily")
+    try:
+        body = DailyReadingRequest(**body_raw)
+        result = await svc.create_daily_reading(
+            user_id=body.user_id,
+            date_str=body.date,
+            locale=body.locale,
+            numerology_system=body.numerology_system,
+            force_regenerate=body.force_regenerate,
+        )
+        audit.log_reading_created(
+            result["id"],
+            "daily",
+            ip=_get_client_ip(request),
+            key_hash=_user.get("api_key_hash"),
+        )
+        svc.db.commit()
+        return FrameworkReadingResponse(**result)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
+    except ValidationError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
 
 
 # ─── Daily Reading Cache Endpoint (Session 16) ──────────────────────────────

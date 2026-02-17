@@ -3,7 +3,6 @@
 from datetime import datetime
 
 from sqlalchemy import BigInteger, Boolean, ForeignKey, String, func
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -16,7 +15,7 @@ class TelegramLink(Base):
     telegram_chat_id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False)
     telegram_username: Mapped[str | None] = mapped_column(String(100))
     user_id: Mapped[str] = mapped_column(
-        PG_UUID(as_uuid=False),
+        String(36),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )

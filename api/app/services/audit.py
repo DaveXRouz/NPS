@@ -1,10 +1,10 @@
 """Audit logging service for Oracle security events."""
 
-import json
 import logging
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends
+from sqlalchemy import String
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -40,7 +40,7 @@ class AuditService:
             success=success,
             ip_address=ip_address,
             api_key_hash=api_key_hash,
-            details=json.dumps(details) if details else None,
+            details=details,
         )
         self.db.add(entry)
         return entry
@@ -480,7 +480,7 @@ class AuditService:
             search_pattern = f"%{search}%"
             query = query.filter(
                 OracleAuditLog.action.ilike(search_pattern)
-                | OracleAuditLog.details.ilike(search_pattern)
+                | OracleAuditLog.details.cast(String).ilike(search_pattern)
             )
         total = query.count()
         entries = query.order_by(OracleAuditLog.timestamp.desc()).offset(offset).limit(limit).all()

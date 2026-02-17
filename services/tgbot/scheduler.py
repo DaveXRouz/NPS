@@ -90,8 +90,15 @@ class DailyScheduler:
         """Query pending users and deliver daily insights."""
         client = await self._get_client()
         resp = await client.get("/telegram/daily/pending")
+        if resp.status_code == 401:
+            logger.error(
+                "Scheduler auth failed (401). Check TELEGRAM_BOT_SERVICE_KEY / API_SECRET_KEY"
+            )
+            return
         if resp.status_code != 200:
-            logger.warning("Pending API returned %d", resp.status_code)
+            logger.warning(
+                "Pending API returned %d: %s", resp.status_code, resp.text[:200]
+            )
             return
 
         pending = resp.json()

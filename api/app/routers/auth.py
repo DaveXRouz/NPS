@@ -325,12 +325,15 @@ def create_api_key(
     if request_body.expires_in_days:
         expires_at = datetime.now(timezone.utc) + timedelta(days=request_body.expires_in_days)
 
+    # Ensure scopes is always a proper list (never string or None)
+    scopes = request_body.scopes if isinstance(request_body.scopes, list) else []
+
     api_key = APIKey(
         id=key_id,
         user_id=user.get("user_id"),
         key_hash=key_hash,
         name=request_body.name,
-        scopes=request_body.scopes or [],
+        scopes=scopes if scopes else None,
         expires_at=expires_at,
     )
     db.add(api_key)

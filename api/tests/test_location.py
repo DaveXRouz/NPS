@@ -210,7 +210,7 @@ async def test_detect_ipapi_error_502(client):
         MockClient.return_value = mock_client_instance
 
         resp = await client.get(DETECT_URL)
-        assert resp.status_code == 502
+        assert resp.status_code == 503
 
 
 @pytest.mark.asyncio

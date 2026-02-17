@@ -1,9 +1,9 @@
 """Pydantic models for audit log endpoints."""
 
-import json
 from datetime import datetime
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict
 
 
 class AuditLogEntry(BaseModel):
@@ -18,15 +18,7 @@ class AuditLogEntry(BaseModel):
     success: bool = True
     ip_address: str | None = None
     api_key_hash: str | None = None
-    details: str | None = None
-
-    @field_validator("details", mode="before")
-    @classmethod
-    def coerce_details(cls, v):
-        """Handle JSONB columns returning Python dicts from PostgreSQL."""
-        if isinstance(v, dict):
-            return json.dumps(v)
-        return v
+    details: dict[str, Any] | None = None
 
 
 class AuditLogResponse(BaseModel):

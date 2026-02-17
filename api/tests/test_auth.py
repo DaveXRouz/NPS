@@ -513,7 +513,7 @@ def test_audit_log_auth_register(db):
     db.commit()
     assert entry.action == "auth.register"
     assert entry.success is True
-    assert '"role": "user"' in entry.details
+    assert entry.details["role"] == "user"
 
 
 def test_audit_log_auth_token_refresh(db):

@@ -11,6 +11,24 @@ import {
   useDailyReading,
 } from "@/hooks/useDashboard";
 
+interface DailyInsight {
+  date: string;
+  summary: string;
+  fc60_stamp?: string;
+  advice?: string[];
+}
+
+function parseDailyInsight(raw: unknown): DailyInsight | null {
+  if (!raw || typeof raw !== "object") return null;
+  const obj = raw as Record<string, unknown>;
+  return {
+    date: String(obj.date ?? ""),
+    summary: String(obj.summary ?? ""),
+    fc60_stamp: typeof obj.fc60_stamp === "string" ? obj.fc60_stamp : undefined,
+    advice: Array.isArray(obj.advice) ? (obj.advice as string[]) : undefined,
+  };
+}
+
 export default function Dashboard() {
   const { t } = useTranslation();
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
@@ -30,22 +48,7 @@ export default function Dashboard() {
       </FadeIn>
       <FadeIn delay={80}>
         <DailyReadingCard
-          dailyReading={
-            daily
-              ? {
-                  date: String((daily as Record<string, unknown>).date ?? ""),
-                  summary: String(
-                    (daily as Record<string, unknown>).summary ?? "",
-                  ),
-                  fc60_stamp: (daily as Record<string, unknown>).fc60_stamp as
-                    | string
-                    | undefined,
-                  advice: (daily as Record<string, unknown>).advice as
-                    | string[]
-                    | undefined,
-                }
-              : null
-          }
+          dailyReading={parseDailyInsight(daily)}
           isLoading={dailyLoading}
           isError={dailyError}
           onRetry={() => retryDaily()}

@@ -10,6 +10,13 @@ VALID_SETTING_KEYS = {
     "timezone",
     "numerology_system",
     "auto_daily",
+    "notifications_enabled",
+    "daily_delivery_time",
+    "reading_history_visible",
+    "share_enabled",
+    "dark_mode",
+    "font_size",
+    "sound_enabled",
 }
 
 
@@ -18,4 +25,4 @@ class SettingsResponse(BaseModel):
 
 
 class SettingsBulkUpdate(BaseModel):
-    settings: dict[str, str]
+    settings: dict[str, str | bool | int | float]

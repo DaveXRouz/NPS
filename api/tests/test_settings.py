@@ -1,80 +1,93 @@
 """Tests for user settings endpoints."""
 
-from fastapi.testclient import TestClient
+import pytest
+from httpx import ASGITransport, AsyncClient
 
+from app.database import get_db
 from app.main import app
-
-client = TestClient(app)
-
-
-def _auth_headers() -> dict[str, str]:
-    """Get auth headers — login or use legacy key."""
-    from app.config import settings as app_settings
-
-    return {"Authorization": f"Bearer {app_settings.api_secret_key}"}
+from app.middleware.auth import get_current_user
+from app.services.security import get_encryption_service
+from tests.conftest import (
+    override_get_current_user,
+    override_get_db,
+    override_get_encryption_service,
+)
 
 
-def test_get_settings_empty():
+@pytest.fixture
+async def settings_client():
+    """Authenticated admin client for settings tests."""
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_encryption_service] = override_get_encryption_service
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        yield ac
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.anyio
+async def test_get_settings_empty(settings_client):
     """GET /settings returns a dict (possibly empty) for auth user."""
-    resp = client.get("/api/settings", headers=_auth_headers())
+    resp = await settings_client.get("/api/settings")
     assert resp.status_code == 200
     data = resp.json()
     assert "settings" in data
     assert isinstance(data["settings"], dict)
 
 
-def test_update_settings():
+@pytest.mark.anyio
+async def test_update_settings(settings_client):
     """PUT /settings with valid keys saves and returns updated dict."""
-    resp = client.put(
+    resp = await settings_client.put(
         "/api/settings",
-        headers=_auth_headers(),
         json={"settings": {"locale": "fa", "theme": "dark"}},
     )
-    # Legacy auth has user_id=None, which may cause 401
-    # Accept both 200 (success) and 401 (no user_id for legacy auth)
-    if resp.status_code == 200:
-        data = resp.json()["settings"]
-        assert data["locale"] == "fa"
-        assert data["theme"] == "dark"
-    else:
-        assert resp.status_code == 401
+    assert resp.status_code == 200
+    data = resp.json()["settings"]
+    assert data["locale"] == "fa"
+    assert data["theme"] == "dark"
 
 
-def test_get_settings_after_update():
+@pytest.mark.anyio
+async def test_get_settings_after_update(settings_client):
     """GET /settings returns previously saved values if user_id exists."""
-    resp = client.get("/api/settings", headers=_auth_headers())
+    # Update first
+    await settings_client.put(
+        "/api/settings",
+        json={"settings": {"locale": "en"}},
+    )
+    # Then get
+    resp = await settings_client.get("/api/settings")
     assert resp.status_code == 200
     data = resp.json()
     assert isinstance(data["settings"], dict)
+    assert data["settings"]["locale"] == "en"
 
 
-def test_invalid_setting_key():
-    """PUT /settings with unknown key returns 400 or 401."""
-    resp = client.put(
+@pytest.mark.anyio
+async def test_invalid_setting_key(settings_client):
+    """PUT /settings with unknown key returns 400."""
+    resp = await settings_client.put(
         "/api/settings",
-        headers=_auth_headers(),
         json={"settings": {"bad_key": "value"}},
     )
-    # 400 if key validation runs, 401 if legacy auth blocks first
-    assert resp.status_code in (400, 401)
+    assert resp.status_code == 400
 
 
-def test_upsert_settings():
+@pytest.mark.anyio
+async def test_upsert_settings(settings_client):
     """PUT /settings updates existing key without creating duplicate."""
-    headers = _auth_headers()
     # First update
-    resp1 = client.put(
+    resp1 = await settings_client.put(
         "/api/settings",
-        headers=headers,
         json={"settings": {"locale": "en"}},
     )
+    assert resp1.status_code == 200
+
     # Second update same key
-    resp2 = client.put(
+    resp2 = await settings_client.put(
         "/api/settings",
-        headers=headers,
         json={"settings": {"locale": "fa"}},
     )
-    # Both should succeed or both fail for same reason
-    assert resp1.status_code == resp2.status_code
-    if resp2.status_code == 200:
-        assert resp2.json()["settings"]["locale"] == "fa"
+    assert resp2.status_code == 200
+    assert resp2.json()["settings"]["locale"] == "fa"

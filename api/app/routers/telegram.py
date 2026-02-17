@@ -451,7 +451,7 @@ def create_audit_entry(
         success=body.success,
         ip_address="telegram",
         api_key_hash=user.get("api_key_hash"),
-        details=body.details,
+        details={"message": body.details} if body.details else None,
     )
     db.add(entry)
     db.commit()

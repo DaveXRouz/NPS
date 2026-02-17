@@ -35,7 +35,7 @@ def _seed_user_and_api_key(db) -> None:
     db.execute(
         text(
             "INSERT INTO api_keys (id, user_id, key_hash, name, scopes, rate_limit, is_active) "
-            "VALUES (:kid, :uid, :khash, 'telegram-test', '', 60, 1)"
+            "VALUES (:kid, :uid, :khash, 'telegram-test', '[]', 60, 1)"
         ),
         {"kid": "apikey-tg-001", "uid": TEST_USER_ID, "khash": TEST_KEY_HASH},
     )
@@ -54,7 +54,7 @@ def _seed_inactive_user_and_key(db) -> None:
     db.execute(
         text(
             "INSERT INTO api_keys (id, user_id, key_hash, name, scopes, rate_limit, is_active) "
-            "VALUES (:kid, :uid, :khash, 'inactive-test', '', 60, 1)"
+            "VALUES (:kid, :uid, :khash, 'inactive-test', '[]', 60, 1)"
         ),
         {
             "kid": "apikey-tg-002",

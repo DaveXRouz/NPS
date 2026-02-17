@@ -45,6 +45,9 @@ async def update_settings(
                 detail=f"Invalid setting key: {key}",
             )
 
+        # Coerce all values to string for storage
+        str_value = str(value) if not isinstance(value, str) else value
+
         existing = (
             db.query(UserSettings)
             .filter(
@@ -55,9 +58,9 @@ async def update_settings(
         )
 
         if existing:
-            existing.setting_value = value
+            existing.setting_value = str_value
         else:
-            db.add(UserSettings(user_id=user_id, setting_key=key, setting_value=value))
+            db.add(UserSettings(user_id=user_id, setting_key=key, setting_value=str_value))
 
     db.commit()
     rows = db.query(UserSettings).filter(UserSettings.user_id == user_id).all()

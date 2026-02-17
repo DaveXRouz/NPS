@@ -20,12 +20,51 @@ if _ORACLE_PARENT_DIR not in sys.path:
 if _ORACLE_SERVICE_DIR not in sys.path:
     sys.path.insert(0, _ORACLE_SERVICE_DIR)
 
-from engines.translation_service import (  # noqa: E402
-    batch_translate as _batch_translate,
-    detect_language as _detect,
-    translate as _translate,
-    translate_reading as _translate_reading,
-)
+_TRANSLATION_AVAILABLE = False
+try:
+    from engines.translation_service import (  # noqa: E402
+        batch_translate as _batch_translate,
+        detect_language as _detect,
+        translate as _translate,
+        translate_reading as _translate_reading,
+    )
+
+    _TRANSLATION_AVAILABLE = True
+except ImportError as _err:
+    logger.warning("Translation engines not available (%s) — passthrough mode", _err)
+
+    class _PassthroughResult:
+        """Stub result when translation engines are unavailable."""
+
+        def __init__(self, text: str, source_lang: str, target_lang: str):
+            self._text = text
+            self._source = source_lang
+            self._target = target_lang
+
+        def to_dict(self) -> dict:
+            return {
+                "source_text": self._text,
+                "translated_text": self._text,
+                "source_lang": self._source,
+                "target_lang": self._target,
+                "preserved_terms": [],
+                "ai_generated": False,
+            }
+
+    def _translate(text: str, source_lang: str = "en", target_lang: str = "fa"):  # type: ignore[misc]
+        return _PassthroughResult(text, source_lang, target_lang)
+
+    def _translate_reading(
+        text: str, reading_type: str, source_lang: str = "en", target_lang: str = "fa"
+    ):  # type: ignore[misc]
+        return _PassthroughResult(text, source_lang, target_lang)
+
+    def _batch_translate(texts: list, source_lang: str = "en", target_lang: str = "fa"):  # type: ignore[misc]
+        return [_PassthroughResult(t, source_lang, target_lang) for t in texts]
+
+    def _detect(text: str) -> str:  # type: ignore[misc]
+        return "en"
+
 
 # ─── Module-level cache ─────────────────────────────────────────────────────
 

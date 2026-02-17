@@ -22,6 +22,7 @@ export function SettingsSection({
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-4 text-start hover:bg-nps-bg-card/80 transition-colors"
         aria-expanded={isOpen}
+        aria-label={`${title} section`}
       >
         <div>
           <h3 className="text-sm font-semibold text-nps-text-bright">
