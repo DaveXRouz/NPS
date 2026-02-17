@@ -401,7 +401,7 @@ CREATE INDEX IF NOT EXISTS idx_oracle_daily_readings_user_date
 CREATE INDEX IF NOT EXISTS idx_oracle_daily_readings_date
     ON oracle_daily_readings(reading_date DESC);
 CREATE INDEX IF NOT EXISTS idx_oracle_daily_readings_result_gin
-    ON oracle_daily_readings(reading_result) USING GIN;
+    ON oracle_daily_readings USING GIN (reading_result);
 
 -- ─── Oracle Readings: numerology_system index ───
 
