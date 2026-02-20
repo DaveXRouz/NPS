@@ -14,7 +14,8 @@ export default {
             input: "var(--nps-bg-input)",
             hover: "var(--nps-bg-hover)",
             sidebar: "var(--nps-bg-sidebar)",
-            button: "#1f6feb",
+            elevated: "var(--nps-bg-hover)",
+            button: "var(--nps-accent)",
             danger: "#da3633",
             success: "#238636",
           },
@@ -39,6 +40,12 @@ export default {
             high: "#238636",
             peak: "#d4a017",
           },
+          stat: {
+            readings: "#4fc3f7",
+            confidence: "#10b981",
+            type: "#a78bfa",
+            streak: "#f8b400",
+          },
           ai: {
             bg: "#1a1033",
             border: "#7c3aed",
@@ -53,7 +60,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["Inter", "Segoe UI", "Helvetica", "sans-serif"],
+        sans: ['"Lora"', '"Georgia"', "serif"],
+        display: ['"Cinzel Decorative"', "serif"],
         mono: ["JetBrains Mono", "Consolas", "Courier", "monospace"],
       },
       ringColor: {
@@ -69,6 +77,10 @@ export default {
         shimmer: "shimmer 1.5s ease-in-out infinite",
         "nps-fade-in": "nps-fade-in 0.3s ease-out forwards",
         "nps-pulse-glow": "nps-pulse-glow 2s ease-in-out infinite",
+        "nps-rise-in": "nps-rise-in 0.6s cubic-bezier(0.16,1,0.3,1) forwards",
+        "nps-glimmer": "nps-glimmer 2.5s ease-in-out infinite",
+        "nps-ring-pulse": "nps-ring-pulse 2s ease-out infinite",
+        "nps-orbit-slow": "nps-orbit-slow 20s linear infinite",
       },
       keyframes: {
         "nps-fade-in": {
@@ -94,6 +106,24 @@ export default {
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
+        },
+        "nps-rise-in": {
+          from: { opacity: "0", transform: "translateY(24px) scale(0.96)" },
+          to: { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        "nps-glimmer": {
+          "0%, 100%": { opacity: "0.4" },
+          "50%": { opacity: "1" },
+        },
+        "nps-ring-pulse": {
+          from: { boxShadow: "0 0 0 0 var(--nps-accent)", opacity: "1" },
+          to: { boxShadow: "0 0 0 12px transparent", opacity: "0" },
+        },
+        "nps-orbit-slow": {
+          from: { transform: "rotate(0deg) translateX(80px) rotate(0deg)" },
+          to: {
+            transform: "rotate(360deg) translateX(80px) rotate(-360deg)",
+          },
         },
       },
     },

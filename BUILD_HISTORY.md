@@ -1,7 +1,7 @@
 # NPS Build History
 
 > Combined development log: changelog, session tracker, and builder report references.
-> Last updated: 2026-02-20
+> Last updated: 2026-02-21
 
 ---
 
@@ -14,6 +14,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+
+- Premium typography system: Cinzel Decorative (display) + Lora (body) via Google Fonts
+- 5-tier background depth system with CSS variables (`--nps-bg-void` through `--nps-bg-overlay`)
+- Glassmorphism tokens: blur tiers, glass backgrounds, glass borders, glass shine gradient
+- Glow system: 4 sizes (`--nps-glow-xs/sm/md/lg`) + oracle-specific glow tokens
+- 5 gradient tokens: oracle, hero, accent-horizontal, gold
+- Ambient background with 3 radial-gradient orbs + fixed attachment
+- 7 new CSS animation keyframes + utility classes
+- `usePageTitle` hook — sets browser tab title per page
+- `ScrollToTop` component — resets scroll on route change
+- Dashboard: moon phase data, username display, error state with retry for RecentReadings
+- Required field indicators (red asterisk + legend) on Oracle UserForm
+- CalendarPicker mode persistence via localStorage
+- Accessibility: `aria-describedby`, `role="alert"`, decorative SVG hiding, disabled nav ARIA
+- Elevated + stat color tokens in Tailwind config
+- Per-stat CSS accent variables, font CSS variables
+- `prefers-reduced-motion` global catch-all
+
+### Changed
+
+- Body font from Inter to Lora serif (Vazirmatn preserved for RTL)
+- Button token: hardcoded `#1f6feb` → `var(--nps-accent)`
+- MobileNav drawer: Tailwind RTL variants → JS-controlled `isRTL` (fixes flash)
+- Persian name inputs: `dir="rtl"` → `dir="auto"`
+- Export button label: "Export TXT" → "Export & Share"
+- OracleSettingsSection toggle knob: `bg-white` → `bg-nps-text-bright`
+
+### Removed
+
+- Mood selector from QuestionReadingForm (was frontend-only placeholder)
+
+### Security
+
+- Legacy API key auth: constant-time `hmac.compare_digest()`, scope restricted (no admin)
+- Rate limiter: `threading.Lock()` for thread safety
+- CORS: restricted to explicit methods/headers
+- Oracle router: user_id from auth token (was hardcoded None), ownership checks on delete/favorite/list
+- Share link revocation + Telegram unlink: ownership checks added
+- Learning router: auth dependency + user_id from token on all 6 endpoints
+- Frontend: guard against `"Bearer undefined"` when no token
+- UTC offset: `.seconds` → `.total_seconds()` for negative timezones
+- Daily cache insert: `db.begin_nested()` savepoint for race conditions
+- Bare `except` → `except ValueError` in `_parse_datetime`
+- Password-change audit event corrected, role validation added
+
+### Fixed
+
+- 51 issues from ISSUES.md resolved (Improvement Session 1)
+- WISHLIST Phases 1-3 completed (Typography, Color Depth, Ambient Background)
 
 - Legacy file migration: all engines, solvers, logic modules copied to Oracle service
 - Legacy reference files for Rust scanner (crypto, keccak, bip39, balance)
@@ -53,11 +102,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## Project State Summary
 
-**Plan:** 45-session Oracle rebuild (hybrid approach)
-**Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** 45 of 45 (COMPLETE)
-**Last session:** Full Audit Fix — 8 bugs resolved (API key 500, Telegram bot URL, healthchecks, scheduler backoff, import paths)
-**Current block:** Testing & Deployment (Sessions 41-45) — COMPLETE
+**Plan:** 45-session Oracle rebuild (hybrid approach) + 3-session improvement plan
+**Strategy:** Keep infrastructure, rewrite Oracle logic → polish & harden
+**Sessions completed:** 45 of 45 (COMPLETE) + Improvement Session 1 of 3
+**Last session:** Improvement Session 1 — 51 issues fixed, WISHLIST Phases 1-3 complete
+**Current block:** Improvement Plan Session 2 (Phases 4-6, ~50 more issues)
 
 ---
 
@@ -2717,6 +2766,57 @@ The custom Docker image PostgreSQL service (created via `serviceCreate` API) doe
 
 ---
 
+## Improvement Session 1 — 2026-02-21
+
+**Terminal:** SINGLE (across 3 context windows)
+**Block:** Polish & Hardening — Session 1 of 3
+**Task:** 51 issues from ISSUES.md + WISHLIST Phases 1-3 (Typography, Color Depth, Ambient Background)
+**Plan:** `.claude/plans/calm-jumping-oasis.md`
+
+**Summary:**
+
+Three-phase improvement covering CSS/theme foundation (Phase A), backend security hardening (Phase B), and frontend RTL/accessibility/dashboard/UX (Phase C). All 51 issues resolved, 3 WISHLIST design phases completed.
+
+**Phase A — CSS/Theme Foundation (10 issues):**
+
+- Tailwind config: added `elevated` token, fixed `button` to use `var(--nps-accent)`, added stat colors, updated fontFamily to Lora/Cinzel, added 4 new keyframes+animations
+- Theme CSS: 5-tier depth system, glassmorphism tokens, glow system, gradient palette, ambient orb colors, per-stat accents, font tokens, glass shine gradient
+- Google Fonts: Cinzel Decorative + Lora import in `index.html`
+- Global CSS: Lora body font, ambient 3-orb background, selection styling, thin scrollbar, glow focus ring, reduced-motion catch-all, animation token fix
+- Animations CSS: duration/easing variables, 5 new keyframes, 4 utility classes
+- OracleSettingsSection: `bg-white` → `bg-nps-text-bright` toggle knob
+- AdminMonitoring: CSS variable class fix + test update
+
+**Phase B — Backend Security (21 issues):**
+
+- Config: postgres_password default `""` + startup validation, CORS restricted methods/headers
+- Auth: `hmac.compare_digest()` for legacy auth, restricted legacy scope, thread-safe rate limiter
+- Oracle router: user_id from auth (not None), ownership checks on delete/favorite, filtered list by user
+- Share router: ownership check on revoke
+- Telegram router: ownership on unlink, filtered reading count
+- Learning router: auth on all 6 endpoints, user_id from token
+- Auth router: audit event fix (`"password_change"`)
+- Users router: role validation
+- Oracle reading service: UTC offset `.total_seconds()`, savepoint for daily cache, `except ValueError`
+- Frontend: guard against `"Bearer undefined"`
+
+**Phase C — Frontend RTL/A11y/Dashboard/UX (20 issues):**
+
+- Dashboard: moon phase prop, username from localStorage, error state for RecentReadings
+- RTL: MobileNav JS-controlled transform, `dir="auto"` on Persian inputs, `useDirection()` hook, gap-2 for BackupManager, i18n for LogViewer
+- Accessibility: icon button aria-labels, decorative SVG hiding, aria-describedby on errors, disabled nav as focusable buttons
+- UX: `usePageTitle` hook, `ScrollToTop` component, required field indicators, CalendarPicker mode persistence, removed mood selector, export label change
+
+**Files modified:** ~50 files across `frontend/`, `api/`, locale files, CSS, Tailwind config, index.html
+**Files created:** 2 (`usePageTitle.ts`, `ScrollToTop.tsx`)
+
+**Tests:** 581 API pass / 676 frontend pass (1 pre-existing Toast failure) / 0 new failures introduced
+**Issues:** 51 marked FIXED in ISSUES.md. WISHLIST Phases 1-3 marked COMPLETE.
+
+**Next:** Improvement Session 2 — WISHLIST Phases 4-6 (Glassmorphism, Animation Upgrade, Component Transformations) + ~50 more issues
+
+---
+
 ## Cross-Terminal Dependencies
 
 > Only used in multi-terminal mode. Track what each terminal needs from others.
@@ -2741,10 +2841,10 @@ The custom Docker image PostgreSQL service (created via `serviceCreate` API) doe
 
 Detailed reports from each build phase are stored in `docs/`:
 
-| Report | Sessions | Location |
-|--------|----------|----------|
+| Report                | Sessions                    | Location                               |
+| --------------------- | --------------------------- | -------------------------------------- |
 | Master Builder Part 1 | Sessions 1-16 (scaffolding) | `docs/MASTER_BUILDER_PART_1_REPORT.md` |
-| Senior Builder 1 | Sessions 20-25 | `docs/SENIOR_BUILDER_1_REPORT.md` |
-| Senior Builder 2 | Sessions 26-31 | `docs/SENIOR_BUILDER_2_REPORT.md` |
-| Senior Builder 3 | Sessions 32-37 | `docs/SENIOR_BUILDER_3_REPORT.md` |
-| Senior Builder 4 | Sessions 38-40 | `docs/SENIOR_BUILDER_4_REPORT.md` |
+| Senior Builder 1      | Sessions 20-25              | `docs/SENIOR_BUILDER_1_REPORT.md`      |
+| Senior Builder 2      | Sessions 26-31              | `docs/SENIOR_BUILDER_2_REPORT.md`      |
+| Senior Builder 3      | Sessions 32-37              | `docs/SENIOR_BUILDER_3_REPORT.md`      |
+| Senior Builder 4      | Sessions 38-40              | `docs/SENIOR_BUILDER_4_REPORT.md`      |

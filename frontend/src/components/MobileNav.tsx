@@ -69,7 +69,9 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         } ${
           isOpen
             ? "translate-x-0"
-            : "ltr:-translate-x-full rtl:translate-x-full"
+            : isRTL
+              ? "translate-x-full"
+              : "-translate-x-full"
         }`}
       >
         {/* Header */}
@@ -101,13 +103,15 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
           {NAV_ITEMS.map((item) => {
             if (item.disabled) {
               return (
-                <div
+                <button
                   key={item.path}
-                  className="flex items-center gap-3 px-4 py-3 mx-2 rounded text-sm text-[var(--nps-text-dim)] cursor-not-allowed opacity-50 min-h-[44px]"
-                  title={t("layout.coming_soon")}
+                  disabled
+                  aria-disabled="true"
+                  aria-label={`${t(item.labelKey)} — ${t("layout.coming_soon")}`}
+                  className="flex items-center gap-3 px-4 py-3 mx-2 rounded text-sm text-[var(--nps-text-dim)] cursor-not-allowed opacity-50 min-h-[44px] w-full text-start"
                 >
                   <span>{t(item.labelKey)}</span>
-                </div>
+                </button>
               );
             }
 

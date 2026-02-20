@@ -49,7 +49,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   // Auth token: JWT from localStorage or fallback to API key from env
   const token =
     localStorage.getItem("nps_token") || import.meta.env.VITE_API_KEY;
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (token && token !== "undefined")
+    headers["Authorization"] = `Bearer ${token}`;
 
   let response: Response;
   try {

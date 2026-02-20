@@ -56,7 +56,9 @@
     "type_reading": "خوانش",
     "type_multi_user": "چندکاربره",
     "moon_phase": "فاز ماه",
-    "moon_illumination": "{{percent}}٪ روشنایی"
+    "moon_illumination": "{{percent}}٪ روشنایی",
+    "recent_error": "خطا در بارگذاری خوانش‌های اخیر.",
+    "confidence": "اطمینان"
   },
   "oracle": {
     "title": "اوراکل",
@@ -90,6 +92,7 @@
     "field_city": "شهر",
     "field_timezone": "منطقه زمانی",
     "gender_unset": "ترجیح می‌دهم نگویم",
+    "required_fields": "فیلدهای الزامی",
     "section_identity": "هویت",
     "section_family": "خانواده",
     "section_location": "موقعیت مکانی",
@@ -243,6 +246,7 @@
     "stats_total": "{{count}} کل",
     "stats_favorites": "{{count}} مورد علاقه",
     "page_indicator": "{{current}} / {{total}}",
+    "export_and_share": "خروجی و اشتراک",
     "export_text": "خروجی TXT",
     "export_pdf": "خروجی PDF",
     "export_image": "خروجی تصویر",
@@ -850,7 +854,8 @@
     "backup_confirm_restore": "این عمل پایگاه داده فعلی را با پشتیبان انتخاب‌شده جایگزین می‌کند. این عمل قابل بازگشت نیست.",
     "backup_confirm_restore_type": "برای تایید RESTORE را تایپ کنید:",
     "backup_confirm_delete": "آیا مطمئن هستید که می‌خواهید این پشتیبان را حذف کنید؟ این عمل قابل بازگشت نیست.",
-    "no_backups": "پشتیبانی یافت نشد"
+    "no_backups": "پشتیبانی یافت نشد",
+    "log_no_entries": "هیچ رکورد لاگی یافت نشد."
   },
   "history_page": {
     "coming_soon": "صفحه تاریخچه خوانش در جلسه ۲۱."

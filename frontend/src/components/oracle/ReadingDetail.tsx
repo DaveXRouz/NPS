@@ -34,6 +34,7 @@ export function ReadingDetail({
             type="button"
             onClick={() => onToggleFavorite(reading.id)}
             className="text-base transition-all duration-200 hover:scale-110 hover:text-amber-400"
+            aria-label={t("oracle.toggle_favorite")}
             title={t("oracle.toggle_favorite")}
           >
             <Star

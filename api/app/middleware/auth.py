@@ -1,6 +1,7 @@
 """Authentication middleware — JWT verification, API key validation, token blacklist."""
 
 import hashlib
+import hmac
 import logging
 import secrets
 import threading
@@ -87,6 +88,10 @@ class _TokenBlacklist:
 
     Mirrors the in-memory pattern used by rate_limit.py.
     Tokens auto-expire from the blacklist when their JWT expiry passes.
+
+    TODO: Migrate to Redis for persistence across restarts and multi-process
+    deployments (Session 2). Current in-memory store means blacklisted tokens
+    are forgotten on server restart.
     """
 
     def __init__(self) -> None:
@@ -241,12 +246,13 @@ async def get_current_user(
         return user_ctx
 
     # Fallback: check against legacy api_secret_key for backward compat
-    if token == settings.api_secret_key:
+    # Uses constant-time comparison to prevent timing attacks (Issue #92)
+    if hmac.compare_digest(token, settings.api_secret_key):
         return {
             "user_id": None,
             "username": "legacy",
-            "role": "admin",
-            "scopes": _role_to_scopes("admin"),
+            "role": "user",
+            "scopes": ["oracle:write", "oracle:read"],
             "auth_type": "legacy",
             "api_key_hash": None,
             "rate_limit": None,

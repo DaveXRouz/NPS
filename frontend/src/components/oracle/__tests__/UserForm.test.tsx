@@ -286,7 +286,7 @@ describe("UserForm", () => {
       <UserForm user={existingUser} onSubmit={vi.fn()} onCancel={vi.fn()} />,
     );
     const persianInput = screen.getByDisplayValue("\u0622\u0644\u06CC\u0633");
-    expect(persianInput).toHaveAttribute("dir", "rtl");
+    expect(persianInput).toHaveAttribute("dir", "auto");
   });
 
   it("clears validation error on field change", async () => {
@@ -436,7 +436,7 @@ describe("UserForm", () => {
     // The character should be appended to the name_persian field
     const persianInputs = screen
       .getAllByRole("textbox")
-      .filter((el) => el.getAttribute("dir") === "rtl");
+      .filter((el) => el.getAttribute("dir") === "auto");
     expect(persianInputs[0]).toHaveValue("\u0633");
   });
 

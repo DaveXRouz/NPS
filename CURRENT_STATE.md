@@ -1,6 +1,6 @@
 # CURRENT STATE — Full NPS Project Audit
 
-> Single source of truth + complete reference map. Last updated: 2026-02-20.
+> Single source of truth + complete reference map. Last updated: 2026-02-21.
 > Do NOT modify this file casually — update it intentionally when project state changes.
 
 ---
@@ -15,7 +15,7 @@
 | Live URL | https://web-production-a5179.up.railway.app                                                                     |
 | Purpose  | Bitcoin wallet hunting via Oracle numerology/AI analysis                                                        |
 | Stack    | React + TypeScript + Tailwind \| FastAPI + Python \| PostgreSQL + Redis \| gRPC Oracle \| Docker (9 containers) |
-| Status   | All 45 development sessions complete. Deployed on Railway.                                                      |
+| Status   | 45 dev sessions + Improvement Session 1/3 complete. Deployed on Railway.                                        |
 
 ---
 
@@ -45,8 +45,8 @@
 | Database (PostgreSQL) | 13 tables, 21 migrations, idempotent init.sql              | Complete |
 | Infrastructure        | Docker Compose 9 containers, Nginx, Prometheus             | Complete |
 | Deployment            | Railway: web service + managed PostgreSQL                  | Live     |
-| Tests                 | 200+ across all layers (Vitest, Playwright, Pytest)        | Passing  |
-| Security              | AES-256-GCM, JWT, API keys, security headers middleware    | Hardened |
+| Tests                 | 1250+ across all layers (Vitest, Playwright, Pytest)       | Passing  |
+| Security              | AES-256-GCM, JWT, API keys, security headers, ownership    | Hardened |
 | Redis                 | Not deployed — graceful in-memory fallback active          | Bypassed |
 | Oracle gRPC           | Not deployed on Railway — direct mode (legacy imports)     | Bypassed |
 | Telegram Bot          | Disabled — no bot token configured                         | Disabled |
@@ -57,12 +57,13 @@
 
 | Priority | Issue                                | Details                                                                                                                                                                            |
 | -------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| P0       | —                                    | No P0 issues. All critical bugs fixed as of 2026-02-20.                                                                                                                            |
+| P0       | —                                    | No P0 issues. 51 issues fixed in Improvement Session 1 (2026-02-21).                                                                                                               |
 | P1       | Oracle alerter container healthcheck | `docker-compose.yml:246` uses `pgrep -f oracle_alerts` — confirm `procps` package is in the Alpine Docker image. If missing, add `RUN apk add --no-cache procps`.                  |
 | P2       | IP location detection                | Endpoint at `api/app/routers/location.py:106-131` but external IP lookup unverified in production. Test `/api/location/detect` with a real public IP.                              |
 | P3       | Translation engine is a passthrough  | `api/app/routers/translation.py` exists but no real translation backend is wired. Wire LibreTranslate, DeepL, or Anthropic-based translation if full Persian<>English is required. |
-| Info     | 3 AdminMonitoring test failures      | Tests check for `bg-blue-600` but component uses CSS variables now. Pre-existing, not caused by recent changes.                                                                    |
+| Info     | 1 pre-existing Toast test failure    | Frontend: 676/677 pass. Toast test is pre-existing, unrelated to recent changes.                                                                                                   |
 | Info     | Keys in git history                  | .env files are excluded via .gitignore. But ANTHROPIC_API_KEY, NPS_BOT_TOKEN, API_SECRET_KEY still in git HISTORY — need rotation.                                                 |
+| Info     | ~100 ISSUES.md items remaining       | Improvement Sessions 2-3 will cover WISHLIST Phases 4-9 + remaining issues.                                                                                                        |
 
 ---
 
@@ -70,11 +71,11 @@
 
 ### Key Stats
 
-- **85+ React components**, 10 pages, 18 custom hooks, 9 utilities
+- **85+ React components**, 10 pages, 20 custom hooks, 10 utilities
 - **i18n:** English + Persian (RTL), 2 locale files (~20KB each)
 - **Routing:** React Router v6, lazy-loaded, error-bounded
 - **State:** React Query (TanStack), no Redux
-- **Tests:** 70+ unit (Vitest) + 14 E2E suites (Playwright)
+- **Tests:** 676 unit (Vitest) + 14 E2E suites (Playwright)
 
 ### Pages & Routes
 
@@ -105,11 +106,22 @@
 
 Nested under `nps.*` in `tailwind.config.ts`:
 
-- `nps.bg.*` (button, card, input, hover, sidebar, danger, success)
+- `nps.bg.*` (button, card, input, hover, sidebar, danger, success, elevated)
 - `nps.border`, `nps.text.*` (default, dim, bright)
 - `nps.accent.*`, `nps.error` (#f85149), `nps.warning`, `nps.success`
 - `nps.score.*` (low/mid/high/peak), `nps.ai.*`, `nps.oracle.*`
+- `nps.stat.*` (readings, confidence, type, streak)
 - Usage: `bg-nps-bg-button`, `text-nps-error` (NOT `bg-nps-button`)
+
+### CSS Design System (added in Improvement Session 1)
+
+- **Typography:** Cinzel Decorative (display), Lora (body), Vazirmatn (Persian RTL)
+- **Depth:** 5-tier backgrounds (`--nps-bg-void` through `--nps-bg-overlay`)
+- **Glass:** 3 blur/bg/border tiers + shine gradient
+- **Glow:** xs/sm/md/lg + oracle-specific glow tokens
+- **Gradients:** oracle, hero, accent-horizontal, gold
+- **Ambient:** 3 radial-gradient orbs with fixed attachment
+- **Animations:** rise-in, glimmer, cursor-blink, ring-pulse, orbit-slow
 
 ### Key Dependencies
 
@@ -299,26 +311,29 @@ frontend, api, oracle-service, postgres, redis, nginx, telegram-bot, oracle-aler
 
 | Layer         | Framework  | Count     | Location                                   |
 | ------------- | ---------- | --------- | ------------------------------------------ |
-| Frontend Unit | Vitest     | 70+       | `frontend/src/__tests__/` + component dirs |
+| Frontend Unit | Vitest     | 676       | `frontend/src/__tests__/` + component dirs |
 | Frontend E2E  | Playwright | 14 suites | `frontend/e2e/`                            |
-| API           | Pytest     | 50+       | `api/tests/`                               |
+| API           | Pytest     | 581       | `api/tests/`                               |
 | Oracle        | Pytest     | 17        | `services/oracle/oracle_service/tests/`    |
 | Integration   | Pytest     | 56+       | `integration/tests/`                       |
 | DevOps        | Pytest     | 28+       | `devops/tests/`                            |
 
 ### Known Test Issues
 
-- 3 AdminMonitoring tests check for `bg-blue-600` but component now uses CSS variables (pre-existing, not caused by recent changes)
+- 1 pre-existing Toast test failure in frontend (unrelated to recent changes)
 
 ---
 
 ## 11. Security Posture
 
 - **Encryption:** AES-256-GCM, `ENC4:` prefix, keys via env vars
-- **Auth:** JWT + API keys (SHA-256 hashed) + legacy Bearer token
-- **Audit:** All security events logged to `oracle_audit_log`
+- **Auth:** JWT + API keys (SHA-256 hashed) + legacy Bearer token (constant-time comparison)
+- **Legacy auth:** Restricted to `oracle:read` + `oracle:write` scopes (no admin access)
+- **Ownership:** Reading delete/favorite, share revoke, telegram unlink all check ownership
+- **Audit:** All security events logged to `oracle_audit_log` (password_change event corrected)
 - **Headers:** CSP, X-Frame-Options, HSTS via Nginx + middleware
-- **Rate limiting:** IP-based (API: 30r/s, Auth: 5r/s)
+- **Rate limiting:** IP-based (API: 30r/s, Auth: 5r/s), thread-safe sliding window
+- **CORS:** Restricted to explicit methods and headers
 - **.env not tracked** — .gitignore excludes both root and frontend .env
 - **Known issue:** Keys still in git HISTORY need rotation (ANTHROPIC_API_KEY, NPS_BOT_TOKEN, API_SECRET_KEY)
 

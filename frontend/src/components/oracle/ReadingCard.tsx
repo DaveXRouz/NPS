@@ -50,6 +50,7 @@ export function ReadingCard({
             onToggleFavorite(reading.id);
           }}
           className="text-xs opacity-60 hover:opacity-100 transition-opacity"
+          aria-label={t("oracle.toggle_favorite")}
           title={t("oracle.toggle_favorite")}
         >
           <Star
@@ -63,6 +64,7 @@ export function ReadingCard({
             onDelete(reading.id);
           }}
           className="text-sm text-[var(--nps-text-dim)] opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:text-red-400 transition-all duration-200"
+          aria-label={t("oracle.delete_reading")}
           title={t("oracle.delete_reading")}
         >
           &times;

@@ -30,9 +30,13 @@ export function CalendarPicker({
   label,
   error,
 }: CalendarPickerProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
-  const [mode, setMode] = useState<CalendarMode>("gregorian");
+  const [mode, setMode] = useState<CalendarMode>(() => {
+    const saved = localStorage.getItem("nps_calendar_mode");
+    if (saved === "gregorian" || saved === "jalaali") return saved;
+    return i18n.language === "fa" ? "jalaali" : "gregorian";
+  });
   const [viewMode, setViewMode] = useState<ViewMode>("days");
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -59,6 +63,11 @@ export function CalendarPicker({
   const minYear = mode === "jalaali" ? JALAALI_MIN_YEAR : GREGORIAN_MIN_YEAR;
   const maxYear =
     mode === "jalaali" ? currentJalaaliYear + 1 : currentGregorianYear + 1;
+
+  // Persist calendar mode preference
+  useEffect(() => {
+    localStorage.setItem("nps_calendar_mode", mode);
+  }, [mode]);
 
   // Reset view when mode changes
   useEffect(() => {
@@ -181,13 +190,21 @@ export function CalendarPicker({
   return (
     <div ref={containerRef} className="relative">
       {label && (
-        <label className="block text-sm text-nps-text-dim mb-1">{label}</label>
+        <label className="block text-sm text-nps-text-dim mb-1">
+          {label}
+          {error !== undefined && (
+            <span aria-hidden="true" className="text-nps-error ms-1">
+              *
+            </span>
+          )}
+        </label>
       )}
 
       {/* Display input */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
+        aria-describedby={error ? "calendar-error" : undefined}
         className={`w-full text-start bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
           error ? "border-nps-error" : "border-nps-border"
         }`}
@@ -195,7 +212,15 @@ export function CalendarPicker({
         {value ? formatDate(value, mode) : t("oracle.calendar_select_date")}
       </button>
 
-      {error && <p className="text-nps-error text-xs mt-1">{error}</p>}
+      {error && (
+        <p
+          id="calendar-error"
+          className="text-nps-error text-xs mt-1"
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
 
       {/* Dropdown calendar */}
       {isOpen && (

@@ -19,6 +19,7 @@ import {
   useDeleteOracleUser,
 } from "@/hooks/useOracleUsers";
 import { useReadingProgress } from "@/hooks/useReadingProgress";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import type {
   OracleUserCreate,
   SelectedUsers,
@@ -36,6 +37,7 @@ const VALID_TYPES: ReadingType[] = [
 
 export default function Oracle() {
   const { t } = useTranslation();
+  usePageTitle("oracle.title");
   const [searchParams, setSearchParams] = useSearchParams();
   const rawType = searchParams.get("type");
   const readingType: ReadingType = VALID_TYPES.includes(rawType as ReadingType)

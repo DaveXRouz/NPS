@@ -243,6 +243,21 @@ class AuditService:
             ip_address=ip,
         )
 
+    def log_auth_password_change(
+        self,
+        user_id: str,
+        *,
+        ip: str | None = None,
+        username: str | None = None,
+    ) -> OracleAuditLog:
+        """Log a password change."""
+        return self.log(
+            "auth.password_change",
+            resource_type="auth",
+            ip_address=ip,
+            details={"username": username},
+        )
+
     def log_auth_lockout(
         self,
         *,

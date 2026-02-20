@@ -1,6 +1,7 @@
 """Rate limiting middleware — in-memory sliding window."""
 
 import logging
+import threading
 import time
 from collections import defaultdict
 
@@ -30,6 +31,7 @@ class _SlidingWindow:
 
     def __init__(self):
         self._requests: dict[str, list[float]] = defaultdict(list)
+        self._lock = threading.Lock()
 
     def is_allowed(self, key: str, limit: int, window: int) -> tuple[bool, int, int]:
         """Check if request is allowed.
@@ -39,20 +41,21 @@ class _SlidingWindow:
         now = time.monotonic()
         cutoff = now - window
 
-        # Prune old entries
-        timestamps = self._requests[key]
-        self._requests[key] = [t for t in timestamps if t > cutoff]
-        timestamps = self._requests[key]
+        with self._lock:
+            # Prune old entries
+            timestamps = self._requests[key]
+            self._requests[key] = [t for t in timestamps if t > cutoff]
+            timestamps = self._requests[key]
 
-        remaining = max(0, limit - len(timestamps))
-        reset = int(window - (now - timestamps[0])) if timestamps else window
+            remaining = max(0, limit - len(timestamps))
+            reset = int(window - (now - timestamps[0])) if timestamps else window
 
-        if len(timestamps) >= limit:
-            return False, 0, reset
+            if len(timestamps) >= limit:
+                return False, 0, reset
 
-        self._requests[key].append(now)
-        remaining = max(0, limit - len(self._requests[key]))
-        return True, remaining, reset
+            self._requests[key].append(now)
+            remaining = max(0, limit - len(self._requests[key]))
+            return True, remaining, reset
 
 
 _limiter = _SlidingWindow()

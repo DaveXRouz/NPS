@@ -9,6 +9,7 @@ import { MobileNav } from "./MobileNav";
 import { SkipNavLink } from "./SkipNavLink";
 import { OfflineBanner } from "./common/OfflineBanner";
 import { ToastContainer } from "./common/Toast";
+import { ScrollToTop } from "./ScrollToTop";
 import { useWebSocketConnection } from "@/hooks/useWebSocket";
 
 export const Layout = React.memo(function Layout() {
@@ -28,6 +29,7 @@ export const Layout = React.memo(function Layout() {
 
   return (
     <>
+      <ScrollToTop />
       <OfflineBanner />
       <div className="flex min-h-screen bg-[var(--nps-bg)]">
         <SkipNavLink />

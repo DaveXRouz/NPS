@@ -127,6 +127,15 @@ def revoke_share_link(
     if not link:
         raise HTTPException(status_code=404, detail="Share link not found")
 
+    # Ownership check: only the creator or an admin can revoke
+    if link.created_by_user_id != _user.get("user_id") and "oracle:admin" not in _user.get(
+        "scopes", []
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot revoke another user's share link",
+        )
+
     link.is_active = False
     db.commit()
     return {"detail": "Share link revoked"}

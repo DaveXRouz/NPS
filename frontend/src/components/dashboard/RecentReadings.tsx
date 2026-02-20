@@ -7,6 +7,7 @@ interface RecentReadingsProps {
   isLoading: boolean;
   isError: boolean;
   total: number;
+  onRetry?: () => void;
 }
 
 const TYPE_COLORS: Record<string, string> = {
@@ -44,6 +45,7 @@ export function RecentReadings({
   isLoading,
   isError,
   total,
+  onRetry,
 }: RecentReadingsProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -70,7 +72,26 @@ export function RecentReadings({
     );
   }
 
-  if (isError) return null;
+  if (isError) {
+    return (
+      <div data-testid="recent-error">
+        <h2 className="text-lg font-semibold text-nps-text-bright mb-4">
+          {t("dashboard.recent_title")}
+        </h2>
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-nps-error/30 rounded-xl p-6 text-center">
+          <p className="text-nps-error mb-3">{t("dashboard.recent_error")}</p>
+          {onRetry && (
+            <button
+              onClick={onRetry}
+              className="px-4 py-2 text-sm rounded-lg bg-nps-bg-elevated text-nps-text hover:text-nps-text-bright transition-colors"
+            >
+              {t("common.retry")}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div data-testid="recent-readings">

@@ -363,7 +363,7 @@ describe("persian accessibility", () => {
     render(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
     const persianInput = screen.getByLabelText("Persian Name");
     expect(persianInput.getAttribute("lang")).toBe("fa");
-    expect(persianInput.getAttribute("dir")).toBe("rtl");
+    expect(persianInput.getAttribute("dir")).toBe("auto");
   });
 
   it("E4: LanguageToggle has role=switch and aria-checked", () => {

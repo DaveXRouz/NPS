@@ -114,7 +114,21 @@ def get_telegram_status(
         return TelegramUserStatus(linked=False)
 
     profile_count = db.query(OracleUser).filter(OracleUser.created_by == link.user_id).count()
-    reading_count = db.query(OracleReading).filter(OracleReading.user_id.isnot(None)).count()
+    # Count readings owned by oracle users created by this linked user
+    user_oracle_ids = [
+        uid
+        for (uid,) in db.query(OracleUser.id).filter(OracleUser.created_by == link.user_id).all()
+    ]
+    reading_count = (
+        db.query(OracleReading)
+        .filter(
+            OracleReading.user_id.in_(user_oracle_ids),
+            OracleReading.deleted_at.is_(None),
+        )
+        .count()
+        if user_oracle_ids
+        else 0
+    )
 
     return TelegramUserStatus(
         linked=True,
@@ -135,6 +149,14 @@ def unlink_telegram(
     link = db.query(TelegramLink).filter(TelegramLink.telegram_chat_id == chat_id).first()
     if not link:
         raise HTTPException(status_code=404, detail="Telegram link not found")
+
+    # Ownership check: only the linked user or an admin can unlink
+    is_admin = "admin" in _user.get("scopes", [])
+    if not is_admin and link.user_id != _user.get("user_id"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot unlink another user's Telegram account",
+        )
 
     link.is_active = False
     db.commit()

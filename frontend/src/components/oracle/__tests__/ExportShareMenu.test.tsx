@@ -9,6 +9,7 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => {
       const translations: Record<string, string> = {
+        "oracle.export_and_share": "Export & Share",
         "oracle.export_text": "Export TXT",
         "oracle.export_pdf": "Export PDF",
         "oracle.export_image": "Export Image",
@@ -82,12 +83,12 @@ describe("ExportShareMenu", () => {
 
   it("renders export menu button when result exists", () => {
     render(<ExportShareMenu result={mockResult} readingCardId="test" />);
-    expect(screen.getByText(/Export TXT/)).toBeInTheDocument();
+    expect(screen.getByText(/Export & Share/)).toBeInTheDocument();
   });
 
   it("opens dropdown on click", async () => {
     render(<ExportShareMenu result={mockResult} readingCardId="test" />);
-    const button = screen.getByText(/Export TXT/);
+    const button = screen.getByText(/Export & Share/);
     await userEvent.click(button);
     expect(screen.getByText("Export PDF")).toBeInTheDocument();
     expect(screen.getByText("Export Image")).toBeInTheDocument();
@@ -97,7 +98,7 @@ describe("ExportShareMenu", () => {
   it("calls formatAsText for text export", async () => {
     const { downloadAsText } = await import("@/utils/exportReading");
     render(<ExportShareMenu result={mockResult} readingCardId="test" />);
-    await userEvent.click(screen.getByText(/Export TXT/));
+    await userEvent.click(screen.getByText(/Export & Share/));
     // Click the text export in the menu
     const menuTextButton = screen
       .getAllByText("Export TXT")
@@ -116,7 +117,7 @@ describe("ExportShareMenu", () => {
         readingCardId="test"
       />,
     );
-    await userEvent.click(screen.getByText(/Export TXT/));
+    await userEvent.click(screen.getByText(/Export & Share/));
     expect(screen.getByText("Create Share Link")).toBeInTheDocument();
   });
 
@@ -129,7 +130,7 @@ describe("ExportShareMenu", () => {
         readingCardId="test"
       />,
     );
-    await userEvent.click(screen.getByText(/Export TXT/));
+    await userEvent.click(screen.getByText(/Export & Share/));
     const shareBtn = screen.getByText("Create Share Link");
     await userEvent.click(shareBtn);
     await waitFor(() => {
@@ -148,7 +149,7 @@ describe("ExportShareMenu", () => {
     );
 
     render(<ExportShareMenu result={mockResult} readingCardId="test" />);
-    await userEvent.click(screen.getByText(/Export TXT/));
+    await userEvent.click(screen.getByText(/Export & Share/));
     const pdfBtn = screen.getByText("Export PDF");
     await userEvent.click(pdfBtn);
     expect(screen.getByText("...")).toBeInTheDocument();
@@ -162,7 +163,7 @@ describe("ExportShareMenu", () => {
     );
 
     render(<ExportShareMenu result={mockResult} readingCardId="test" />);
-    await userEvent.click(screen.getByText(/Export TXT/));
+    await userEvent.click(screen.getByText(/Export & Share/));
     const pdfBtn = screen.getByText("Export PDF");
     await userEvent.click(pdfBtn);
     await waitFor(() => {
@@ -177,7 +178,7 @@ describe("ExportShareMenu", () => {
         <ExportShareMenu result={mockResult} readingCardId="test" />
       </div>,
     );
-    await userEvent.click(screen.getByText(/Export TXT/));
+    await userEvent.click(screen.getByText(/Export & Share/));
     expect(screen.getByText("Export PDF")).toBeInTheDocument();
     fireEvent.mouseDown(screen.getByTestId("outside"));
     expect(screen.queryByText("Export PDF")).not.toBeInTheDocument();
@@ -185,7 +186,7 @@ describe("ExportShareMenu", () => {
 
   it("keyboard navigation: Escape closes menu", async () => {
     render(<ExportShareMenu result={mockResult} readingCardId="test" />);
-    await userEvent.click(screen.getByText(/Export TXT/));
+    await userEvent.click(screen.getByText(/Export & Share/));
     expect(screen.getByText("Export PDF")).toBeInTheDocument();
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByText("Export PDF")).not.toBeInTheDocument();

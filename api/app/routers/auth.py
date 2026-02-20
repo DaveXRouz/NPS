@@ -300,7 +300,7 @@ def change_password(
     )
     db_user.password_hash = new_hash
 
-    audit.log_auth_login(user_id, ip=ip, username=db_user.username)
+    audit.log_auth_password_change(user_id, ip=ip, username=db_user.username)
     db.commit()
 
     return {"detail": "Password changed successfully"}

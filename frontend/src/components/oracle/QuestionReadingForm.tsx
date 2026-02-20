@@ -1,10 +1,6 @@
 import { useState, lazy, Suspense, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import type {
-  QuestionReadingResult,
-  QuestionCategory,
-  QuestionMood,
-} from "@/types";
+import type { QuestionReadingResult, QuestionCategory } from "@/types";
 import { useSubmitQuestion } from "@/hooks/useOracleReadings";
 import { NumerologySystemSelector } from "./NumerologySystemSelector";
 import type { NumerologySystem } from "@/utils/scriptDetector";
@@ -24,8 +20,6 @@ const CATEGORIES: QuestionCategory[] = [
   "spiritual",
   "general",
 ];
-
-const MOODS: QuestionMood[] = ["calm", "anxious", "curious", "desperate"];
 
 function detectScript(text: string): "latin" | "persian" | "mixed" {
   const persianRegex = /[\u0600-\u06FF]/;
@@ -58,7 +52,6 @@ export function QuestionReadingForm({
 
   const [question, setQuestion] = useState("");
   const [category, setCategory] = useState<QuestionCategory>("general");
-  const [mood, setMood] = useState<QuestionMood | null>(null);
   const [showKeyboard, setShowKeyboard] = useState(false);
   const [numerologySystem, setNumerologySystem] =
     useState<NumerologySystem>("auto");
@@ -113,7 +106,7 @@ export function QuestionReadingForm({
 
       setError(null);
 
-      // NOTE: category, mood, time are frontend-only for now.
+      // NOTE: category and time are frontend-only for now.
       // Backend doesn't support these fields yet.
       mutation.mutate(
         {
@@ -181,6 +174,8 @@ export function QuestionReadingForm({
             strokeLinecap="round"
             strokeLinejoin="round"
             className="text-[var(--nps-accent)]"
+            aria-hidden="true"
+            focusable="false"
           >
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
             <line x1="16" y1="2" x2="16" y2="6" />
@@ -310,6 +305,8 @@ export function QuestionReadingForm({
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              aria-hidden="true"
+              focusable="false"
             >
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
@@ -332,6 +329,8 @@ export function QuestionReadingForm({
             strokeLinecap="round"
             strokeLinejoin="round"
             className="text-[var(--nps-accent)]"
+            aria-hidden="true"
+            focusable="false"
           >
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
@@ -445,61 +444,7 @@ export function QuestionReadingForm({
         </div>
       </div>
 
-      {/* Section 3: Emotional State (Optional) */}
-      <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-4 space-y-3">
-        <div className="flex items-center gap-2 mb-1">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-[var(--nps-accent)]"
-          >
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-          </svg>
-          <span className="text-xs font-medium text-[var(--nps-text-dim)] uppercase tracking-wider">
-            {t("oracle.section_emotional_state")}
-          </span>
-        </div>
-
-        <div>
-          <label className="block text-xs text-[var(--nps-text-dim)] mb-1.5">
-            {t("oracle.mood_label")}
-          </label>
-          <p className="text-xs text-[var(--nps-text-dim)] opacity-70 mb-2">
-            {t("oracle.mood_help")}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setMood(null)}
-              className={pillClasses(mood === null)}
-              disabled={mutation.isPending}
-              data-testid="mood-none"
-            >
-              {t("oracle.mood_none")}
-            </button>
-            {MOODS.map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMood(m)}
-                className={pillClasses(mood === m)}
-                disabled={mutation.isPending}
-                data-testid={`mood-${m}`}
-              >
-                {t(`oracle.mood_${m}`)}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Section 4: Numerology System */}
+      {/* Section 3: Numerology System */}
       <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-4">
         <div className="flex items-center gap-2 mb-3">
           <svg
@@ -512,6 +457,8 @@ export function QuestionReadingForm({
             strokeLinecap="round"
             strokeLinejoin="round"
             className="text-[var(--nps-accent)]"
+            aria-hidden="true"
+            focusable="false"
           >
             <line x1="4" y1="9" x2="20" y2="9" />
             <line x1="4" y1="15" x2="20" y2="15" />

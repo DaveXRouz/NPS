@@ -185,7 +185,7 @@ export function UserForm({
                     label={t("oracle.field_name_persian")}
                     value={form.name_persian ?? ""}
                     onChange={(v) => handleFieldChange("name_persian", v)}
-                    dir="rtl"
+                    dir="auto"
                     lang="fa"
                   />
                 </div>
@@ -258,7 +258,7 @@ export function UserForm({
                     onChange={(v) =>
                       handleFieldChange("mother_name_persian", v)
                     }
-                    dir="rtl"
+                    dir="auto"
                     lang="fa"
                   />
                 </div>
@@ -532,7 +532,11 @@ function Field({
     <div>
       <label htmlFor={fieldId} className="block text-sm text-nps-text-dim mb-1">
         {label}
-        {required && <span className="text-nps-error ms-1">*</span>}
+        {required && (
+          <span aria-hidden="true" className="text-nps-error ms-1">
+            *
+          </span>
+        )}
       </label>
       <input
         id={fieldId}

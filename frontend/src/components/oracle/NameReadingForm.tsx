@@ -151,6 +151,8 @@ export function NameReadingForm({
             strokeLinecap="round"
             strokeLinejoin="round"
             className="text-[var(--nps-accent)]"
+            aria-hidden="true"
+            focusable="false"
           >
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
@@ -232,6 +234,8 @@ export function NameReadingForm({
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                aria-hidden="true"
+                focusable="false"
               >
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
@@ -313,6 +317,8 @@ export function NameReadingForm({
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                aria-hidden="true"
+                focusable="false"
               >
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
@@ -336,6 +342,8 @@ export function NameReadingForm({
             strokeLinecap="round"
             strokeLinejoin="round"
             className="text-[var(--nps-accent)]"
+            aria-hidden="true"
+            focusable="false"
           >
             <line x1="4" y1="9" x2="20" y2="9" />
             <line x1="4" y1="15" x2="20" y2="15" />

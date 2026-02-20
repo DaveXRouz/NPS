@@ -2,6 +2,7 @@
 /* Dark mode is the default (:root). Light mode activates via :root.light class. */
 
 :root {
+  /* Core palette */
   --nps-bg: #0a0a0a;
   --nps-bg-card: #111111;
   --nps-bg-sidebar: #0d0d0d;
@@ -16,9 +17,74 @@
   --nps-accent-hover: #059669;
   --nps-accent-dim: #065f46;
   --nps-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1);
+
+  /* 5-tier background depth */
+  --nps-bg-void: #050505;
+  --nps-bg-surface: #0a0a0a;
+  --nps-bg-raised: #161616;
+  --nps-bg-overlay: #1e1e1e;
+
+  /* Glassmorphism tiers */
   --nps-glass-bg: rgba(17, 17, 17, 0.6);
   --nps-glass-border: rgba(79, 195, 247, 0.15);
   --nps-glass-glow: rgba(79, 195, 247, 0.1);
+  --nps-glass-blur-sm: 8px;
+  --nps-glass-blur-md: 16px;
+  --nps-glass-blur-lg: 24px;
+  --nps-glass-bg-sm: rgba(17, 17, 17, 0.4);
+  --nps-glass-bg-md: rgba(17, 17, 17, 0.6);
+  --nps-glass-bg-lg: rgba(17, 17, 17, 0.8);
+  --nps-glass-border-subtle: rgba(79, 195, 247, 0.08);
+  --nps-glass-border-std: rgba(79, 195, 247, 0.15);
+  --nps-glass-border-active: rgba(79, 195, 247, 0.3);
+  --nps-glass-shine: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    transparent 40%,
+    transparent 60%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+
+  /* Glow system */
+  --nps-glow-xs: 0 0 4px rgba(79, 195, 247, 0.1);
+  --nps-glow-sm: 0 0 8px rgba(79, 195, 247, 0.15);
+  --nps-glow-md: 0 0 16px rgba(79, 195, 247, 0.2);
+  --nps-glow-lg: 0 0 32px rgba(79, 195, 247, 0.25);
+  --nps-oracle-glow-subtle: 0 0 8px rgba(79, 195, 247, 0.1);
+  --nps-oracle-glow-medium: 0 0 20px rgba(79, 195, 247, 0.2);
+  --nps-oracle-glow-strong:
+    0 0 40px rgba(79, 195, 247, 0.3), 0 0 80px rgba(79, 195, 247, 0.1);
+
+  /* Gradient palette */
+  --nps-gradient-oracle: linear-gradient(135deg, #0f1a2e 0%, #1a1033 100%);
+  --nps-gradient-hero: linear-gradient(
+    180deg,
+    rgba(79, 195, 247, 0.08) 0%,
+    transparent 60%
+  );
+  --nps-gradient-accent-h: linear-gradient(
+    90deg,
+    var(--nps-accent) 0%,
+    #4fc3f7 100%
+  );
+  --nps-gradient-gold: linear-gradient(135deg, #f8b400 0%, #d4a017 100%);
+
+  /* Ambient orb colors */
+  --nps-orb-oracle: rgba(79, 195, 247, 0.06);
+  --nps-orb-emerald: rgba(16, 185, 129, 0.05);
+  --nps-orb-purple: rgba(167, 139, 250, 0.04);
+
+  /* Per-stat accent colors */
+  --nps-stat-readings: #4fc3f7;
+  --nps-stat-confidence: #10b981;
+  --nps-stat-type: #a78bfa;
+  --nps-stat-streak: #f8b400;
+
+  /* Font tokens */
+  --nps-font-display: "Cinzel Decorative", serif;
+  --nps-font-body: "Lora", "Georgia", serif;
+  --nps-font-mono: "JetBrains Mono", "Consolas", monospace;
+  --nps-font-persian: "Vazirmatn", "Tahoma", sans-serif;
 }
 
 :root.light {
@@ -36,7 +102,43 @@
   --nps-accent-hover: #047857;
   --nps-accent-dim: #d1fae5;
   --nps-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --nps-bg-void: #f3f4f6;
+  --nps-bg-surface: #ffffff;
+  --nps-bg-raised: #f9fafb;
+  --nps-bg-overlay: #f3f4f6;
   --nps-glass-bg: rgba(249, 250, 251, 0.7);
   --nps-glass-border: rgba(5, 150, 105, 0.2);
   --nps-glass-glow: rgba(5, 150, 105, 0.08);
+  --nps-glass-bg-sm: rgba(249, 250, 251, 0.5);
+  --nps-glass-bg-md: rgba(249, 250, 251, 0.7);
+  --nps-glass-bg-lg: rgba(249, 250, 251, 0.9);
+  --nps-glass-border-subtle: rgba(5, 150, 105, 0.1);
+  --nps-glass-border-std: rgba(5, 150, 105, 0.2);
+  --nps-glass-border-active: rgba(5, 150, 105, 0.35);
+  --nps-glass-shine: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.02) 0%,
+    transparent 40%,
+    transparent 60%,
+    rgba(0, 0, 0, 0.01) 100%
+  );
+  --nps-glow-xs: 0 0 4px rgba(5, 150, 105, 0.08);
+  --nps-glow-sm: 0 0 8px rgba(5, 150, 105, 0.1);
+  --nps-glow-md: 0 0 16px rgba(5, 150, 105, 0.15);
+  --nps-glow-lg: 0 0 32px rgba(5, 150, 105, 0.2);
+  --nps-oracle-glow-subtle: 0 0 8px rgba(5, 150, 105, 0.08);
+  --nps-oracle-glow-medium: 0 0 20px rgba(5, 150, 105, 0.15);
+  --nps-oracle-glow-strong:
+    0 0 40px rgba(5, 150, 105, 0.2), 0 0 80px rgba(5, 150, 105, 0.08);
+  --nps-gradient-oracle: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+  --nps-gradient-hero: linear-gradient(
+    180deg,
+    rgba(5, 150, 105, 0.06) 0%,
+    transparent 60%
+  );
+  --nps-gradient-accent-h: linear-gradient(90deg, #059669 0%, #10b981 100%);
+  --nps-gradient-gold: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --nps-orb-oracle: rgba(5, 150, 105, 0.04);
+  --nps-orb-emerald: rgba(16, 185, 129, 0.03);
+  --nps-orb-purple: rgba(124, 58, 237, 0.03);
 }

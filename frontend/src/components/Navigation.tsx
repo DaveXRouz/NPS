@@ -99,14 +99,16 @@ export function Navigation({
 
         if (item.disabled) {
           return (
-            <div
+            <button
               key={item.path}
-              className="flex items-center gap-3 px-4 py-2 mx-2 rounded text-sm text-[var(--nps-text-dim)] cursor-not-allowed opacity-50"
-              title={t("layout.coming_soon")}
+              disabled
+              aria-disabled="true"
+              aria-label={`${t(item.labelKey)} — ${t("layout.coming_soon")}`}
+              className="flex items-center gap-3 px-4 py-2 mx-2 rounded text-sm text-[var(--nps-text-dim)] cursor-not-allowed opacity-50 w-full text-start"
             >
               <span className="flex-shrink-0">{item.icon}</span>
               {!collapsed && <span>{t(item.labelKey)}</span>}
-            </div>
+            </button>
           );
         }
 

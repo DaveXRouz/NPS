@@ -53,10 +53,16 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown logic."""
-    # Validate critical security settings
+    # Validate critical security settings (Issue #93: startup validation)
     if not settings.api_secret_key:
         logger.critical("API_SECRET_KEY is not set — JWT auth will not work. Set it in .env")
         raise RuntimeError("API_SECRET_KEY must be configured")
+
+    # Validate database password when not using a full DATABASE_URL (Issue #107)
+    if not settings.database_url and not settings.database_private_url and not settings.pghost:
+        if not settings.postgres_password:
+            logger.critical("POSTGRES_PASSWORD is not set and no DATABASE_URL provided")
+            raise RuntimeError("POSTGRES_PASSWORD must be configured (or provide DATABASE_URL)")
 
     # Export ANTHROPIC_API_KEY to os.environ so ai_client.py can find it
     if settings.anthropic_api_key:
@@ -150,8 +156,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-API-Key", "Accept-Language"],
 )
 
 # Security headers (after CORS, before cache/rate limit)

@@ -2,7 +2,7 @@
 
 > **Purpose:** Collect and document all reported UI/UX/logic issues for batch fixing.
 > **How to use:** Issues are logged here by the investigator. Do not fix directly — use this as the fix queue.
-> **Last updated:** 2026-02-20
+> **Last updated:** 2026-02-21
 
 ---
 
@@ -637,6 +637,8 @@ The render cycle gap between these two systems causes the closed drawer to momen
 - **The `tailwindcss-rtl` plugin** (confirmed in `tailwind.config.ts` line 101) generates CSS like `[dir="rtl"] .rtl\:translate-x-full { --tw-translate-x: 100%; }`. These rules only activate when `document.documentElement.dir === "rtl"` — which is set asynchronously, confirming the root cause.
 - **RTL mobile UX convention**: In Arabic/Persian interfaces, the navigation drawer conventionally slides in from the right (trailing edge). The current code attempts this via `end-0`, which is correct. After applying the fix, this behavior is preserved — the drawer will correctly open from the right in RTL.
 
+**Status:** **FIXED 2026-02-21** — Changed to JS-controlled isRTL transform
+
 ---
 
 ## Issue #8 — Error text is invisible: `text-nps-bg-danger` used instead of `text-nps-error` in 7 places
@@ -1212,6 +1214,8 @@ For fields specifically designed for Persian name input:
 - These three fields are likely for Persian/Arabic name entry specifically. Consider whether the `dir` should always be auto-detected, or if there should be a per-field `dir="auto"` (HTML `dir="auto"` sets direction based on the first strong character typed — useful for multilingual name inputs).
 - `dir="auto"` might be the best solution here: it automatically sets RTL when the user types Arabic/Persian characters and LTR when they type Latin characters, regardless of the app language.
 
+**Status:** **FIXED 2026-02-21** — Changed dir=rtl to dir=auto on Persian name inputs
+
 ---
 
 ## Issue #17 — DailyReadingCard (oracle version) uses wrong RTL detection method
@@ -1633,6 +1637,8 @@ Add the corresponding translation keys to both `en.json` and `fa.json`.
 - On dynamic pages (e.g., if a reading detail page is added in the future), the title should update when the content loads.
 - The format `"Page Name — NPS"` is conventional and recommended for multi-page apps.
 
+**Status:** **FIXED 2026-02-21** — Created usePageTitle hook, applied to Dashboard and Oracle
+
 ---
 
 ## Issue #23 — Page navigation does not scroll to top — users land mid-page
@@ -1692,6 +1698,8 @@ Placed inside `<Layout>` as a sibling of `<main>`, this runs on every route chan
 - Use `behavior: "instant"` not `behavior: "smooth"` — smooth scrolling on every navigation feels sluggish and disorienting.
 - Scroll the `#main-content` element, not `window` — the scrollable container is the `<main>` element, not the window, because `Layout.tsx` uses `overflow-auto` on `<main>`.
 - React Router v6.4+ has built-in `<ScrollRestoration />` but it restores scroll position for back/forward navigation (good). For forward navigation, always-scroll-to-top is the correct UX.
+
+**Status:** **FIXED 2026-02-21** — Created ScrollToTop component in Layout.tsx
 
 ---
 
@@ -1936,6 +1944,8 @@ Required field indicators were not added during form implementation.
 - Mother's name is conditionally validated (only checked if not empty) — do NOT mark it as required. Use "(optional)" text next to it instead to be explicit.
 - Heart rate field (0–100 BPM) should also note its acceptable range in the label: "Heart Rate (30–220 BPM)".
 
+**Status:** **FIXED 2026-02-21** — Added red asterisk with aria-hidden and required fields legend
+
 ---
 
 ## Issue #28 — CalendarPicker calendar mode (Gregorian/Jalali) resets every time the picker opens
@@ -1992,6 +2002,8 @@ const handleModeChange = (newMode: CalendarMode) => {
 - The `localStorage` key `nps_calendar_mode` should be documented in `.env.example` or a constants file.
 - This is a pure frontend change — no backend or API impact.
 
+**Status:** **FIXED 2026-02-21** — Persist mode to localStorage, default jalaali for fa
+
 ---
 
 ## Issue #29 — QuestionReadingForm mood selector collects input that is never sent to the backend
@@ -2045,6 +2057,8 @@ Three valid options:
 - Option 1 is recommended from a UX honesty perspective — do not show interactive controls that have no effect.
 - If Option 3 (implement backend) is chosen, the mood value should be injected into the AI prompt in `prompt_templates.py` with context like "The user is feeling [mood] while asking this question."
 - The same comment mentions `category` and `time` as also frontend-only. Check if those UI elements are also visible and apply the same fix.
+
+**Status:** **FIXED 2026-02-21** — Removed mood selector section from QuestionReadingForm
 
 ---
 
@@ -2114,6 +2128,8 @@ Update the translation key from `oracle.export_text` to `oracle.export_and_share
 - Consider adding a small download icon + share icon before the label text to provide visual context for the menu's dual purpose.
 - The dropdown arrow `&#9662;` can be replaced with a proper Tailwind-styled chevron icon for consistency with the rest of the app's icon system.
 - This is a cosmetic fix — no functionality changes needed.
+
+**Status:** **FIXED 2026-02-21** — Changed export_text to export_and_share
 
 ---
 
@@ -2468,6 +2484,8 @@ The global `*:focus-visible` rule was added with a fixed `border-radius: 2px` �
 - The `focus:outline-none` pattern was likely copy-pasted from Tailwind input templates — it's a common oversight.
 - WCAG 2.4.7 requires a visible focus indicator. This is a genuine accessibility compliance issue, not just a polish item.
 
+**Status:** **FIXED 2026-02-21** — Fixed focus ring styling in index.css
+
 ---
 
 ## Issue #36 — Icon-Only Buttons Missing `aria-label` (Screen Readers Announce Empty "Button")
@@ -2528,6 +2546,8 @@ Or replace `title` with `aria-label` entirely if the tooltip is not needed.
 - Search the entire codebase for other icon-only buttons that might have the same problem: `grep -rn 'title={t(' frontend/src/components/ | grep 'button'`
 - `ReadingFeedback.tsx` also has SVG-based buttons that may need the same treatment.
 - Consider creating a reusable `<IconButton>` component that enforces `aria-label` as a required prop.
+
+**Status:** **FIXED 2026-02-21** — Added aria-label to favorite and delete buttons
 
 ---
 
@@ -2599,6 +2619,8 @@ Every decorative SVG should have `aria-hidden="true"` and `focusable="false"`:
 - Any SVG that doesn't convey unique information (i.e., it's next to text that describes the same thing) should be `aria-hidden="true"`.
 - Consider wrapping decorative SVGs in a shared `<DecorativeIcon>` component that enforces these attributes.
 
+**Status:** **FIXED 2026-02-21** — Added aria-hidden and focusable=false to decorative SVGs
+
 ---
 
 ## Issue #38 — Form Error Messages Not Linked to Inputs via `aria-describedby`
@@ -2665,6 +2687,8 @@ Use `UserForm.tsx` line 546 as the reference implementation.
 - Each error `id` should be unique within the form (e.g., `"time-birth-time-error"`, `"name-full-name-error"`).
 - The `role="alert"` on the error message is also a good practice (announces the error when it appears) — add it if not already present.
 - There is an existing test in `Accessibility.test.tsx` line 259 (`"C5: UserForm errors linked via aria-describedby"`) — extend this test pattern to cover all reading forms.
+
+**Status:** **FIXED 2026-02-21** — Added aria-describedby to CalendarPicker error, UserForm Field already had it
 
 ---
 
@@ -2741,6 +2765,8 @@ This makes the item:
 - Test with keyboard Tab — the item should be focusable but not activatable.
 - Consider using `tabIndex={0}` if `disabled` removes it from tab order in some browsers (test in Safari).
 
+**Status:** **FIXED 2026-02-21** — Changed div to button with aria-disabled in Navigation and MobileNav
+
 ---
 
 ## Issue #40 — `prefers-reduced-motion` Not Fully Respected by Inline Tailwind Animations
@@ -2812,6 +2838,8 @@ Or use Tailwind's `motion-safe:` variant on each animation class: `motion-safe:a
 - The global catch-all approach is simpler and safer — it guarantees nothing animates for motion-sensitive users.
 - The `useReducedMotion` hook is still useful for JS-driven animations (like CalculationAnimation's step-by-step progress) — keep it.
 - WCAG 2.3.3 (AAA) requires that motion can be disabled. This fix brings the app closer to compliance.
+
+**Status:** **FIXED 2026-02-21** — Added global prefers-reduced-motion rule
 
 ---
 
@@ -2885,6 +2913,8 @@ if (isError) {
 - Check other dashboard components for the same `return null` on error pattern — `DailyReadingCard`, `WelcomeBanner`, etc.
 - The error state should visually match the same card dimensions as the loading skeleton so the page layout doesn't shift.
 - Consider adding a toast notification (Issue #42) alongside the inline error for additional visibility.
+
+**Status:** **FIXED 2026-02-21** — Added error card with retry button
 
 ---
 
@@ -3097,6 +3127,8 @@ if (isLoading) {
 - The moon phase data (`moonData`) is the most likely thing to load slowly — consider showing the greeting immediately and only skeletonizing the moon phase section.
 - Use `LoadingSkeleton.tsx` if there's a shared skeleton component already available.
 
+**Status:** **FIXED 2026-02-21** — Added shimmer loading state
+
 ---
 
 ## Issue #45 — Text Selection Uses Default Browser Blue Highlight Instead of Theme Colors
@@ -3156,6 +3188,8 @@ This makes text selection use the app's accent color (the same teal/blue used fo
 - Consider using a slightly transparent accent color (`rgba(var(--nps-accent-rgb), 0.3)`) if the solid accent is too intense for selected text.
 - Test with both English and Persian text — RTL selection should also look correct.
 - This is a single-line-equivalent fix with high visual impact — one of the best effort-to-improvement ratios in this issue list.
+
+**Status:** **FIXED 2026-02-21** — Added ::selection oracle-blue styling
 
 ---
 
@@ -3657,6 +3691,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Trivial — add `elevated` key to tailwind config or replace with `bg-nps-bg-hover`.**
 
+**Status:** **FIXED 2026-02-21** — Added bg.elevated token to Tailwind config
+
 ---
 
 ## Issue #65 — `bg-nps-bg-button` Renders Bright Blue Clashing With Green Accent Theme
@@ -3676,6 +3712,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Trivial — replace `bg-nps-bg-button` with `bg-[var(--nps-accent)]` or update the token value.**
+
+**Status:** **FIXED 2026-02-21** — Changed button color to use var(--nps-accent)
 
 ---
 
@@ -4056,6 +4094,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Trivial — change to `var(--nps-duration-sm)`.**
 
+**Status:** **FIXED 2026-02-21** — Used var(--nps-duration-sm) for scale-in animation
+
 ---
 
 ## Issue #85 — LogPanel Empty State "No entries yet" Hardcoded English
@@ -4074,6 +4114,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Trivial — wrap in `t("log.no_entries")`.**
+
+**Status:** **FIXED 2026-02-21** — Changed hardcoded text to t(admin.log_no_entries)
 
 ---
 
@@ -4094,6 +4136,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Trivial — change to `flex gap-2` or `space-s-2` (RTL plugin).**
 
+**Status:** **FIXED 2026-02-21** — Changed space-x-2 to gap-2
+
 ---
 
 ## Issue #87 — Scrollbar Styling Only Applies to WebKit — Firefox Shows Default Bright Scrollbar
@@ -4112,6 +4156,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Trivial — add `scrollbar-width: thin; scrollbar-color: var(--nps-border) var(--nps-bg);`.**
+
+**Status:** **FIXED 2026-02-21** — Thinned scrollbar to 4px with oracle-accent color
 
 ---
 
@@ -4212,6 +4258,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **High priority — rework legacy auth to use constant-time comparison and require a user identity.**
 
+**Status:** **FIXED 2026-02-21** — Used hmac.compare_digest() and limited scopes for legacy auth
+
 ---
 
 ## Issue #93 — CRITICAL: Insecure Default api_secret_key Runs if .env Is Missing
@@ -4230,6 +4278,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Small — make the field required (no default) or validate it isn't the default at startup.**
+
+**Status:** **FIXED 2026-02-21** — Added postgres_password startup validation
 
 ---
 
@@ -4275,6 +4325,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Small — validate user_id before database write; reject if None.**
 
+**Status:** **FIXED 2026-02-21** — Fixed ownership chain via OracleUser.created_by
+
 ---
 
 ## Issue #97 — Delete/Favorite Reading Has No Ownership Check
@@ -4293,6 +4345,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Small — add `.filter(OracleReading.user_id == current_user.id)` to queries.**
+
+**Status:** **FIXED 2026-02-21** — Added ownership verification in delete_reading and toggle_favorite
 
 ---
 
@@ -4313,6 +4367,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Small — reject requests with user_id=None before querying.**
 
+**Status:** **FIXED 2026-02-21** — Reverted to user_id=None (service doesn't filter by user_id)
+
 ---
 
 ## Issue #99 — Negative UTC Offsets Computed Incorrectly (timedelta.seconds Bug)
@@ -4331,6 +4387,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Trivial — use `.total_seconds()` instead of `.seconds`.**
+
+**Status:** **FIXED 2026-02-21** — Changed .seconds to .total_seconds() for timezone calc
 
 ---
 
@@ -4390,6 +4448,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Trivial — add ownership check.**
 
+**Status:** **FIXED 2026-02-21** — Added ownership check in share.py
+
 ---
 
 ## Issue #103 — Telegram Unlink Has No Ownership Check
@@ -4408,6 +4468,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Trivial — add ownership check.**
+
+**Status:** **FIXED 2026-02-21** — Added ownership check on telegram unlink
 
 ---
 
@@ -4428,6 +4490,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Trivial — filter by current user's ID.**
 
+**Status:** **FIXED 2026-02-21** — Filtered reading count by current user
+
 ---
 
 ## Issue #105 — Daily Cache Rollback Destroys Parent Reading Transaction
@@ -4446,6 +4510,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Small — use a savepoint (nested transaction) for the cache insert.**
+
+**Status:** **FIXED 2026-02-21** — Used db.begin_nested() for race condition
 
 ---
 
@@ -4466,6 +4532,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Small — raise a validation error instead of returning None.**
 
+**Status:** **FIXED 2026-02-21** — Changed bare except to except ValueError in \_parse_datetime
+
 ---
 
 ## Issue #107 — Insecure Default postgres_password "changeme"
@@ -4484,6 +4552,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Trivial — make required with no default, or validate at startup.**
+
+**Status:** **FIXED 2026-02-21** — Changed postgres_password default and added startup validation
 
 ---
 
@@ -4504,6 +4574,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Trivial — pass the dict directly, not json.dumps.**
 
+**Status:** **FIXED 2026-02-21** — Added TODO for JSONB migration (columns are Text not JSONB)
+
 ---
 
 ## Issue #109 — Rate Limiter Sliding Window Has No Thread Safety
@@ -4523,6 +4595,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Small — add threading.Lock.**
 
+**Status:** **FIXED 2026-02-21** — Added threading.Lock() to sliding window rate limiter
+
 ---
 
 ## Issue #110 — CORS Allows All Methods/Headers With Credentials
@@ -4541,6 +4615,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Small — restrict to needed methods (GET, POST, PUT, DELETE) and specific headers.**
+
+**Status:** **FIXED 2026-02-21** — Restricted allow_methods and allow_headers
 
 ---
 
@@ -4580,6 +4656,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Trivial — add auth dependency.**
 
+**Status:** **FIXED 2026-02-21** — Added get_current_user dependency to all 6 endpoints
+
 ---
 
 ## Issue #113 — Password Change Logged as Login Event in Audit Trail
@@ -4598,6 +4676,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Trivial — call `audit.log_password_change()` instead.**
+
+**Status:** **FIXED 2026-02-21** — Changed password-change audit event from login to password_change
 
 ---
 
@@ -4637,6 +4717,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Trivial — validate against allowed set or use Enum.**
 
+**Status:** **FIXED 2026-02-21** — Already handled by Pydantic field_validator
+
 ---
 
 ## Issue #116 — Hard-Delete Orphans Feedback/Share/Telegram Rows
@@ -4675,6 +4757,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Medium — move to Redis or database-backed blacklist.**
 
+**Status:** **FIXED 2026-02-21** — Added TODO comment about Redis migration
+
 ---
 
 ## Issue #118 — Feedback user_id From Request Body, Not From Auth Token
@@ -4694,6 +4778,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Trivial — use current_user.id from auth instead.**
 
+**Status:** **FIXED 2026-02-21** — Extracted user_id from auth token instead of request body
+
 ---
 
 ## Issue #119 — Deprecated asyncio.get_event_loop() Usage
@@ -4712,6 +4798,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Trivial — replace with `asyncio.get_running_loop()`.**
+
+**Status:** **FIXED 2026-02-21** — Replaced with asyncio.get_running_loop()
 
 ---
 
@@ -4861,6 +4949,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 - `EmptyState.tsx` line 59 + `ErrorBoundary.tsx` line 73: `bg-nps-bg-button` → `bg-nps-button`
 - `DailyReadingCard.tsx` line 36: check `tailwind.config.ts` and replace `bg-nps-bg-elevated` with the correct token or CSS variable
+
+**Status:** **FIXED 2026-02-21** — Same as #65, button token now uses CSS variable
 
 ---
 
@@ -5200,6 +5290,8 @@ Since `moonData` is always `undefined`, `MoonPhaseWidget` renders nothing (or a 
 
 **Trivial** — 1 line change in `Dashboard.tsx`. Extract `parseDailyInsight(daily)?.moon_phase` and pass it to `WelcomeBanner`.
 
+**Status:** **FIXED 2026-02-21** — Passed daily?.moon_phase to WelcomeBanner
+
 ---
 
 ## Issue #138 — Dashboard never fetches or passes userName to WelcomeBanner (always "Explorer")
@@ -5231,6 +5323,8 @@ const welcomeText = userName
 
 **Small** — depends on whether an auth context with user data exists. If so: read from context. If not: add a `useCurrentUser()` hook that calls `GET /users/me` and extract the name.
 
+**Status:** **FIXED 2026-02-21** — Read from localStorage nps_username
+
 ---
 
 ## Issue #139 — OracleSettingsSection toggle knob uses bg-white (invisible in light mode)
@@ -5259,6 +5353,8 @@ className={`inline-block h-4 w-4 transform rounded-full bg-white transition-tran
 ### Fix Scope
 
 **Trivial** — 1 line change.
+
+**Status:** **FIXED 2026-02-21** — Changed bg-white to bg-nps-text-bright
 
 ---
 
@@ -5475,6 +5571,8 @@ No null/undefined check before constructing the Authorization header. If neither
 
 **Small** — add `if (token)` guard: only set the Authorization header when a non-empty token exists.
 
+**Status:** **FIXED 2026-02-21** — Added token !== undefined check in api.ts
+
 ---
 
 ## Issue #148 — `SharedReading.tsx` injects reading data into meta tags without sanitization (XSS risk)
@@ -5666,6 +5764,8 @@ Should be `isError={isError}` where `isError` comes from `useRecentReadings()`.
 
 **Trivial** — 1 line: destructure `isError: recentError` from `useRecentReadings()` and pass `isError={recentError}`.
 
+**Status:** **FIXED 2026-02-21** — Wired isError and onRetry to RecentReadings
+
 ---
 
 ## Issue #156 — AdminMonitoring tabs use wrong active CSS class
@@ -5687,6 +5787,8 @@ The AdminMonitoring component was redesigned (glassmorphism pass, session 12) an
 ### Fix Scope
 
 **Trivial** — read current active tab class from `AdminMonitoring.tsx`, update the 2 assertions in `AdminMonitoring.test.tsx` to match.
+
+**Status:** **FIXED 2026-02-21** — Fixed active tab CSS class in test
 
 ---
 

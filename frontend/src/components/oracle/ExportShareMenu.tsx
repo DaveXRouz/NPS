@@ -194,7 +194,7 @@ export function ExportShareMenu({
         aria-haspopup="true"
         className="px-2 py-1 text-xs bg-nps-bg-input text-nps-text-dim hover:text-nps-text rounded transition-colors nps-animate-scale-in"
       >
-        {t("oracle.export_text")} &#9662;
+        {t("oracle.export_and_share")} &#9662;
       </button>
 
       {menuOpen && (

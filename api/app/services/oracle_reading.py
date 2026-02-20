@@ -100,7 +100,8 @@ def _parse_datetime(dt_str: str | None) -> datetime:
         if "T" in dt_str:
             return datetime.fromisoformat(dt_str)
         return datetime.strptime(dt_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError) as exc:
+        logger.warning("Failed to parse datetime '%s': %s", dt_str, exc)
         return datetime.now(timezone.utc)
 
 
@@ -132,8 +133,10 @@ class OracleReadingService:
         dt = _parse_datetime(datetime_str)
         y, m, d = dt.year, dt.month, dt.day
         h, mi, s = dt.hour, dt.minute, dt.second
-        tz_h = dt.utcoffset().seconds // 3600 if dt.utcoffset() else 0
-        tz_m = (dt.utcoffset().seconds % 3600) // 60 if dt.utcoffset() else 0
+        offset = dt.utcoffset()
+        total_secs = int(offset.total_seconds()) if offset else 0
+        tz_h = total_secs // 3600
+        tz_m = (abs(total_secs) % 3600) // 60
 
         # FC60 encoding
         fc60_result = encode_fc60(y, m, d, h, mi, s, tz_h, tz_m)
@@ -447,7 +450,11 @@ class OracleReadingService:
         result_dict: dict,
         ai_interpretation: dict | None,
     ) -> OracleReading:
-        """Persist a multi-user reading + junction table entries."""
+        """Persist a multi-user reading + junction table entries.
+
+        TODO (Issue #108): ORM columns are Text; migrate to JSONB so json.dumps()
+        wrappers can be removed and Postgres can index/query JSON natively.
+        """
         enc_ai = None
         if ai_interpretation:
             ai_str = json.dumps(ai_interpretation)
@@ -627,15 +634,16 @@ class OracleReadingService:
         from app.orm.oracle_reading import OracleDailyReading
 
         try:
-            cache_entry = OracleDailyReading(
-                user_id=user_id,
-                reading_date=reading_date,
-                reading_id=reading_id,
-            )
-            self.db.add(cache_entry)
-            self.db.flush()
+            with self.db.begin_nested():
+                cache_entry = OracleDailyReading(
+                    user_id=user_id,
+                    reading_date=reading_date,
+                    reading_id=reading_id,
+                )
+                self.db.add(cache_entry)
+                self.db.flush()
         except IntegrityError:
-            self.db.rollback()
+            pass  # Race condition: another request already inserted — safe to ignore
 
     def _get_oracle_user(self, user_id: int):
         """Load oracle user or raise ValueError."""
@@ -955,6 +963,7 @@ class OracleReadingService:
             sign_type=sign_type,
             sign_value=sign_value,
             question=enc_question,
+            # TODO (Issue #108): Remove json.dumps() after ORM column migration to JSONB
             reading_result=json.dumps(reading_result) if reading_result else None,
             ai_interpretation=enc_ai,
         )

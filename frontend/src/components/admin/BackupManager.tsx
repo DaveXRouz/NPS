@@ -303,7 +303,7 @@ export function BackupManager() {
                       <td className="px-4 py-3 text-[var(--nps-text-dim)]">
                         {backup.size_human}
                       </td>
-                      <td className="px-4 py-3 text-end space-x-2">
+                      <td className="px-4 py-3 text-end flex items-center justify-end gap-2">
                         <button
                           onClick={() => setRestoreTarget(backup.filename)}
                           disabled={restoreBackup.isPending}

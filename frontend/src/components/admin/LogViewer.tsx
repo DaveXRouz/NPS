@@ -187,7 +187,7 @@ export function LogViewer() {
                     colSpan={6}
                     className="py-8 text-center text-[var(--nps-text-dim)]"
                   >
-                    No log entries found.
+                    {t("admin.log_no_entries")}
                   </td>
                 </tr>
               ) : (

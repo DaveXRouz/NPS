@@ -42,6 +42,8 @@
 
 ### PHASE 1 — TYPOGRAPHY SURGERY
 
+**Status: COMPLETE (2026-02-21)** — Cinzel Decorative + Lora fonts added via Google Fonts, Tailwind fontFamily updated, body font changed in index.css, RTL font override preserved.
+
 #### The Font System
 
 ```
@@ -161,6 +163,8 @@ Body text:              letter-spacing: 0         (Lora's default is correct)
 
 ### PHASE 2 — COLOR DEPTH SYSTEM
 
+**Status: COMPLETE (2026-02-21)** — 5-tier background depth, glassmorphism tiers, glow system, gradient palette, ambient orb colors, per-stat accents, font tokens, and glass shine variables added to theme.css.
+
 #### Current Problem
 
 The app has 3 depth levels: `#0a0a0a` (bg), `#111111` (card), `#1e1e1e` (input).
@@ -266,6 +270,8 @@ Also **update these existing variables** (replace current flat values):
 ---
 
 ### PHASE 3 — AMBIENT BACKGROUND SYSTEM
+
+**Status: COMPLETE (2026-02-21)** — 3 radial-gradient ambient orbs added to body background, ::selection styling, scrollbar upgrade (4px + oracle-accent), focus ring glow, and prefers-reduced-motion catch-all.
 
 #### What Premium Sites Do
 

@@ -6,6 +6,9 @@
   --nps-duration-md: 350ms;
   --nps-duration-lg: 400ms;
   --nps-duration-count: 800ms;
+  --nps-duration-reveal: 600ms;
+  --nps-ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+  --nps-ease-out: cubic-bezier(0, 0, 0.2, 1);
 }
 
 /* === Keyframes === */
@@ -242,7 +245,7 @@
 }
 
 .nps-animate-scale-in {
-  animation: nps-scale-in 200ms ease-out forwards;
+  animation: nps-scale-in var(--nps-duration-sm) ease-out forwards;
 }
 
 .nps-animate-orb-pulse {
@@ -285,6 +288,82 @@
 
 .nps-animate-celebration {
   animation: nps-celebration 1.5s ease-in-out;
+}
+
+/* === Phase 3 Keyframes === */
+
+@keyframes nps-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes nps-glimmer {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes nps-cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes nps-ring-pulse {
+  from {
+    box-shadow: 0 0 0 0 var(--nps-accent);
+    opacity: 1;
+  }
+  to {
+    box-shadow: 0 0 0 12px transparent;
+    opacity: 0;
+  }
+}
+
+@keyframes nps-orbit-slow {
+  from {
+    transform: rotate(0deg) translateX(80px) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(80px) rotate(-360deg);
+  }
+}
+
+/* === Phase 3 Utility Classes === */
+
+.nps-animate-rise-in {
+  animation: nps-rise-in var(--nps-duration-reveal) var(--nps-ease-premium)
+    forwards;
+}
+
+.nps-animate-glimmer {
+  animation: nps-glimmer 2.5s ease-in-out infinite;
+}
+
+.nps-animate-cursor-blink {
+  animation: nps-cursor-blink 1s step-end infinite;
+}
+
+.nps-animate-ring-pulse {
+  animation: nps-ring-pulse 2s ease-out infinite;
+}
+
+.nps-animate-orbit-slow {
+  animation: nps-orbit-slow 20s linear infinite;
 }
 
 /* === Stagger Delay Classes === */

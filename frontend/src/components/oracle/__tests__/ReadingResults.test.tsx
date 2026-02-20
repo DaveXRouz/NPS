@@ -38,6 +38,7 @@ vi.mock("react-i18next", () => ({
         "oracle.filter_name": "Names",
         "oracle.history_empty": "No readings yet.",
         "oracle.error_history": "Failed to load reading history.",
+        "oracle.export_and_share": "Export & Share",
         "oracle.export_text": "Export TXT",
         "oracle.export_json": "Export JSON",
         "oracle.translate": "Translate to Persian",
@@ -160,11 +161,11 @@ describe("ReadingResults", () => {
 
   it("shows export menu button when result exists", () => {
     renderWithProviders(<ReadingResults result={readingResult} />);
-    expect(screen.getByText(/Export TXT/)).toBeInTheDocument();
+    expect(screen.getByText(/Export & Share/)).toBeInTheDocument();
   });
 
   it("does not show export menu when no result", () => {
     renderWithProviders(<ReadingResults result={null} />);
-    expect(screen.queryByText(/Export TXT/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Export & Share/)).not.toBeInTheDocument();
   });
 });

@@ -71,13 +71,13 @@ describe("AdminMonitoring", () => {
   it("defaults to Health tab", () => {
     renderWithProviders(<AdminMonitoring />);
     const healthBtn = screen.getByText("Health");
-    expect(healthBtn.className).toContain("bg-blue-600");
+    expect(healthBtn.className).toContain("text-[var(--nps-accent)]");
   });
 
   it("switches tabs on click", () => {
     renderWithProviders(<AdminMonitoring />);
     const logsTab = screen.getByText("Logs");
     fireEvent.click(logsTab);
-    expect(logsTab.className).toContain("bg-blue-600");
+    expect(logsTab.className).toContain("text-[var(--nps-accent)]");
   });
 });

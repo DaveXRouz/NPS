@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { usePageTitle } from "@/hooks/usePageTitle";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { DailyReadingCard } from "@/components/dashboard/DailyReadingCard";
 import { StatsCards } from "@/components/dashboard/StatsCards";
@@ -31,8 +32,14 @@ function parseDailyInsight(raw: unknown): DailyInsight | null {
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  usePageTitle("dashboard.title");
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
-  const { data: recent, isLoading: recentLoading } = useRecentReadings();
+  const {
+    data: recent,
+    isLoading: recentLoading,
+    isError: recentError,
+    refetch: retryRecent,
+  } = useRecentReadings();
   const {
     data: daily,
     isLoading: dailyLoading,
@@ -44,7 +51,15 @@ export default function Dashboard() {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <h2 className="sr-only">{t("dashboard.title")}</h2>
       <FadeIn delay={0} className="lg:col-span-12">
-        <WelcomeBanner isLoading={dailyLoading} />
+        <WelcomeBanner
+          isLoading={dailyLoading}
+          moonData={
+            ((daily as Record<string, unknown> | undefined)?.moon_phase as
+              | import("@/types").MoonPhaseInfo
+              | null) ?? null
+          }
+          userName={localStorage.getItem("nps_username") ?? undefined}
+        />
       </FadeIn>
       <FadeIn delay={80} className="lg:col-span-8">
         <DailyReadingCard
@@ -64,8 +79,9 @@ export default function Dashboard() {
         <RecentReadings
           readings={recent?.readings ?? []}
           isLoading={recentLoading}
-          isError={false}
+          isError={recentError}
           total={recent?.total ?? 0}
+          onRetry={() => retryRecent()}
         />
       </FadeIn>
     </div>

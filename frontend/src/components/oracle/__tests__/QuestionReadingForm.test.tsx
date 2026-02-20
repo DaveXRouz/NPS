@@ -116,7 +116,6 @@ describe("QuestionReadingForm", () => {
     expect(screen.getByText("Question Reading")).toBeInTheDocument();
     expect(screen.getByText("Question Context")).toBeInTheDocument();
     expect(screen.getByText("Your Question")).toBeInTheDocument();
-    expect(screen.getByText("Emotional State (Optional)")).toBeInTheDocument();
   });
 
   it("renders category pills with General selected by default", () => {
@@ -126,15 +125,6 @@ describe("QuestionReadingForm", () => {
     expect(generalBtn.className).toContain("bg-[var(--nps-accent)]");
     expect(screen.getByTestId("category-love")).toBeInTheDocument();
     expect(screen.getByTestId("category-career")).toBeInTheDocument();
-  });
-
-  it("renders mood pills with none selected by default", () => {
-    renderWithProviders(<QuestionReadingForm onResult={onResult} />);
-    const noneBtn = screen.getByTestId("mood-none");
-    expect(noneBtn).toBeInTheDocument();
-    expect(noneBtn.className).toContain("bg-[var(--nps-accent)]");
-    expect(screen.getByTestId("mood-calm")).toBeInTheDocument();
-    expect(screen.getByTestId("mood-anxious")).toBeInTheDocument();
   });
 
   it("character counter updates as user types", () => {
@@ -211,17 +201,6 @@ describe("QuestionReadingForm", () => {
     expect(loveBtn.className).toContain("bg-[var(--nps-accent)]");
     const generalBtn = screen.getByTestId("category-general");
     expect(generalBtn.className).not.toContain(
-      "bg-[var(--nps-accent)] text-[var(--nps-bg)]",
-    );
-  });
-
-  it("mood selection changes active pill", () => {
-    renderWithProviders(<QuestionReadingForm onResult={onResult} />);
-    const calmBtn = screen.getByTestId("mood-calm");
-    fireEvent.click(calmBtn);
-    expect(calmBtn.className).toContain("bg-[var(--nps-accent)]");
-    const noneBtn = screen.getByTestId("mood-none");
-    expect(noneBtn.className).not.toContain(
       "bg-[var(--nps-accent)] text-[var(--nps-bg)]",
     );
   });

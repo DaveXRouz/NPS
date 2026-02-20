@@ -207,15 +207,16 @@ async def test_oracle_stats_empty(client):
 async def test_oracle_stats_with_data(client):
     db = TestSession()
     try:
-        reading_id = _create_reading(db)
+        # Create separate readings so each feedback has a unique (reading_id, user_id) key
+        reading_ids = [_create_reading(db) for _ in range(3)]
     finally:
         db.close()
 
-    # Submit a few feedbacks
-    for rating in [3, 4, 5]:
+    # Submit feedbacks on different readings (same auth user, different readings → 3 rows)
+    for reading_id, rating in zip(reading_ids, [3, 4, 5]):
         await client.post(
             f"/api/learning/oracle/readings/{reading_id}/feedback",
-            json={"rating": rating, "user_id": rating},  # Different user_ids
+            json={"rating": rating},
         )
 
     resp = await client.get("/api/learning/oracle/stats")
@@ -252,17 +253,17 @@ async def test_recalculate_readonly_forbidden(readonly_client):
 async def test_section_feedback_aggregation(client):
     db = TestSession()
     try:
-        reading_id = _create_reading(db)
+        # Create separate readings so each feedback has a unique (reading_id, user_id) key
+        reading_ids = [_create_reading(db) for _ in range(3)]
     finally:
         db.close()
 
-    # Three feedbacks with section data
-    for i, helpful in enumerate([True, True, False]):
+    # Three feedbacks with section data on different readings
+    for reading_id, helpful in zip(reading_ids, [True, True, False]):
         await client.post(
             f"/api/learning/oracle/readings/{reading_id}/feedback",
             json={
                 "rating": 4,
-                "user_id": i + 10,
                 "section_feedback": [
                     {"section": "advice", "helpful": helpful},
                 ],

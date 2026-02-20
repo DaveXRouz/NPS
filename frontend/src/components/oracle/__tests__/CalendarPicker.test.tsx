@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CalendarPicker } from "../CalendarPicker";
@@ -18,10 +18,15 @@ vi.mock("react-i18next", () => ({
       };
       return map[key] ?? key;
     },
+    i18n: { language: "en" },
   }),
 }));
 
 describe("CalendarPicker", () => {
+  beforeEach(() => {
+    localStorage.removeItem("nps_calendar_mode");
+  });
+
   it("renders with placeholder when no value", () => {
     render(<CalendarPicker value="" onChange={vi.fn()} />);
     expect(screen.getByText("Select a date")).toBeInTheDocument();

@@ -204,7 +204,7 @@ async def create_question_sign(
 
     try:
         result = await asyncio.wait_for(
-            asyncio.get_event_loop().run_in_executor(
+            asyncio.get_running_loop().run_in_executor(
                 None,
                 lambda: svc.get_question_reading_v2(
                     question=body.question,
@@ -259,7 +259,7 @@ async def create_name_reading(
 
     try:
         result = await asyncio.wait_for(
-            asyncio.get_event_loop().run_in_executor(
+            asyncio.get_running_loop().run_in_executor(
                 None,
                 lambda: svc.get_name_reading_v2(
                     name=body.name,
@@ -787,6 +787,22 @@ def delete_reading(
     audit: AuditService = Depends(get_audit_service),
 ):
     """Soft-delete an oracle reading."""
+    # Ownership check: non-admin users can only delete their own readings
+    reading_data = svc.get_reading_by_id(reading_id)
+    if not reading_data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reading not found")
+    is_admin = "oracle:admin" in _user.get("scopes", [])
+    if not is_admin:
+        oracle_uid = reading_data.get("user_id")
+        owner_id = None
+        if oracle_uid:
+            ou = svc.db.query(OracleUser).filter(OracleUser.id == oracle_uid).first()
+            owner_id = ou.created_by if ou else None
+        if owner_id != _user.get("user_id"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot delete another user's reading",
+            )
     deleted = svc.soft_delete_reading(reading_id)
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reading not found")
@@ -812,6 +828,22 @@ def toggle_reading_favorite(
     audit: AuditService = Depends(get_audit_service),
 ):
     """Toggle the favorite status of an oracle reading."""
+    # Ownership check: non-admin users can only favorite their own readings
+    reading_data = svc.get_reading_by_id(reading_id)
+    if not reading_data:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reading not found")
+    is_admin = "oracle:admin" in _user.get("scopes", [])
+    if not is_admin:
+        oracle_uid = reading_data.get("user_id")
+        owner_id = None
+        if oracle_uid:
+            ou = svc.db.query(OracleUser).filter(OracleUser.id == oracle_uid).first()
+            owner_id = ou.created_by if ou else None
+        if owner_id != _user.get("user_id"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot modify another user's reading",
+            )
     data = svc.toggle_favorite(reading_id)
     if not data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reading not found")

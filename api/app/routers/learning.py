@@ -28,8 +28,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/stats", response_model=LearningStatsResponse)
-async def get_learning_stats():
+@router.get(
+    "/stats",
+    response_model=LearningStatsResponse,
+    dependencies=[Depends(require_scope("oracle:read"))],
+)
+async def get_learning_stats(_user: dict = Depends(get_current_user)):
     """Get current level, XP, and capabilities."""
     return LearningStatsResponse(
         level=1,
@@ -40,26 +44,42 @@ async def get_learning_stats():
     )
 
 
-@router.get("/insights", response_model=list[InsightResponse])
-async def get_insights(limit: int = 10):
+@router.get(
+    "/insights",
+    response_model=list[InsightResponse],
+    dependencies=[Depends(require_scope("oracle:read"))],
+)
+async def get_insights(limit: int = 10, _user: dict = Depends(get_current_user)):
     """Get stored AI insights."""
     return []
 
 
-@router.post("/analyze", response_model=AnalyzeResponse)
-async def analyze_session(request: AnalyzeRequest):
+@router.post(
+    "/analyze",
+    response_model=AnalyzeResponse,
+    dependencies=[Depends(require_scope("oracle:write"))],
+)
+async def analyze_session(request: AnalyzeRequest, _user: dict = Depends(get_current_user)):
     """Trigger AI analysis of a session."""
     return AnalyzeResponse(insights=[], recommendations=[], xp_earned=0)
 
 
-@router.get("/weights", response_model=WeightsResponse)
-async def get_weights():
+@router.get(
+    "/weights",
+    response_model=WeightsResponse,
+    dependencies=[Depends(require_scope("oracle:read"))],
+)
+async def get_weights(_user: dict = Depends(get_current_user)):
     """Get current scoring weights."""
     return WeightsResponse(weights={})
 
 
-@router.get("/patterns", response_model=list[PatternResponse])
-async def get_patterns():
+@router.get(
+    "/patterns",
+    response_model=list[PatternResponse],
+    dependencies=[Depends(require_scope("oracle:read"))],
+)
+async def get_patterns(_user: dict = Depends(get_current_user)):
     """Get detected patterns from scanning."""
     return []
 
@@ -79,6 +99,9 @@ async def submit_feedback(
     _user: dict = Depends(get_current_user),
 ):
     """Submit feedback for a reading. Upserts on (reading_id, user_id)."""
+    # Use user_id from auth token, not request body (Issue #118)
+    auth_user_id = _user.get("user_id")
+
     # Verify reading exists
     reading = db.query(OracleReading).filter(OracleReading.id == reading_id).first()
     if not reading:
@@ -96,7 +119,7 @@ async def submit_feedback(
         db.query(OracleReadingFeedback)
         .filter(
             OracleReadingFeedback.reading_id == reading_id,
-            OracleReadingFeedback.user_id == body.user_id,
+            OracleReadingFeedback.user_id == auth_user_id,
         )
         .first()
     )
@@ -119,7 +142,7 @@ async def submit_feedback(
 
     feedback = OracleReadingFeedback(
         reading_id=reading_id,
-        user_id=body.user_id,
+        user_id=auth_user_id,
         rating=body.rating,
         section_feedback=section_json,
         text_feedback=body.text_feedback,

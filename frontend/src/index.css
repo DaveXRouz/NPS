@@ -6,10 +6,32 @@
 
 /* NPS global styles */
 body {
-  font-family: "Inter", "Segoe UI", "Helvetica", sans-serif;
+  font-family: "Lora", "Georgia", serif;
   background-color: var(--nps-bg);
   color: var(--nps-text);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1;
+  background-image:
+    radial-gradient(
+      ellipse 60% 50% at 20% 60%,
+      var(--nps-orb-oracle) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 80% 30%,
+      var(--nps-orb-emerald) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 40% 50% at 50% 90%,
+      var(--nps-orb-purple) 0%,
+      transparent 70%
+    );
+  background-attachment: fixed;
 }
 
 /* Global form element reset — ensures inputs are themed in both dark/light */
@@ -37,6 +59,17 @@ html[dir="rtl"] {
   text-align: right;
 }
 
+/* Selection styling */
+::selection {
+  background-color: rgba(79, 195, 247, 0.3);
+  color: var(--nps-text-bright);
+}
+
+:root.light ::selection {
+  background-color: rgba(5, 150, 105, 0.25);
+  color: var(--nps-text-bright);
+}
+
 /* Smooth theme transition (disabled during initial load via no-transition class) */
 *:not(.no-transition),
 *:not(.no-transition)::before,
@@ -48,22 +81,27 @@ html[dir="rtl"] {
 }
 
 /* Scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--nps-border) transparent;
+}
+
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--nps-bg);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--nps-border);
+  background: var(--nps-accent-dim);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--nps-text-dim);
+  background: var(--nps-accent);
 }
 
 /* Mobile keyboard slide-up animation */
@@ -86,7 +124,7 @@ html[dir="rtl"] {
 *:focus-visible {
   outline: 2px solid var(--nps-accent);
   outline-offset: 2px;
-  border-radius: 2px;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
 }
 
 /* Remove default outline only when focus-visible handles it */
@@ -121,5 +159,10 @@ html[dir="rtl"] {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  body {
+    background-image: none !important;
   }
 }
