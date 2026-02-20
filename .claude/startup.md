@@ -69,8 +69,7 @@ After silent checks, determine session mode:
 ```
 1. Understand the task
 2. Check if it aligns with current session block (BUILD_HISTORY.md)
-3. If task needs a spec → read relevant .specs/ file
-4. Create plan if complex, execute directly if simple
+3. Create plan if complex, execute directly if simple
 5. Do the work silently
 6. Show results
 ```

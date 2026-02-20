@@ -3,6 +3,9 @@
 > This is the map of EVERYTHING that can happen during the Oracle rebuild.
 > Every terminal session, every workflow, every decision point, every connection.
 > Claude Code reads this when the path forward isn't obvious.
+>
+> **Note:** The `.specs/` and `.session-specs/` directories have been archived and deleted.
+> Session specs are no longer used. Plans are created inline per CLAUDE.md rules.
 
 ---
 
@@ -44,24 +47,23 @@ This is the default. 80% of sessions follow this exact flow.
 └──────────────┬──────────────────────────────┘
                ▼
 ┌─────────────────────────────────────────────┐
-│  DOES A SPEC EXIST?                          │
-│  Check .session-specs/SESSION_[N]_SPEC.md    │
+│  CREATE PLAN                                 │
+│  (Specs archived — plans created inline)     │
 │                                              │
-│  YES → Go to EXECUTE                         │
-│  NO  → Go to SPEC CREATION                   │
+│  Create comprehensive plan → show to Dave    │
+│  Dave approves → Go to EXECUTE               │
 └──────────────┬──────────────────────────────┘
                ▼
 ┌─────────────────────────────────────────────┐
-│  SPEC CREATION (Phase 1)                     │
-│  1. Read relevant .specs/ for context        │
-│  2. Read logic/ docs for algorithms          │
-│  3. Read CURRENT_STATE.md for gaps    │
-│  4. Write .session-specs/SESSION_[N]_SPEC.md │
-│  5. Show spec to Dave                        │
-│  6. Wait for approval                        │
+│  PLAN CREATION                               │
+│  1. Read logic/ docs for algorithms          │
+│  2. Read CURRENT_STATE.md for gaps           │
+│  3. Create comprehensive inline plan         │
+│  4. Show plan to Dave                        │
+│  5. Wait for approval                        │
 │                                              │
 │  Dave says "approved" → EXECUTE              │
-│  Dave says "change X" → edit spec, re-show   │
+│  Dave says "change X" → edit plan, re-show   │
 │  Dave says "skip this" → Go to NEXT SESSION  │
 └──────────────┬──────────────────────────────┘
                ▼
@@ -101,10 +103,8 @@ Dave says something like: "write the spec for session 7" or "plan session 13"
 │  CONTEXT GATHERING                           │
 │  1. Read CLAUDE.md → find block for [N]      │
 │  2. Read BUILD_HISTORY.md → what's done so far │
-│  3. Read .specs/ → relevant reference specs  │
-│  4. Read logic/ → algorithms if applicable   │
-│  5. Read CURRENT_STATE.md → gaps      │
-│  6. Read previous session specs if they exist│
+│  3. Read logic/ → algorithms if applicable   │
+│  4. Read CURRENT_STATE.md → gaps             │
 └──────────────┬──────────────────────────────┘
                ▼
 ┌─────────────────────────────────────────────┐
@@ -117,8 +117,8 @@ Dave says something like: "write the spec for session 7" or "plan session 13"
 └──────────────┬──────────────────────────────┘
                ▼
 ┌─────────────────────────────────────────────┐
-│  WRITE SPEC                                  │
-│  File: .session-specs/SESSION_[N]_SPEC.md    │
+│  WRITE PLAN                                  │
+│  (Inline — specs archived)                   │
 │                                              │
 │  Must include:                               │
 │  - Session number + block name               │
@@ -134,18 +134,17 @@ Dave says something like: "write the spec for session 7" or "plan session 13"
 └──────────────┬──────────────────────────────┘
                ▼
 ┌─────────────────────────────────────────────┐
-│  SHOW SPEC TO DAVE                           │
+│  SHOW PLAN TO DAVE                           │
 │                                              │
 │  Dave reviews. Three outcomes:               │
-│  ✅ "Approved" → spec saved, ready later     │
+│  ✅ "Approved" → plan saved, ready later     │
 │  ✏️  "Change X" → edit and re-show           │
 │  ▶️  "Do it now" → jump to EXECUTE workflow  │
 └──────────────┬──────────────────────────────┘
                ▼
 ┌─────────────────────────────────────────────┐
-│  GIT COMMIT                                  │
-│  git add .session-specs/SESSION_[N]_SPEC.md  │
-│  git commit -m "[spec] session N: [title]"   │
+│  GIT COMMIT (if plan saved to file)           │
+│  git commit -m "[plan] session N: [title]"   │
 │  git push                                    │
 └─────────────────────────────────────────────┘
 ```
@@ -252,11 +251,10 @@ A session turns out to need more work than expected. Context runs out, or the ta
 └──────────────┬──────────────────────────────┘
                ▼
 ┌─────────────────────────────────────────────┐
-│  CREATE CONTINUATION SPEC                    │
-│  File: .session-specs/SESSION_[N]b_SPEC.md   │
-│  (use 'b' suffix for continuations)          │
+│  CREATE CONTINUATION PLAN                    │
+│  (Use 'b' suffix for continuations)          │
 │                                              │
-│  This spec covers ONLY the remaining work.   │
+│  This plan covers ONLY the remaining work.   │
 │  It starts with: "Continuation of Session N" │
 │  Prerequisites: "Session N Part 1 completed" │
 └──────────────┬──────────────────────────────┘
@@ -272,9 +270,9 @@ A session turns out to need more work than expected. Context runs out, or the ta
 
 **Naming convention for split sessions:**
 ```
-SESSION_7_SPEC.md   → original spec
-SESSION_7b_SPEC.md  → continuation (Part 2)
-SESSION_7c_SPEC.md  → rare third part
+Session 7    → original plan
+Session 7b   → continuation (Part 2)
+Session 7c   → rare third part
 ```
 
 ---
@@ -333,8 +331,7 @@ While working on Session 7, you discover something that needs a whole new sessio
 Original plan: Session 7, Session 8, Session 9
 New session discovered after 7: Session 7.1
 
-This avoids renumbering existing specs.
-Spec file: .session-specs/SESSION_7.1_SPEC.md
+This avoids renumbering existing sessions.
 ```
 
 ---
@@ -356,8 +353,7 @@ When the last session of a block finishes, there's a checkpoint.
 │  2. All tests pass (run full test suite)     │
 │  3. No open Stitching Issues for this block  │
 │  4. BUILD_HISTORY.md is current                │
-│  5. All specs in .session-specs/ are marked  │
-│     "Complete" in status table               │
+│  5. All session tasks verified complete       │
 └──────────────┬──────────────────────────────┘
                ▼
 ┌─────────────────────────────────────────────┐
@@ -431,7 +427,7 @@ Dave closes the terminal and opens a new one. Everything must be reconstructed f
 │  → Still git commit when done                │
 │                                              │
 │  "what's the status?":                       │
-│  → Read BUILD_HISTORY.md + .session-specs/     │
+│  → Read BUILD_HISTORY.md → summarize           │
 │  → Show current state summary                │
 │  → Don't start any work                      │
 └─────────────────────────────────────────────┘
@@ -541,12 +537,6 @@ CLAUDE.md (master rules)
     │   ├── Stitching Issues → discovered work
     │   └── Cross-Terminal Dependencies → multi-terminal
     │
-    ├── .session-specs/ (active specs)
-    │   ├── SESSION_[N]_SPEC.md → individual session plans
-    │   ├── SESSION_[N]b_SPEC.md → overflow continuations
-    │   └── README.md → naming + quality rules
-    │
-    ├── .specs/ (reference only, from 16-session scaffolding)
     │
     ├── logic/ (algorithm docs)
     │   ├── FC60_ALGORITHM.md → math formulas
@@ -565,9 +555,7 @@ CLAUDE.md (master rules)
 Dave says "go"
     → CLAUDE.md tells Claude HOW to work
     → BUILD_HISTORY.md tells Claude WHAT to work on
-    → .session-specs/ tells Claude the DETAILED PLAN
     → logic/ tells Claude the ALGORITHMS
-    → .specs/ tells Claude what was PLANNED BEFORE (reference)
     → CURRENT_STATE.md tells Claude what ACTUALLY EXISTS
     → .claude/ files tell Claude HOW TO BEHAVE
 ```
@@ -591,7 +579,7 @@ Dave opens terminal and says...
     └─→ Workflow 3 (Batch Specs)
 
 "what's the status?"
-    └─→ Read BUILD_HISTORY + .session-specs/ → summarize
+    └─→ Read BUILD_HISTORY.md → summarize
 
 "fix [specific thing]"
     └─→ Skip session flow, fix directly, commit
@@ -613,12 +601,9 @@ Dave opens terminal and says...
 Original sessions:    1, 2, 3, 4, 5, 6, 7, ...
 Split continuations:  7b, 7c (same session, multiple parts)
 Discovered sessions:  7.1, 7.2 (new work inserted after 7)
-Spec files follow:    SESSION_7_SPEC.md
-                      SESSION_7b_SPEC.md
-                      SESSION_7.1_SPEC.md
 ```
 
-**Never renumber existing sessions.** If Session 12 discovers new work, it becomes 12.1, not a shift of 13→14→15.
+**Never renumber existing sessions.** If Session 12 discovers new work, it becomes 12.1, not a shift of 13-14-15.
 
 ---
 

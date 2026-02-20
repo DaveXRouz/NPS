@@ -14,9 +14,8 @@ When you open this project, execute this SILENTLY (no output to user):
 2. READ BUILD_HISTORY.md → find the next task
 3. READ .claude/startup.md → run silent checks
 4. SHOW 1-line status: "Continuing session [N]: [task name]"
-5. READ the relevant spec file if one is referenced
-6. CREATE comprehensive plan → show to user → wait for approval
-7. EXECUTE after approval
+5. CREATE comprehensive plan → show to user → wait for approval
+6. EXECUTE after approval
 ```
 
 **If user says "continue" or "next" or "go":** follow steps 1-7 automatically.
@@ -144,8 +143,6 @@ NPS/
 ├── scripts/               ← Deploy, backup, restore
 ├── docs/                  ← API reference, deployment guide
 ├── .archive/              ← Legacy code (READ-ONLY)
-├── .specs/                ← 16-session specs (reference only)
-├── .session-specs/        ← 45-session specs (active)
 └── docker-compose.yml
 ```
 
@@ -353,41 +350,6 @@ Skip deep thinking for:
 
 **Default:** Sonnet for most work. Upgrade to Opus for decisions that affect architecture. Downgrade to Haiku for mechanical tasks.
 
-### Session Spec Workflow: How Sessions Get Built
-
-Sessions follow a two-phase workflow:
-
-**Phase 1 — Spec Creation (before session starts):**
-
-```
-1. Read BUILD_HISTORY.md → identify next session number and block
-2. Read relevant .specs/ files for reference context
-3. Read logic/ docs for algorithm/architecture guidance
-4. Create .session-specs/SESSION_[N]_SPEC.md with:
-   - Objectives (what gets built)
-   - Files to create/modify (exact paths)
-   - Acceptance criteria (how to verify)
-   - Test requirements
-   - Dependencies on previous sessions
-5. Show spec to Dave → wait for approval
-```
-
-**Phase 2 — Execution (after spec approval):**
-
-```
-1. Read approved .session-specs/SESSION_[N]_SPEC.md
-2. Execute silently per CLAUDE.md rules
-3. Run quality pipeline on every file
-4. Update BUILD_HISTORY.md at end
-5. Git commit with session tag
-```
-
-**Spec storage:** `.session-specs/` folder (tracked in git).
-**Naming:** `SESSION_[N]_SPEC.md` (e.g., `SESSION_1_SPEC.md`).
-**Old specs:** `.specs/` folder is REFERENCE ONLY from the 16-session scaffolding.
-
----
-
 ## EXISTING CODE POLICY
 
 When you touch any file that doesn't match project standards:
@@ -407,19 +369,6 @@ Every session MUST end with:
 2. ✅ Git commit with descriptive message
 3. ✅ Define next session's task clearly in BUILD_HISTORY.md
 4. ✅ Show summary to Dave
-
----
-
-## SPEC FILE PROTOCOL
-
-When a session references a spec from `.specs/` or `.session-specs/`:
-
-1. Read the full spec
-2. Create a **comprehensive, detailed plan** that covers 100% of everything needed
-3. The plan must have **100% confidence** — no gaps, no "we'll figure this out later"
-4. Show the plan to Dave
-5. Wait for approval
-6. Execute silently after approval
 
 ---
 
@@ -464,8 +413,6 @@ All config in `.env` (copy from `.env.example`):
 | Scanner↔Oracle loop                | `logic/SCANNER_ORACLE_LOOP.md`    |
 | Common task step-by-step           | `logic/RECIPES.md`                |
 | Session history                    | `BUILD_HISTORY.md`                |
-| Spec files (reference)             | `.specs/` folder                  |
-| Session specs (active)             | `.session-specs/` folder          |
 | All workflow paths                 | `.claude/master-workflow.md`      |
 | Legacy source (reference)          | `.archive/v3/`                    |
 | Error recovery recipes             | `docs/ERROR_RECOVERY.md`          |

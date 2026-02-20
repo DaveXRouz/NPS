@@ -89,7 +89,7 @@ Terminals don't talk to each other directly. They communicate through:
 **Terminal:** [T1-T7 or SINGLE]
 **Block:** [Foundation / Engines / AI / Frontend / etc.]
 **Task:** [One sentence]
-**Spec:** [.specs/SPEC_FILE.md or "none"]
+**Spec:** none (archived)
 
 **Files changed:**
 - `path/to/file1.py` — what changed
