@@ -1,8 +1,9 @@
 # WISH LIST — NPS Project Handoff
 
 > **For the next Claude session starting work on issues.**
-> **Last updated:** 2026-02-19
+> **Last updated:** 2026-02-20
 > **Created by:** Claude Sonnet 4.6 (audit session — read everything, wrote nothing yet)
+> **Updated by:** Claude Opus 4.6 (fix session — P0 + P1 quick wins resolved)
 
 ---
 
@@ -27,14 +28,16 @@ When a new Claude session opens this project and wants to start fixing issues:
 - Docker Compose — 7 containers, all start correctly
 - Integration test suite — 56+ tests pass
 - Nginx proxy — correctly routes `/api/*` to FastAPI
+- **Oracle readings — all 5 types now work in production** (Issue #2 FIXED 2026-02-20)
+- **Admin routes protected by AdminGuard** (Issue #11 FIXED 2026-02-20)
+- **404 page for unknown routes** (Issue #21 FIXED 2026-02-20)
+- **Error text uses correct CSS token** (Issue #8 FIXED 2026-02-20)
 
 ### What Is Broken (Users Can't Use It)
 
-- **Oracle submit** — POST `/oracle/readings` returns 500/401 in production (Issue #2, #6)
-  - Root cause: either backend Oracle service is down OR auth (`VITE_API_KEY`) is wrong in Railway
-  - **ALL 5 reading types are broken** because they all hit this endpoint
+- ~~**Oracle submit** — POST `/oracle/readings` returns 500/401 in production (Issue #2, #6)~~ **FIXED 2026-02-20** — root cause was missing `reading_type` parameter in progress callback
 - **Persian translation** — button exists but translation endpoint fails (Issue #5)
-- **Admin routes unprotected** — `AdminGuard` built but not wired into `App.tsx` (Issue #11)
+- ~~**Admin routes unprotected** — `AdminGuard` built but not wired into `App.tsx` (Issue #11)~~ **FIXED 2026-02-20**
 - **AI reading output** — wall-of-text with separator lines, unformatted (Issue #4)
 
 ### What Exists But Is Never Used (Dead Code)
@@ -46,9 +49,10 @@ When a new Claude session opens this project and wants to start fixing issues:
 
 ### Security Issues That Need Immediate Attention
 
-- `frontend/.env` committed with real API key (Issue #121) — **rotate key now**
-- `api/app/config.py` hardcoded secret key default (Issue #122) — **remove default**
-- Root `.env` committed with real Anthropic API key (Issue #123) — **rotate key now**
+- ~~`frontend/.env` committed with real API key (Issue #121)~~ **FIXED 2026-02-20** — added to .gitignore, created .env.example (key rotation still recommended)
+- ~~`api/app/config.py` hardcoded secret key default (Issue #122)~~ **FIXED 2026-02-20** — removed default, startup now crashes if unset
+- ~~Root `.env` committed with real Anthropic API key (Issue #123)~~ **FIXED 2026-02-20** — already in .gitignore, not tracked (key rotation still recommended)
+- **Keys still in git history** — ANTHROPIC_API_KEY, VITE_API_KEY should be rotated
 
 ---
 
@@ -56,31 +60,32 @@ When a new Claude session opens this project and wants to start fixing issues:
 
 ### P0 — Fix Before Any User Touches the App
 
-| #    | Issue                                           | File(s)                       | Fix Time      |
-| ---- | ----------------------------------------------- | ----------------------------- | ------------- |
-| #121 | VITE_API_KEY in committed frontend/.env         | `frontend/.env`, `.gitignore` | 10 min        |
-| #122 | Hardcoded API secret key in config.py           | `api/app/config.py:27`        | 2 min         |
-| #123 | Anthropic API key in committed root .env        | `.env`, `.gitignore`          | 10 min        |
-| #2   | Oracle submit returns 500 (all readings broken) | Railway env vars + logs       | Investigation |
-| #11  | AdminGuard not wired in App.tsx                 | `frontend/src/App.tsx:78-91`  | 5 min         |
+| #    | Issue                                           | File(s)                       | Fix Time      | Status               |
+| ---- | ----------------------------------------------- | ----------------------------- | ------------- | -------------------- |
+| #121 | VITE_API_KEY in committed frontend/.env         | `frontend/.env`, `.gitignore` | 10 min        | **FIXED 2026-02-20** |
+| #122 | Hardcoded API secret key in config.py           | `api/app/config.py:27`        | 2 min         | **FIXED 2026-02-20** |
+| #123 | Anthropic API key in committed root .env        | `.env`, `.gitignore`          | 10 min        | **FIXED 2026-02-20** |
+| #2   | Oracle submit returns 500 (all readings broken) | `oracle.py` callback sig      | Investigation | **FIXED 2026-02-20** |
+| #11  | AdminGuard not wired in App.tsx                 | `frontend/src/App.tsx:78-91`  | 5 min         | **FIXED 2026-02-20** |
 
 ### P1 — Fix Before Showing to Real Users
 
-| #    | Issue                                                    | File(s)                                                        | Fix Time |
-| ---- | -------------------------------------------------------- | -------------------------------------------------------------- | -------- |
-| #4   | AI reading is wall-of-text                               | `TranslatedReading.tsx:42`, `prompt_templates.py`, `oracle.py` | Medium   |
-| #8   | `text-nps-bg-danger` in 7 places (wrong CSS)             | 5 files, 7 lines                                               | 5 min    |
-| #9   | Delete reading — no confirmation dialog                  | `ReadingHistory.tsx:87-90`, `ReadingCard.tsx:59-69`            | Small    |
-| #12  | Admin role from localStorage (bypassable)                | `Layout.tsx:58`, `AdminGuard.tsx:7`                            | Medium   |
-| #18  | Date formatting ignores app language                     | 11 files — create `useDateFormatter()`                         | Medium   |
-| #21  | No 404 page                                              | `App.tsx` — add `<Route path="*">`                             | Small    |
-| #25  | ai_interpretation inconsistent shape across endpoints    | `oracle.py`, `types/index.ts`                                  | Medium   |
-| #26  | Confidence score scale mismatch (0-1 float vs 0-100 int) | Backend engines + frontend normalization                       | Medium   |
-| #35  | Focus styles missing/wrong on 25+ interactive elements   | `index.css:86-90` + 25 files                                   | Medium   |
-| #36  | Icon-only buttons missing aria-label                     | `ReadingCard.tsx`, `ReadingDetail.tsx`                         | Trivial  |
-| #41  | RecentReadings returns null on error (silently vanishes) | `RecentReadings.tsx:73`                                        | Small    |
-| #125 | `bg-nps-bg-button` undefined Tailwind class              | `EmptyState.tsx:59`, `ErrorBoundary.tsx:73`                    | Trivial  |
-| #129 | Migration scripts all TODO stubs                         | `database/migrations/migrate_*.py`                             | Large    |
+| #    | Issue                                                    | File(s)                                                        | Fix Time | Status               |
+| ---- | -------------------------------------------------------- | -------------------------------------------------------------- | -------- | -------------------- |
+| #4   | AI reading is wall-of-text                               | `TranslatedReading.tsx:42`, `prompt_templates.py`, `oracle.py` | Medium   | Open                 |
+| #8   | `text-nps-bg-danger` in 7 places (wrong CSS)             | 5 files, 7 lines                                               | 5 min    | **FIXED 2026-02-20** |
+| #9   | Delete reading — no confirmation dialog                  | `ReadingHistory.tsx:87-90`, `ReadingCard.tsx:59-69`            | Small    | Open                 |
+| #12  | Admin role from localStorage (bypassable)                | `Layout.tsx:58`, `AdminGuard.tsx:7`                            | Medium   | Open                 |
+| #18  | Date formatting ignores app language                     | 11 files — create `useDateFormatter()`                         | Medium   | Open                 |
+| #21  | No 404 page                                              | `App.tsx` — add `<Route path="*">`                             | Small    | **FIXED 2026-02-20** |
+| #25  | ai_interpretation inconsistent shape across endpoints    | `oracle.py`, `types/index.ts`                                  | Medium   | Open                 |
+| #26  | Confidence score scale mismatch (0-1 float vs 0-100 int) | Backend engines + frontend normalization                       | Medium   | Open                 |
+| #35  | Focus styles missing/wrong on 25+ interactive elements   | `index.css:86-90` + 25 files                                   | Medium   | Open                 |
+| #36  | Icon-only buttons missing aria-label                     | `ReadingCard.tsx`, `ReadingDetail.tsx`                         | Trivial  | Open                 |
+| #41  | RecentReadings returns null on error (silently vanishes) | `RecentReadings.tsx:73`                                        | Small    | Open                 |
+| #125 | `bg-nps-bg-button` — **NOT a bug** (see note below)      | N/A                                                            | N/A      | **INVALID**          |
+| #129 | Migration scripts all TODO stubs                         | `database/migrations/migrate_*.py`                             | Large    | Open                 |
+| #131 | Oracle endpoint missing general exception catch          | `oracle.py:195-242, 250-297`                                   | Small    | **FIXED 2026-02-20** |
 
 ### P2 — Polish and Robustness
 
@@ -117,38 +122,28 @@ When a new Claude session opens this project and wants to start fixing issues:
 These are one-liners or near one-liners — highest ROI for time spent:
 
 | #    | What                              | Where                     | Change                                                       |
-| ---- | --------------------------------- | ------------------------- | ------------------------------------------------------------ |
-| #8   | Wrong CSS class for error text    | 7 files                   | `text-nps-bg-danger` → `text-nps-error`                      |
-| #11  | AdminGuard not wired              | `App.tsx:78`              | Wrap `/admin` route in `<Route element={<AdminGuard />}>`    |
-| #15  | StarRating hardcoded LTR          | `StarRating.tsx:81`       | Remove `dir="ltr"`                                           |
-| #17  | DailyReadingCard RTL detection    | `DailyReadingCard.tsx:22` | `const { isRTL } = useDirection()`                           |
-| #22  | Tab title never changes           | 6 page files              | Add `useEffect(() => { document.title = "Page — NPS" }, [])` |
-| #30  | Export menu mislabeled            | `ExportShareMenu.tsx:197` | `t("oracle.export_and_share")`                               |
-| #36  | Icon buttons missing aria-label   | 2 files                   | Add `aria-label={t(...)}` to 4 buttons                       |
-| #39  | Disabled nav items use div        | 2 files                   | `<button disabled aria-disabled="true">`                     |
-| #121 | Remove hardcoded API key default  | `config.py:27`            | Remove default value                                         |
-| #125 | Undefined bg-nps-bg-button class  | 2 files                   | `bg-nps-bg-button` → `bg-nps-button`                         |
-| #130 | Translation endpoint bare throw   | `translation.py`          | Add try/except HTTPException                                 |
-| #132 | Bare except in coordinate helpers | `oracle.py:132,149`       | Catch specific SQLAlchemy exceptions                         |
-| #133 | Health check missing AI check     | `health.py`               | Add `ANTHROPIC_API_KEY` check                                |
+| ---- | --------------------------------- | ------------------------- | ------------------------------------------------------------ | ----------- |
+| #8   | Wrong CSS class for error text    | 7 files                   | `text-nps-bg-danger` → `text-nps-error`                      | **DONE**    |
+| #11  | AdminGuard not wired              | `App.tsx:78`              | Wrap `/admin` route in `<Route element={<AdminGuard />}>`    | **DONE**    |
+| #15  | StarRating hardcoded LTR          | `StarRating.tsx:81`       | Intentionally LTR — not a bug                                | **INVALID** |
+| #17  | DailyReadingCard RTL detection    | `DailyReadingCard.tsx:22` | `const { isRTL } = useDirection()`                           | Open        |
+| #22  | Tab title never changes           | 6 page files              | Add `useEffect(() => { document.title = "Page — NPS" }, [])` | Open        |
+| #30  | Export menu mislabeled            | `ExportShareMenu.tsx:197` | `t("oracle.export_and_share")`                               | Open        |
+| #36  | Icon buttons missing aria-label   | 2 files                   | Add `aria-label={t(...)}` to 4 buttons                       | Open        |
+| #39  | Disabled nav items use div        | 2 files                   | `<button disabled aria-disabled="true">`                     | Open        |
+| #121 | Remove hardcoded API key default  | `config.py:27`            | Remove default value                                         | **DONE**    |
+| #125 | Undefined bg-nps-bg-button class  | N/A                       | **NOT A BUG** — class IS valid from `nps.bg.button`          | **INVALID** |
+| #130 | Translation endpoint bare throw   | `translation.py`          | Add try/except HTTPException                                 | Open        |
+| #132 | Bare except in coordinate helpers | `oracle.py:132,149`       | Catch specific SQLAlchemy exceptions                         | Open        |
+| #133 | Health check missing AI check     | `health.py`               | Add `ANTHROPIC_API_KEY` check                                | Open        |
 
 ---
 
 ## Major Blockers (The App Can't Work Until These Are Fixed)
 
-### Blocker 1 — Oracle Backend Returns 500 (Issues #2, #6)
+### ~~Blocker 1 — Oracle Backend Returns 500 (Issues #2, #6)~~ RESOLVED 2026-02-20
 
-**All Oracle functionality is broken.** Every reading type (Time, Name, Question, Daily, Multi-user) hits `POST /oracle/readings` which returns an error in production.
-
-**Investigation steps:**
-
-1. Check Railway logs for the Oracle service container at the time of submission
-2. Verify `VITE_API_KEY` in Railway env vars matches a valid key in the PostgreSQL `oracle_api_keys` table
-3. Check nginx proxy config routes `/api/*` → FastAPI on port 8000
-4. If 401: auth failure — key mismatch or JWT expired
-5. If 500: Oracle service crashed or AI key missing
-
-**The fix for this is infrastructure/config, not code.** Once the backend is healthy, all 5 reading types work simultaneously.
+**Root cause found and fixed:** The `time_progress` callback in `api/app/routers/oracle.py` was missing the 4th `reading_type` parameter that `ReadingOrchestrator._send_progress()` passes. The fix was adding `rt: str = "time"` to the callback signature. Additionally, comprehensive exception handling (ImportError→503, generic Exception→500) was added to the `/readings` endpoint. All 5 reading types now work in production.
 
 ### Blocker 2 — AI Reading Output Is Unreadable (Issue #4)
 
@@ -160,20 +155,9 @@ These are one-liners or near one-liners — highest ROI for time spent:
 - Backend: Add to system prompt: "Do not use separator lines (----). Use blank lines between paragraphs."
 - Frontend: `TranslatedReading.tsx:42` — replace `<p>{reading}</p>` with paragraph-aware renderer (split on `\n\n`)
 
-### Blocker 3 — Admin Panel Is Accessible to Anyone (Issue #11)
+### ~~Blocker 3 — Admin Panel Is Accessible to Anyone (Issue #11)~~ RESOLVED 2026-02-20
 
-**Any user can navigate to `/admin` and see all user data, logs, and backup controls.** `AdminGuard` component exists but is not applied to the routes.
-
-**Fix: 2 lines in `App.tsx`:**
-
-```tsx
-// Before the /admin Route:
-<Route element={<AdminGuard />}>
-  <Route path="/admin" element={<Admin />}>
-    ...
-  </Route>
-</Route>
-```
+**Fixed:** `AdminGuard` is now wired into `App.tsx` wrapping all `/admin` routes. Non-admin users see a 403 page. A 404 catch-all route was also added (Issue #21).
 
 ---
 
@@ -192,7 +176,7 @@ The Tailwind config (`frontend/tailwind.config.ts`) defines semantic tokens:
 - `text-nps-error` (#f85149) — error text
 - `text-nps-success` — success text
 - `text-nps-warning` — warning text
-- `bg-nps-button` (#1f6feb) — button background (NOT `bg-nps-bg-button`)
+- `bg-nps-bg-button` (#1f6feb) — button background (from nested `nps.bg.button` in Tailwind config — this IS valid, contrary to Issue #125)
 - `bg-nps-bg-danger` (#da3633) — danger backgrounds only (NOT for text)
 - `text-nps-oracle-accent` (#4fc3f7) — oracle blue accent
 - `text-nps-text-dim` — muted text
@@ -291,20 +275,21 @@ When you open a new session to fix issues from this list:
 
 ## Issue Count Summary
 
-| Priority    | Count   | Status       |
-| ----------- | ------- | ------------ |
-| P0 Critical | 5       | All open     |
-| P1 High     | ~35     | All open     |
-| P2 Medium   | ~60     | All open     |
-| P3 Low      | ~33     | All open     |
-| **Total**   | **155** | **All open** |
+| Priority    | Count   | Status                                         |
+| ----------- | ------- | ---------------------------------------------- |
+| P0 Critical | 5       | **All 5 FIXED** (2026-02-20)                   |
+| P1 High     | ~35     | 3 fixed (#8, #21, #131), 2 invalid (#15, #125) |
+| P2 Medium   | ~60     | All open                                       |
+| P3 Low      | ~33     | All open                                       |
+| **Total**   | **155** | **8 resolved, ~147 remaining**                 |
 
 Full details in `ISSUE_LIST.md` (Issues #1–#133, ~5076 lines).
 
 ---
 
 _Handoff written by Claude Sonnet 4.6 — 2026-02-19_
-_Next session: start with P0 security items, then Blocker 3 (AdminGuard), then Quick Wins_
+_Updated by Claude Opus 4.6 — 2026-02-20: All P0 items fixed, P1 quick wins (#8, #21, #131) fixed, #125 and #15 marked invalid_
+_Next session: P1 remaining items (#4 AI wall-of-text, #9 delete confirmation, #12 admin role bypass, #18 date formatting), then P2 polish_
 
 ---
 
@@ -323,22 +308,22 @@ _Next session: start with P0 security items, then Blocker 3 (AdminGuard), then Q
 
 ### THE DESIGN PROBLEM: 14-DIMENSION GAP ANALYSIS
 
-| Dimension | Current State | Target State |
-|-----------|--------------|--------------|
-| Typography | Inter everywhere, same weight | Cinzel Decorative (display) + Lora (body) |
-| Color depth | 3 flat layers (#0a0a0a, #111111, #1e1e1e) | 5-tier depth with ambient glow orbs |
-| Glassmorphism | `blur(8px)` + `rgba(17,17,17,0.6)` | `blur(16px) saturate(150%)` + `rgba(8,12,20,0.70)` |
-| Card borders | `rgba(79,195,247,0.15)` — barely visible | `rgba(79,195,247,0.18)` + top-edge shine |
-| Background | Flat `#0a0a0a` | Base + radial glow orbs + ambient temperature |
-| Animations | CSS keyframes, load-time only | Scroll-triggered reveals, CountUp on view entry |
-| Stats cards | 4 identical grey cards | Each card: unique accent, glow halo, per-stat color |
-| Loading state | Pulsing orb + progress bar | Oracle Awakening — 5-act cinematic sequence |
-| Navigation | Flat links + 2px start border | Illuminated active state, gradient sweep, icon glow |
-| Empty states | Generic icon + text | Domain-specific cosmic illustrated states |
-| Buttons | Gradient emerald, plain hover | Glow hover, lift effect, branded focus |
-| Selection | None | Oracle-accent branded text selection |
-| Scrollbar | 8px grey thumb | 4px oracle-accent thumb |
-| Focus rings | 2px solid outline | 2px outline + glow shadow, larger offset |
+| Dimension     | Current State                             | Target State                                        |
+| ------------- | ----------------------------------------- | --------------------------------------------------- |
+| Typography    | Inter everywhere, same weight             | Cinzel Decorative (display) + Lora (body)           |
+| Color depth   | 3 flat layers (#0a0a0a, #111111, #1e1e1e) | 5-tier depth with ambient glow orbs                 |
+| Glassmorphism | `blur(8px)` + `rgba(17,17,17,0.6)`        | `blur(16px) saturate(150%)` + `rgba(8,12,20,0.70)`  |
+| Card borders  | `rgba(79,195,247,0.15)` — barely visible  | `rgba(79,195,247,0.18)` + top-edge shine            |
+| Background    | Flat `#0a0a0a`                            | Base + radial glow orbs + ambient temperature       |
+| Animations    | CSS keyframes, load-time only             | Scroll-triggered reveals, CountUp on view entry     |
+| Stats cards   | 4 identical grey cards                    | Each card: unique accent, glow halo, per-stat color |
+| Loading state | Pulsing orb + progress bar                | Oracle Awakening — 5-act cinematic sequence         |
+| Navigation    | Flat links + 2px start border             | Illuminated active state, gradient sweep, icon glow |
+| Empty states  | Generic icon + text                       | Domain-specific cosmic illustrated states           |
+| Buttons       | Gradient emerald, plain hover             | Glow hover, lift effect, branded focus              |
+| Selection     | None                                      | Oracle-accent branded text selection                |
+| Scrollbar     | 8px grey thumb                            | 4px oracle-accent thumb                             |
+| Focus rings   | 2px solid outline                         | 2px outline + glow shadow, larger offset            |
 
 ---
 
@@ -364,16 +349,21 @@ Persian: "Vazirmatn" — keep as-is (already installed, Cinzel is Latin-only)
 #### FILE: `frontend/index.html`
 
 Add inside `<head>` before existing scripts:
+
 ```html
 <!-- Premium typography: Cinzel Decorative (display) + Lora (body) -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+  rel="stylesheet"
+/>
 ```
 
 #### FILE: `frontend/src/index.css`
 
 Replace body font stack:
+
 ```css
 /* BEFORE */
 body {
@@ -391,7 +381,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  font-feature-settings: "liga" 1, "kern" 1;
+  font-feature-settings:
+    "liga" 1,
+    "kern" 1;
 }
 
 /* RTL font override — Cinzel is Latin-only, always use Vazirmatn for RTL */
@@ -401,6 +393,7 @@ html[dir="rtl"] body {
 ```
 
 Add font variables (add to `:root` in index.css or theme.css):
+
 ```css
 /* Typography tokens */
 --nps-font-display: "Cinzel Decorative", serif;
@@ -412,6 +405,7 @@ Add font variables (add to `:root` in index.css or theme.css):
 #### FILE: `frontend/tailwind.config.ts`
 
 Replace fontFamily:
+
 ```typescript
 fontFamily: {
   sans: ['"Lora"', '"Georgia"', 'serif'],
@@ -423,6 +417,7 @@ fontFamily: {
 #### Apply Display Font — Exact Locations
 
 - `WelcomeBanner.tsx:98` — h1 greeting text:
+
   ```tsx
   // BEFORE: className="text-2xl lg:text-3xl font-bold text-nps-text-bright truncate"
   // AFTER:
@@ -467,14 +462,14 @@ Add ALL of the following to `:root` (dark mode default):
 /* ===== DEPTH SYSTEM UPGRADE (Phase 2) ===== */
 
 /* 5-tier background depth — replaces 3-tier flat system */
---nps-bg-void:    #050508;    /* Page base — deepest layer, slight blue tint */
---nps-bg-surface: #080b14;   /* App shell background */
---nps-bg-card:    #0d1117;   /* Cards, panels (replace #111111) */
---nps-bg-raised:  #161b27;   /* Elevated panels, active states */
---nps-bg-overlay: #1e2433;   /* Modal backgrounds, high hover */
---nps-bg-input:   #0d1117;   /* Form inputs — aligned with card */
---nps-bg-hover:   #1a2035;   /* Hover state — distinct from card */
---nps-bg-sidebar: #060810;   /* Sidebar — slightly different temperature */
+--nps-bg-void: #050508; /* Page base — deepest layer, slight blue tint */
+--nps-bg-surface: #080b14; /* App shell background */
+--nps-bg-card: #0d1117; /* Cards, panels (replace #111111) */
+--nps-bg-raised: #161b27; /* Elevated panels, active states */
+--nps-bg-overlay: #1e2433; /* Modal backgrounds, high hover */
+--nps-bg-input: #0d1117; /* Form inputs — aligned with card */
+--nps-bg-hover: #1a2035; /* Hover state — distinct from card */
+--nps-bg-sidebar: #060810; /* Sidebar — slightly different temperature */
 
 /* Glassmorphism — 3 depth tiers (explicit blur values) */
 --nps-glass-blur-sm: blur(8px) saturate(120%);
@@ -482,54 +477,77 @@ Add ALL of the following to `:root` (dark mode default):
 --nps-glass-blur-lg: blur(24px) saturate(180%);
 
 /* Glassmorphism background per tier */
---nps-glass-bg-sm: rgba(13, 17, 23, 0.50);
---nps-glass-bg-md: rgba(8, 12, 20, 0.70);
+--nps-glass-bg-sm: rgba(13, 17, 23, 0.5);
+--nps-glass-bg-md: rgba(8, 12, 20, 0.7);
 --nps-glass-bg-lg: rgba(5, 8, 14, 0.85);
 
 /* Glassmorphism borders — 3 intensity levels */
 --nps-glass-border-subtle: rgba(79, 195, 247, 0.08);
---nps-glass-border-std:    rgba(79, 195, 247, 0.18);
---nps-glass-border-active: rgba(79, 195, 247, 0.40);
+--nps-glass-border-std: rgba(79, 195, 247, 0.18);
+--nps-glass-border-active: rgba(79, 195, 247, 0.4);
 
 /* Top-edge shine (for premium glass cards — apply as second background) */
---nps-glass-shine: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 40%);
+--nps-glass-shine: linear-gradient(
+  180deg,
+  rgba(255, 255, 255, 0.04) 0%,
+  transparent 40%
+);
 
 /* Glow intensity system */
 --nps-glow-xs: 0 0 4px rgba(79, 195, 247, 0.12);
 --nps-glow-sm: 0 0 8px rgba(79, 195, 247, 0.18);
---nps-glow-md: 0 0 20px rgba(79, 195, 247, 0.20), 0 0 40px rgba(79, 195, 247, 0.08);
---nps-glow-lg: 0 0 32px rgba(79, 195, 247, 0.25), 0 0 60px rgba(79, 195, 247, 0.10);
+--nps-glow-md:
+  0 0 20px rgba(79, 195, 247, 0.2), 0 0 40px rgba(79, 195, 247, 0.08);
+--nps-glow-lg:
+  0 0 32px rgba(79, 195, 247, 0.25), 0 0 60px rgba(79, 195, 247, 0.1);
 
 /* Oracle-specific glow variants */
 --nps-oracle-glow-subtle: 0 0 8px rgba(79, 195, 247, 0.15);
---nps-oracle-glow-medium: 0 0 20px rgba(79, 195, 247, 0.20), 0 0 40px rgba(79, 195, 247, 0.08);
---nps-oracle-glow-strong: 0 0 32px rgba(79, 195, 247, 0.30), 0 0 64px rgba(79, 195, 247, 0.12);
+--nps-oracle-glow-medium:
+  0 0 20px rgba(79, 195, 247, 0.2), 0 0 40px rgba(79, 195, 247, 0.08);
+--nps-oracle-glow-strong:
+  0 0 32px rgba(79, 195, 247, 0.3), 0 0 64px rgba(79, 195, 247, 0.12);
 
 /* Gradient palette */
---nps-gradient-oracle: linear-gradient(135deg, #080d1a 0%, #0e1526 50%, #061018 100%);
---nps-gradient-hero: linear-gradient(135deg, rgba(8,13,26,0.95) 0%, rgba(79,195,247,0.06) 100%);
+--nps-gradient-oracle: linear-gradient(
+  135deg,
+  #080d1a 0%,
+  #0e1526 50%,
+  #061018 100%
+);
+--nps-gradient-hero: linear-gradient(
+  135deg,
+  rgba(8, 13, 26, 0.95) 0%,
+  rgba(79, 195, 247, 0.06) 100%
+);
 --nps-gradient-accent-h: linear-gradient(90deg, #10b981 0%, #4fc3f7 100%);
---nps-gradient-gold: linear-gradient(90deg, #b8860b 0%, #f8b400 50%, #b8860b 100%);
+--nps-gradient-gold: linear-gradient(
+  90deg,
+  #b8860b 0%,
+  #f8b400 50%,
+  #b8860b 100%
+);
 
 /* Ambient orb colors (for radial-gradient use on body/page backgrounds) */
---nps-orb-oracle:  rgba(79, 195, 247, 0.04);
+--nps-orb-oracle: rgba(79, 195, 247, 0.04);
 --nps-orb-emerald: rgba(16, 185, 129, 0.03);
---nps-orb-purple:  rgba(139, 92, 246, 0.03);
+--nps-orb-purple: rgba(139, 92, 246, 0.03);
 
 /* Per-stat-card accent colors */
---nps-stat-readings:   #4fc3f7;  /* Oracle blue — Total Readings */
---nps-stat-confidence: #10b981;  /* Emerald — Avg Confidence */
---nps-stat-type:       #a78bfa;  /* Purple — Most Used Type */
---nps-stat-streak:     #f8b400;  /* Gold — Streak Days */
+--nps-stat-readings: #4fc3f7; /* Oracle blue — Total Readings */
+--nps-stat-confidence: #10b981; /* Emerald — Avg Confidence */
+--nps-stat-type: #a78bfa; /* Purple — Most Used Type */
+--nps-stat-streak: #f8b400; /* Gold — Streak Days */
 ```
 
 Also **update these existing variables** (replace current flat values):
+
 ```css
---nps-bg:           var(--nps-bg-void);             /* #050508 not #0a0a0a */
---nps-border:       rgba(255, 255, 255, 0.06);      /* More elegant than #1f1f1f */
---nps-glass-bg:     var(--nps-glass-bg-md);         /* Tiered glass system */
---nps-glass-border: var(--nps-glass-border-std);    /* Tiered border */
---nps-glass-glow:   rgba(79, 195, 247, 0.15);       /* Slightly stronger than 0.10 */
+--nps-bg: var(--nps-bg-void); /* #050508 not #0a0a0a */
+--nps-border: rgba(255, 255, 255, 0.06); /* More elegant than #1f1f1f */
+--nps-glass-bg: var(--nps-glass-bg-md); /* Tiered glass system */
+--nps-glass-border: var(--nps-glass-border-std); /* Tiered border */
+--nps-glass-glow: rgba(79, 195, 247, 0.15); /* Slightly stronger than 0.10 */
 ```
 
 ---
@@ -545,15 +563,28 @@ This is CSS-only. Zero performance cost. Massive visual impact.
 #### FILE: `frontend/src/index.css`
 
 Add to `body` rule:
+
 ```css
 body {
   /* ... existing properties ... */
 
   /* Ambient depth: three color temperature orbs, fixed to viewport */
   background-image:
-    radial-gradient(ellipse 80% 50% at 20% 0%,   var(--nps-orb-oracle) 0%,  transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 100%, var(--nps-orb-emerald) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 60% at 50% 50%,  var(--nps-orb-purple) 0%,  transparent 70%);
+    radial-gradient(
+      ellipse 80% 50% at 20% 0%,
+      var(--nps-orb-oracle) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 80% 100%,
+      var(--nps-orb-emerald) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 40% 60% at 50% 50%,
+      var(--nps-orb-purple) 0%,
+      transparent 70%
+    );
   background-attachment: fixed;
 }
 ```
@@ -563,11 +594,11 @@ body {
 ```css
 /* Branded text selection — oracle accent */
 ::selection {
-  background: rgba(79, 195, 247, 0.20);
+  background: rgba(79, 195, 247, 0.2);
   color: #f9fafb;
 }
 ::-moz-selection {
-  background: rgba(79, 195, 247, 0.20);
+  background: rgba(79, 195, 247, 0.2);
   color: #f9fafb;
 }
 ```
@@ -576,18 +607,29 @@ body {
 
 ```css
 /* BEFORE: 8px wide, grey thumb */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-thumb { background: var(--nps-border); border-radius: 4px; }
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--nps-border);
+  border-radius: 4px;
+}
 
 /* AFTER: 4px, oracle-accent colored */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 ::-webkit-scrollbar-thumb {
   background: rgba(79, 195, 247, 0.15);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(79, 195, 247, 0.40);
+  background: rgba(79, 195, 247, 0.4);
 }
 ```
 
@@ -603,10 +645,10 @@ body {
 
 /* AFTER — adds glow shadow, larger offset, themed to oracle */
 *:focus-visible {
-  outline: 2px solid rgba(79, 195, 247, 0.80);
+  outline: 2px solid rgba(79, 195, 247, 0.8);
   outline-offset: 3px;
   border-radius: 4px;
-  box-shadow: 0 0 0 5px rgba(79, 195, 247, 0.10);
+  box-shadow: 0 0 0 5px rgba(79, 195, 247, 0.1);
 }
 ```
 
@@ -617,11 +659,13 @@ body {
 #### The Standard Glass Card Pattern
 
 Every card in NPS uses this pattern:
+
 ```
 bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)]
 ```
 
 **New standard pattern** (replace in all card wrappers):
+
 ```
 bg-[var(--nps-glass-bg-md)]
 [backdrop-filter:var(--nps-glass-blur-md)]
@@ -630,10 +674,13 @@ shadow-[var(--nps-glow-xs)]
 ```
 
 For hover states, replace:
+
 ```
 hover:shadow-[0_0_12px_var(--nps-glass-glow)]
 ```
+
 with:
+
 ```
 hover:shadow-[var(--nps-glow-md)]
 hover:border-[var(--nps-glass-border-active)]
@@ -644,6 +691,7 @@ transition-all duration-400
 #### Per-Component Glass Upgrades
 
 **`WelcomeBanner.tsx` (lines 84-90) — inline style:**
+
 ```tsx
 // BEFORE:
 style={{ background: "linear-gradient(135deg, rgba(15, 26, 46, 0.9) 0%, rgba(79, 195, 247, 0.08) 100%)" }}
@@ -655,17 +703,19 @@ style={{ background: "var(--nps-gradient-hero)" }}
 ```
 
 **`DailyReadingCard.tsx` — gradient background:**
+
 ```tsx
 // BEFORE:
-background: "linear-gradient(135deg, rgba(15, 26, 46, 0.85) 0%, rgba(79, 195, 247, 0.06) 100%)"
+background: "linear-gradient(135deg, rgba(15, 26, 46, 0.85) 0%, rgba(79, 195, 247, 0.06) 100%)";
 
 // AFTER:
-background: "var(--nps-gradient-oracle)"
+background: "var(--nps-gradient-oracle)";
 // Plus add: boxShadow: "var(--nps-oracle-glow-subtle)"
 // Hover: shadow-[var(--nps-oracle-glow-medium)]
 ```
 
 **`QuickActions.tsx` buttons — add unique glow per action:**
+
 ```tsx
 // Oracle/time button: hover:shadow-[0_0_20px_rgba(79,195,247,0.20)]
 // Question button:   hover:shadow-[0_0_20px_rgba(248,180,0,0.15)]
@@ -684,8 +734,9 @@ CountUp exists but isn't wired to Intersection Observer — numbers count up eve
 #### NEW FILE: `frontend/src/hooks/useInView.ts`
 
 Create this hook (30 lines, no dependencies beyond React):
+
 ```typescript
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 interface UseInViewOptions {
   threshold?: number;
@@ -695,7 +746,7 @@ interface UseInViewOptions {
 
 export function useInView({
   threshold = 0.1,
-  rootMargin = '0px',
+  rootMargin = "0px",
   triggerOnce = true,
 }: UseInViewOptions = {}) {
   const ref = useRef<HTMLElement | null>(null);
@@ -713,7 +764,7 @@ export function useInView({
           setInView(false);
         }
       },
-      { threshold, rootMargin }
+      { threshold, rootMargin },
     );
     observer.observe(element);
     return () => observer.disconnect();
@@ -726,6 +777,7 @@ export function useInView({
 #### UPGRADE `CountUp.tsx`
 
 Add prop `startOnView?: boolean` (default: `true`):
+
 ```typescript
 // When startOnView=true:
 // 1. Import useInView hook
@@ -739,6 +791,7 @@ Add prop `startOnView?: boolean` (default: `true`):
 #### UPGRADE `StatsCards.tsx`
 
 Wire each card to count up on view entry:
+
 ```tsx
 // Each StatsCard wraps its container with useInView
 // Passes inView state to CountUp's startOnView prop
@@ -748,6 +801,7 @@ Wire each card to count up on view entry:
 #### UPGRADE `animations.css` — New Keyframes
 
 Add to end of file:
+
 ```css
 /* Premium entrance: used for stats cards, oracle results reveals */
 @keyframes nps-rise-in {
@@ -765,37 +819,66 @@ Add to end of file:
 
 /* Glimmer: scanning light across progress bars and card tops */
 @keyframes nps-glimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 /* Typewriter cursor: for Oracle loading state */
 @keyframes nps-cursor-blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* Pulsing ring: for Oracle waiting / empty states */
 @keyframes nps-ring-pulse {
-  0%   { transform: scale(0.85); opacity: 0.8; }
-  50%  { transform: scale(1.20); opacity: 0.3; }
-  100% { transform: scale(0.85); opacity: 0.8; }
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
 }
 
 /* Orbital slow rotation: for decorative rings */
 @keyframes nps-orbit-slow {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 ```
 
 Add new utility classes:
+
 ```css
 .nps-animate-rise-in {
-  animation: nps-rise-in var(--nps-duration-reveal) var(--nps-ease-premium) forwards;
+  animation: nps-rise-in var(--nps-duration-reveal) var(--nps-ease-premium)
+    forwards;
 }
 .nps-animate-glimmer {
-  background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.06) 50%, transparent 75%);
+  background: linear-gradient(
+    90deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 75%
+  );
   background-size: 200% 100%;
   animation: nps-glimmer 2s ease infinite;
 }
@@ -808,11 +891,12 @@ Add new utility classes:
 ```
 
 Add new duration/easing variables to `:root` in `animations.css`:
+
 ```css
 :root {
   /* ... existing ... */
   --nps-duration-reveal: 600ms;
-  --nps-ease-premium: cubic-bezier(0.16, 1, 0.3, 1);  /* Fast in, graceful out */
+  --nps-ease-premium: cubic-bezier(0.16, 1, 0.3, 1); /* Fast in, graceful out */
   --nps-ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 ```
@@ -842,13 +926,40 @@ Add new duration/easing variables to `:root` in `animations.css`:
 
 // Step 3: Add decorative orbital ring (background element)
 // Add this BEFORE the content div (absolute positioned, pointer-events-none):
-<div className="absolute end-8 top-1/2 -translate-y-1/2 pointer-events-none opacity-[0.06]"
-     aria-hidden="true">
+<div
+  className="absolute end-8 top-1/2 -translate-y-1/2 pointer-events-none opacity-[0.06]"
+  aria-hidden="true"
+>
   <svg width="200" height="200" viewBox="0 0 200 200" fill="none">
     {/* 3 concentric dashed rings, center dot */}
-    <circle cx="100" cy="100" r="90" stroke="currentColor" strokeWidth="1" strokeDasharray="4 8" className="nps-animate-orbit-slow" />
-    <circle cx="100" cy="100" r="65" stroke="currentColor" strokeWidth="1" strokeDasharray="3 6" style={{ animationDirection: 'reverse', animationDuration: '40s' }} />
-    <circle cx="100" cy="100" r="40" stroke="currentColor" strokeWidth="1" strokeDasharray="2 4" className="nps-animate-orbit-slow" style={{ animationDuration: '25s' }} />
+    <circle
+      cx="100"
+      cy="100"
+      r="90"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeDasharray="4 8"
+      className="nps-animate-orbit-slow"
+    />
+    <circle
+      cx="100"
+      cy="100"
+      r="65"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeDasharray="3 6"
+      style={{ animationDirection: "reverse", animationDuration: "40s" }}
+    />
+    <circle
+      cx="100"
+      cy="100"
+      r="40"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeDasharray="2 4"
+      className="nps-animate-orbit-slow"
+      style={{ animationDuration: "25s" }}
+    />
     <circle cx="100" cy="100" r="4" fill="currentColor" opacity="0.6" />
   </svg>
 </div>
@@ -870,28 +981,28 @@ Add new duration/easing variables to `:root` in `animations.css`:
 // In StatsCards.tsx — add configuration:
 const STAT_CONFIG = {
   totalReadings: {
-    accent: '#4fc3f7',
-    glowColor: 'rgba(79, 195, 247, 0.15)',
-    borderColor: 'rgba(79, 195, 247, 0.30)',
-    borderSolid: '#4fc3f7',
+    accent: "#4fc3f7",
+    glowColor: "rgba(79, 195, 247, 0.15)",
+    borderColor: "rgba(79, 195, 247, 0.30)",
+    borderSolid: "#4fc3f7",
   },
   avgConfidence: {
-    accent: '#10b981',
-    glowColor: 'rgba(16, 185, 129, 0.15)',
-    borderColor: 'rgba(16, 185, 129, 0.30)',
-    borderSolid: '#10b981',
+    accent: "#10b981",
+    glowColor: "rgba(16, 185, 129, 0.15)",
+    borderColor: "rgba(16, 185, 129, 0.30)",
+    borderSolid: "#10b981",
   },
   mostUsedType: {
-    accent: '#a78bfa',
-    glowColor: 'rgba(167, 139, 250, 0.12)',
-    borderColor: 'rgba(167, 139, 250, 0.25)',
-    borderSolid: '#a78bfa',
+    accent: "#a78bfa",
+    glowColor: "rgba(167, 139, 250, 0.12)",
+    borderColor: "rgba(167, 139, 250, 0.25)",
+    borderSolid: "#a78bfa",
   },
   streakDays: {
-    accent: '#f8b400',
-    glowColor: 'rgba(248, 180, 0, 0.12)',
-    borderColor: 'rgba(248, 180, 0, 0.25)',
-    borderSolid: '#f8b400',
+    accent: "#f8b400",
+    glowColor: "rgba(248, 180, 0, 0.12)",
+    borderColor: "rgba(248, 180, 0, 0.25)",
+    borderSolid: "#f8b400",
   },
 } as const;
 
@@ -1111,7 +1222,9 @@ const STAT_CONFIG = {
 
 .nps-btn-primary:hover,
 [class*="from-nps-accent"]:hover {
-  box-shadow: 0 0 24px rgba(16, 185, 129, 0.25), 0 4px 20px rgba(0, 0, 0, 0.30);
+  box-shadow:
+    0 0 24px rgba(16, 185, 129, 0.25),
+    0 4px 20px rgba(0, 0, 0, 0.3);
   transform: translateY(-1px);
 }
 
@@ -1127,9 +1240,9 @@ const STAT_CONFIG = {
 /* Add to index.css — replace current focus border pattern */
 input:focus,
 textarea:focus {
-  border-color: rgba(79, 195, 247, 0.60) !important;
+  border-color: rgba(79, 195, 247, 0.6) !important;
   box-shadow:
-    0 0 0 3px rgba(79, 195, 247, 0.10),
+    0 0 0 3px rgba(79, 195, 247, 0.1),
     0 0 8px rgba(79, 195, 247, 0.08);
   outline: none;
 }
@@ -1235,22 +1348,22 @@ All design changes must preserve Persian (RTL) support:
 
 These can be done in a single 2-hour session and provide massive visual lift:
 
-| What | File + Location | Exact Change | Impact | Time |
-|------|----------------|-------------|--------|------|
-| Connect moonData | `Dashboard.tsx:47` | Add `moonData={daily?.moon_phase ?? null}` prop | High — fills empty slot | 5min |
-| Connect userName | `Dashboard.tsx:47` + useAuth | Add `userName={user?.display_name}` prop | Medium | 10min |
-| Add `::selection` | `index.css` | 5 lines of CSS shown in Phase 3 | Polish | 2min |
-| Upgrade scrollbar | `index.css` | 8px→4px, oracle-accent color | Premium feel | 5min |
-| Add ambient orbs | `index.css` → `body` | `background-image:` with 3 radial-gradients | Depth | 5min |
-| Add font imports | `index.html` | Google Fonts link for Cinzel + Lora | Character | 5min |
-| Switch body font | `index.css` | `"Inter"` → `"Lora"` | Identity | 5min |
-| h1 display font | `WelcomeBanner.tsx:98` | Add inline `fontFamily` style | Premium heading | 3min |
-| Deepen glass blur | `theme.css` | Add `--nps-glass-blur-md` var, update uses | Visible depth | 10min |
-| Add glow vars | `theme.css` | Add `--nps-glow-xs/sm/md/lg` variables | Enables all hover glows | 10min |
-| Upgrade border opacity | `theme.css` | `--nps-glass-border: rgba(...0.18)` from 0.15 | Crispness | 2min |
-| Add stat colors | `StatsCards.tsx` | 4-entry config, per-stat accent color | High visual impact | 30min |
-| CountUp on scroll | `CountUp.tsx` + new `useInView.ts` | Add startOnView prop + hook | Delight | 30min |
-| Upgrade focus ring | `index.css` | Add `box-shadow` glow to focus-visible rule | Accessibility + polish | 5min |
+| What                   | File + Location                    | Exact Change                                    | Impact                  | Time  |
+| ---------------------- | ---------------------------------- | ----------------------------------------------- | ----------------------- | ----- |
+| Connect moonData       | `Dashboard.tsx:47`                 | Add `moonData={daily?.moon_phase ?? null}` prop | High — fills empty slot | 5min  |
+| Connect userName       | `Dashboard.tsx:47` + useAuth       | Add `userName={user?.display_name}` prop        | Medium                  | 10min |
+| Add `::selection`      | `index.css`                        | 5 lines of CSS shown in Phase 3                 | Polish                  | 2min  |
+| Upgrade scrollbar      | `index.css`                        | 8px→4px, oracle-accent color                    | Premium feel            | 5min  |
+| Add ambient orbs       | `index.css` → `body`               | `background-image:` with 3 radial-gradients     | Depth                   | 5min  |
+| Add font imports       | `index.html`                       | Google Fonts link for Cinzel + Lora             | Character               | 5min  |
+| Switch body font       | `index.css`                        | `"Inter"` → `"Lora"`                            | Identity                | 5min  |
+| h1 display font        | `WelcomeBanner.tsx:98`             | Add inline `fontFamily` style                   | Premium heading         | 3min  |
+| Deepen glass blur      | `theme.css`                        | Add `--nps-glass-blur-md` var, update uses      | Visible depth           | 10min |
+| Add glow vars          | `theme.css`                        | Add `--nps-glow-xs/sm/md/lg` variables          | Enables all hover glows | 10min |
+| Upgrade border opacity | `theme.css`                        | `--nps-glass-border: rgba(...0.18)` from 0.15   | Crispness               | 2min  |
+| Add stat colors        | `StatsCards.tsx`                   | 4-entry config, per-stat accent color           | High visual impact      | 30min |
+| CountUp on scroll      | `CountUp.tsx` + new `useInView.ts` | Add startOnView prop + hook                     | Delight                 | 30min |
+| Upgrade focus ring     | `index.css`                        | Add `box-shadow` glow to focus-visible rule     | Accessibility + polish  | 5min  |
 
 Total for immediate wins: ~3 hours → **app looks 70% better**
 

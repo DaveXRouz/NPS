@@ -97,6 +97,7 @@ The dashboard layout was designed assuming the `DailyReadingCard` would always h
 
 **Reported by:** Screenshot (web-production-a5179.up.railway.app/oracle) + text description
 **Priority:** P0 Critical
+**Status:** **FIXED 2026-02-20** — Root cause: `time_progress` callback in `oracle.py` was missing the 4th `reading_type` parameter that `ReadingOrchestrator._send_progress()` passes (`TypeError: takes 3 positional args but 4 were given`). Fix: added `rt: str = "time"` to callback signature. Also added comprehensive exception handling (ImportError→503, generic→500).
 
 > Core feature is broken. Users cannot generate any reading. The entire Oracle functionality is non-functional.
 
@@ -642,6 +643,7 @@ The render cycle gap between these two systems causes the closed drawer to momen
 
 **Reported by:** Codebase audit (pattern found in Issues #2 and #5)
 **Priority:** P1 High
+**Status:** **FIXED 2026-02-20** — All 7 occurrences across 6 files changed to `text-nps-error`.
 
 > Every inline error message across Oracle forms, the translate button, and multi-user selector uses the wrong CSS color token. Errors may render in the wrong shade or fail to contrast correctly against the dark background — making failures invisible or barely readable.
 
@@ -824,6 +826,7 @@ Replace the two-click pattern with a proper confirmation modal:
 
 **Reported by:** Codebase audit (security)
 **Priority:** P0 Critical
+**Status:** **FIXED 2026-02-20** — `AdminGuard` wired into `App.tsx` wrapping all `/admin` routes via `<Route element={<AdminGuard />}>`.
 
 > Any user who knows the URL can navigate directly to `/admin`, `/admin/users`, `/admin/profiles`, `/admin/monitoring`, or `/admin/backups` without any authentication or authorization check. The `AdminGuard` component was built but never connected to the routing layer.
 
@@ -1509,6 +1512,7 @@ lines.push(`— ${t("oracle.shared_reading_footer")}`);
 
 **Reported by:** Codebase audit (navigation)
 **Priority:** P1 High
+**Status:** **FIXED 2026-02-20** — Added `NotFound` component with FadeIn animation and `<Route path="*">` catch-all inside the Layout wrapper in `App.tsx`.
 
 > If a user navigates to any URL that doesn't match a defined route (e.g., a bookmarked old URL, a mistyped path, or an expired share link), the app renders completely blank. There is no error message, no navigation, and no way to get back to a working page without manually editing the URL.
 
@@ -4748,6 +4752,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 4 — Security)
 **Priority:** 🔴 P0 — Critical
+**Status:** **FIXED 2026-02-20** — `frontend/.env` added to `.gitignore`, `frontend/.env.example` created with placeholder. File was already untracked. Key rotation still recommended.
 
 > The `frontend/.env` file contains a real API key and is committed to git. Anyone with repo access can authenticate as a valid API client using this key.
 
@@ -4778,6 +4783,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 4 — Security)
 **Priority:** 🔴 P0 — Critical
+**Status:** **FIXED 2026-02-20** — Default changed from hardcoded hex to empty string `""`. Startup validation in `main.py` lifespan now raises `RuntimeError` if `API_SECRET_KEY` env var is not set.
 
 > The same hex string from `frontend/.env` appears as the hardcoded default for `api_secret_key` in the API config. If `API_SECRET_KEY` env var is not set in any deployment, JWTs are signed with a publicly-known key — allowing anyone to forge tokens.
 
@@ -4800,6 +4806,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 4 — Security)
 **Priority:** 🔴 P0 — Critical
+**Status:** **FIXED 2026-02-20** — Root `.env` was already in `.gitignore` and not tracked by git. Key rotation still recommended as it may exist in git history.
 
 > The root `.env` file contains a real Anthropic API key (`sk-ant-api03-...`) tracked in git. This key can be used to call Anthropic's API at the project owner's cost and is permanently in git history.
 
@@ -4848,6 +4855,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 4 — Frontend)
 **Priority:** 🔴 P1 — High
+**Status:** **INVALID (2026-02-20)** — `bg-nps-bg-button` IS a valid Tailwind class. In `tailwind.config.ts`, the color token is nested as `nps.bg.button = "#1f6feb"`, which Tailwind generates as the class `bg-nps-bg-button`. The audit incorrectly claimed only `bg-nps-button` exists. The `bg-nps-bg-elevated` claim may still need verification.
 
 > Two Tailwind class names reference tokens that don't exist in `tailwind.config.ts`. Both render with no background color — buttons in `EmptyState` and `ErrorBoundary` are invisible; the card in `DailyReadingCard` (dashboard) has no background.
 
@@ -4999,6 +5007,7 @@ except Exception as exc:
 
 **Reported by:** Codebase Audit (Round 4 — Backend)
 **Priority:** 🟡 P2 — Medium
+**Status:** **PARTIALLY FIXED 2026-02-20** — The main `/readings` endpoint now has comprehensive exception handling (ImportError→503, HTTPException re-raise, generic Exception→500 with detail). Other oracle endpoints may still need similar treatment.
 
 > Question reading (lines 195-242) and name reading (lines 250-297) endpoints in `api/app/routers/oracle.py` catch `TimeoutError` and `ValueError` only. Any other unexpected exception propagates as an unformatted 500 with a stack trace exposed to the client.
 
@@ -5698,6 +5707,7 @@ Should be `isError={isError}` where `isError` comes from `useRecentReadings()`.
 ### What Fails
 
 `AdminMonitoring.test.tsx` (2 tests failing):
+
 - "defaults to Health tab" — expects `bg-blue-600` on active tab, class not present
 - "switches tabs on click" — same assertion fails
 
@@ -5719,6 +5729,7 @@ The AdminMonitoring component was redesigned (glassmorphism pass, session 12) an
 ### What Fails
 
 `Toast.test.tsx` — "manual dismiss removes toast" test fails:
+
 - Test queries `getByLabelText("Dismiss")` but the button uses `aria-label="common.dismiss"` (raw i18n key, since mock `t()` returns key as-is)
 
 ### Root Cause
