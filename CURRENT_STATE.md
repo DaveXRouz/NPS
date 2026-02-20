@@ -1,4 +1,4 @@
-# PROJECT TRUTH — Full NPS Project Audit
+# CURRENT STATE — Full NPS Project Audit
 
 > Single source of truth + complete reference map. Last updated: 2026-02-20.
 > Do NOT modify this file casually — update it intentionally when project state changes.
@@ -329,8 +329,8 @@ frontend, api, oracle-service, postgres, redis, nginx, telegram-bot, oracle-aler
 | File                              | Purpose                                                          |
 | --------------------------------- | ---------------------------------------------------------------- |
 | `CLAUDE.md`                       | Project brain (boot sequence, rules, architecture)               |
-| `SESSION_LOG.md`                  | 45-session development tracker                                   |
-| `PROJECT_TRUTH.md`                | This file — full project audit                                   |
+| `BUILD_HISTORY.md`                | 45-session development tracker + changelog                       |
+| `CURRENT_STATE.md`                | This file — full project audit                                   |
 | `.claude/startup.md`              | Boot protocol                                                    |
 | `.claude/workflows.md`            | Single/multi-terminal modes                                      |
 | `.claude/templates.md`            | File creation templates                                          |

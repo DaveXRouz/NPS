@@ -11,7 +11,7 @@ When you open this project, execute this SILENTLY (no output to user):
 
 ```
 1. READ this file (CLAUDE.md)
-2. READ SESSION_LOG.md → find the next task
+2. READ BUILD_HISTORY.md → find the next task
 3. READ .claude/startup.md → run silent checks
 4. SHOW 1-line status: "Continuing session [N]: [task name]"
 5. READ the relevant spec file if one is referenced
@@ -23,8 +23,8 @@ When you open this project, execute this SILENTLY (no output to user):
 **If user gives a specific task:** skip step 2, do that task instead.
 **If user says nothing after opening:** follow steps 1-4, then wait.
 
-**First session (no prior entries in SESSION_LOG.md):**
-If SESSION_LOG.md has zero session entries, start Session 1 of the current block. Read the session-to-spec mapping table in SESSION_LOG.md to find relevant reference specs.
+**First session (no prior entries in BUILD_HISTORY.md):**
+If BUILD_HISTORY.md has zero session entries, start Session 1 of the current block. Read the session-to-spec mapping table in BUILD_HISTORY.md to find relevant reference specs.
 
 For detailed startup protocol → `.claude/startup.md`
 For workflow modes → `.claude/workflows.md`
@@ -49,7 +49,7 @@ For all workflow paths → `.claude/master-workflow.md`
 
 **Active plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** Check SESSION_LOG.md for current count
+**Sessions completed:** Check BUILD_HISTORY.md for current count
 
 ### What EXISTS (from earlier 16-session scaffolding):
 
@@ -118,7 +118,10 @@ For detailed architecture → `logic/ARCHITECTURE_DECISIONS.md`
 NPS/
 ├── CLAUDE.md              ← YOU ARE HERE
 ├── README.md              ← Human overview
-├── SESSION_LOG.md         ← Session tracker (read at step 2)
+├── BUILD_HISTORY.md       ← Session log + changelog (read at step 2)
+├── CURRENT_STATE.md       ← Full project audit + architecture
+├── ISSUES.md              ← All tracked issues (157+)
+├── WISHLIST.md            ← Design vision + future features
 ├── .claude/               ← Detailed Claude Code configs
 │   ├── startup.md             Boot protocol + silent checks
 │   ├── workflows.md           Single-terminal + multi-terminal modes
@@ -214,7 +217,7 @@ Write code
 
 - Auto-compact at 70% context capacity
 - Keep working after compaction — don't stop or ask
-- If a task is too large for one context: split it, note split point in SESSION_LOG.md
+- If a task is too large for one context: split it, note split point in BUILD_HISTORY.md
 
 ### Web Search:
 
@@ -357,7 +360,7 @@ Sessions follow a two-phase workflow:
 **Phase 1 — Spec Creation (before session starts):**
 
 ```
-1. Read SESSION_LOG.md → identify next session number and block
+1. Read BUILD_HISTORY.md → identify next session number and block
 2. Read relevant .specs/ files for reference context
 3. Read logic/ docs for algorithm/architecture guidance
 4. Create .session-specs/SESSION_[N]_SPEC.md with:
@@ -375,7 +378,7 @@ Sessions follow a two-phase workflow:
 1. Read approved .session-specs/SESSION_[N]_SPEC.md
 2. Execute silently per CLAUDE.md rules
 3. Run quality pipeline on every file
-4. Update SESSION_LOG.md at end
+4. Update BUILD_HISTORY.md at end
 5. Git commit with session tag
 ```
 
@@ -400,9 +403,9 @@ When you touch any file that doesn't match project standards:
 
 Every session MUST end with:
 
-1. ✅ Update SESSION_LOG.md (what done, files changed, test results)
+1. ✅ Update BUILD_HISTORY.md (what done, files changed, test results)
 2. ✅ Git commit with descriptive message
-3. ✅ Define next session's task clearly in SESSION_LOG.md
+3. ✅ Define next session's task clearly in BUILD_HISTORY.md
 4. ✅ Show summary to Dave
 
 ---
@@ -460,7 +463,7 @@ All config in `.env` (copy from `.env.example`):
 | Architecture decisions             | `logic/ARCHITECTURE_DECISIONS.md` |
 | Scanner↔Oracle loop                | `logic/SCANNER_ORACLE_LOOP.md`    |
 | Common task step-by-step           | `logic/RECIPES.md`                |
-| Session history                    | `SESSION_LOG.md`                  |
+| Session history                    | `BUILD_HISTORY.md`                |
 | Spec files (reference)             | `.specs/` folder                  |
 | Session specs (active)             | `.session-specs/` folder          |
 | All workflow paths                 | `.claude/master-workflow.md`      |

@@ -1,4 +1,50 @@
-# SESSION_LOG.md — Development Session Tracker
+# NPS Build History
+
+> Combined development log: changelog, session tracker, and builder report references.
+> Last updated: 2026-02-20
+
+---
+
+## Changelog
+
+All notable changes to NPS will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [Unreleased]
+
+### Added
+
+- Legacy file migration: all engines, solvers, logic modules copied to Oracle service
+- Legacy reference files for Rust scanner (crypto, keccak, bip39, balance)
+- Legacy Tkinter GUI preserved in `frontend/desktop-gui/legacy/`
+- Per-layer README documentation for all 8 service directories
+- Architecture overview (`docs/architecture/OVERVIEW.md`)
+- Migration guide (`docs/migration/MIGRATION_GUIDE.md`)
+- REST API reference (`docs/api/ENDPOINTS.md`)
+- MIT License
+
+## [4.0.0-alpha.0] - 2026-02-08
+
+### Added
+
+- 93-file scaffolding across 7-layer distributed architecture
+- React + TypeScript + Tailwind frontend with 6 pages
+- FastAPI REST + WebSocket gateway with 6 routers and Pydantic models
+- Rust scanner service structure (Cargo project with modules)
+- Python Oracle service structure with gRPC interface
+- Protobuf contracts: `scanner.proto` (35 messages) and `oracle.proto` (25 messages)
+- PostgreSQL schema with 10 tables (`init.sql`)
+- Docker Compose 7-container orchestration
+- Nginx reverse proxy configuration
+- Prometheus monitoring setup
+- Deployment scripts (deploy, backup, restore, rollback)
+- JWT + API key authentication middleware
+- AES-256-GCM encryption with legacy decrypt support
+
+---
+
+## Session Development Log
 
 > Claude Code reads this at step 2 of every session.
 > Update at the END of every session.
@@ -2688,3 +2734,17 @@ The custom Docker image PostgreSQL service (created via `serviceCreate` API) doe
 | #   | Issue | Layers | Status | Fix           |
 | --- | ----- | ------ | ------ | ------------- |
 | —   | —     | —      | —      | No issues yet |
+
+---
+
+## Builder Phase Reports
+
+Detailed reports from each build phase are stored in `docs/`:
+
+| Report | Sessions | Location |
+|--------|----------|----------|
+| Master Builder Part 1 | Sessions 1-16 (scaffolding) | `docs/MASTER_BUILDER_PART_1_REPORT.md` |
+| Senior Builder 1 | Sessions 20-25 | `docs/SENIOR_BUILDER_1_REPORT.md` |
+| Senior Builder 2 | Sessions 26-31 | `docs/SENIOR_BUILDER_2_REPORT.md` |
+| Senior Builder 3 | Sessions 32-37 | `docs/SENIOR_BUILDER_3_REPORT.md` |
+| Senior Builder 4 | Sessions 38-40 | `docs/SENIOR_BUILDER_4_REPORT.md` |

@@ -5739,3 +5739,158 @@ The Toast component renders `aria-label={t("common.dismiss")}`. The test mock re
 ### Fix Scope
 
 **Trivial** — change `screen.getByLabelText("Dismiss")` to `screen.getByLabelText("common.dismiss")` in `Toast.test.tsx`.
+
+
+---
+
+## Operational Issues (from project handoff)
+
+> The following sections were consolidated from the project handoff document.
+
+## Priority Fix Queue
+
+### P0 — Fix Before Any User Touches the App
+
+| #    | Issue                                           | File(s)                       | Fix Time      | Status               |
+| ---- | ----------------------------------------------- | ----------------------------- | ------------- | -------------------- |
+| #121 | VITE_API_KEY in committed frontend/.env         | `frontend/.env`, `.gitignore` | 10 min        | **FIXED 2026-02-20** |
+| #122 | Hardcoded API secret key in config.py           | `api/app/config.py:27`        | 2 min         | **FIXED 2026-02-20** |
+| #123 | Anthropic API key in committed root .env        | `.env`, `.gitignore`          | 10 min        | **FIXED 2026-02-20** |
+| #2   | Oracle submit returns 500 (all readings broken) | `oracle.py` callback sig      | Investigation | **FIXED 2026-02-20** |
+| #11  | AdminGuard not wired in App.tsx                 | `frontend/src/App.tsx:78-91`  | 5 min         | **FIXED 2026-02-20** |
+
+### P1 — Fix Before Showing to Real Users
+
+| #    | Issue                                                    | File(s)                                                        | Fix Time | Status               |
+| ---- | -------------------------------------------------------- | -------------------------------------------------------------- | -------- | -------------------- |
+| #4   | AI reading is wall-of-text                               | `TranslatedReading.tsx:42`, `prompt_templates.py`, `oracle.py` | Medium   | Open                 |
+| #8   | `text-nps-bg-danger` in 7 places (wrong CSS)             | 5 files, 7 lines                                               | 5 min    | **FIXED 2026-02-20** |
+| #9   | Delete reading — no confirmation dialog                  | `ReadingHistory.tsx:87-90`, `ReadingCard.tsx:59-69`            | Small    | Open                 |
+| #12  | Admin role from localStorage (bypassable)                | `Layout.tsx:58`, `AdminGuard.tsx:7`                            | Medium   | Open                 |
+| #18  | Date formatting ignores app language                     | 11 files — create `useDateFormatter()`                         | Medium   | Open                 |
+| #21  | No 404 page                                              | `App.tsx` — add `<Route path="*">`                             | Small    | **FIXED 2026-02-20** |
+| #25  | ai_interpretation inconsistent shape across endpoints    | `oracle.py`, `types/index.ts`                                  | Medium   | Open                 |
+| #26  | Confidence score scale mismatch (0-1 float vs 0-100 int) | Backend engines + frontend normalization                       | Medium   | Open                 |
+| #35  | Focus styles missing/wrong on 25+ interactive elements   | `index.css:86-90` + 25 files                                   | Medium   | Open                 |
+| #36  | Icon-only buttons missing aria-label                     | `ReadingCard.tsx`, `ReadingDetail.tsx`                         | Trivial  | Open                 |
+| #41  | RecentReadings returns null on error (silently vanishes) | `RecentReadings.tsx:73`                                        | Small    | Open                 |
+| #125 | `bg-nps-bg-button` — **NOT a bug** (see note below)      | N/A                                                            | N/A      | **INVALID**          |
+| #129 | Migration scripts all TODO stubs                         | `database/migrations/migrate_*.py`                             | Large    | Open                 |
+| #131 | Oracle endpoint missing general exception catch          | `oracle.py:195-242, 250-297`                                   | Small    | **FIXED 2026-02-20** |
+
+### P2 — Polish and Robustness
+
+| #    | Issue                                                         | File(s)                                                | Fix Time      |
+| ---- | ------------------------------------------------------------- | ------------------------------------------------------ | ------------- |
+| #1   | Dashboard layout asymmetric/cheap                             | 6 dashboard component files                            | Large         |
+| #3   | Crystal ball icon unappealing                                 | `CrystalBallIcon.tsx`, `EmptyState.tsx`                | Small         |
+| #7   | RTL mobile nav — race condition + wrong side                  | `MobileNav.tsx:71-73`                                  | 1 line        |
+| #13  | Admin analytics/log viewer silent catch                       | `AnalyticsCharts.tsx:58-61`, `LogViewer.tsx:81-84`     | Small         |
+| #14  | Location dropdowns silently empty on error                    | `geolocationHelpers.ts:61-63,79-81`                    | Small         |
+| #15  | StarRating hardcoded dir="ltr"                                | `StarRating.tsx:81`                                    | 1 line        |
+| #17  | DailyReadingCard wrong RTL detection                          | `DailyReadingCard.tsx:22,66`                           | 2 lines       |
+| #22  | Browser tab title never changes                               | 6 page files                                           | Small         |
+| #23  | No scroll-to-top on navigation                                | `Layout.tsx` + new `ScrollToTop.tsx`                   | Small         |
+| #27  | Required fields no visual indicator                           | `UserForm.tsx:166-249`                                 | Small         |
+| #28  | CalendarPicker mode resets every open                         | `CalendarPicker.tsx:27-98`                             | 3 lines       |
+| #29  | Mood selector collects input never sent to backend            | `QuestionReadingForm.tsx:116-117`                      | Remove UI     |
+| #30  | Export menu mislabeled "Export Text"                          | `ExportShareMenu.tsx:197`                              | 1 line + i18n |
+| #31  | Hardcoded Tailwind colors in 22+ files                        | 22 files                                               | Medium        |
+| #37  | Decorative SVGs missing aria-hidden                           | `NameReadingForm.tsx`, `QuestionReadingForm.tsx`       | Trivial       |
+| #39  | Disabled nav items use `<div>` instead of `<button disabled>` | `Navigation.tsx:116-127`, `MobileNav.tsx:103-112`      | Small         |
+| #42  | Toast system only used for errors, not success                | `OracleConsultationForm.tsx` + 5+ other mutation sites | Medium        |
+| #124 | Vault.tsx unreachable — no route                              | `App.tsx`                                              | 3 lines       |
+| #126 | Learning.tsx AI theme classes may not resolve                 | `Learning.tsx:9,13,22`                                 | Verify        |
+| #130 | Translation endpoint no exception handling                    | `translation.py:26-47`                                 | Small         |
+| #131 | Oracle endpoint missing general exception catch               | `oracle.py:195-242, 250-297`                           | Small         |
+| #132 | Bare `except Exception: pass` in coordinate helpers           | `oracle.py:132-134, 149-151`                           | Small         |
+| #133 | Health check missing Anthropic AI check                       | `health.py:122-216`                                    | Small         |
+
+
+## Quick Win List (Fix in Under 10 Minutes Each)
+
+These are one-liners or near one-liners — highest ROI for time spent:
+
+| #    | What                              | Where                     | Change                                                       |
+| ---- | --------------------------------- | ------------------------- | ------------------------------------------------------------ | ----------- |
+| #8   | Wrong CSS class for error text    | 7 files                   | `text-nps-bg-danger` → `text-nps-error`                      | **DONE**    |
+| #11  | AdminGuard not wired              | `App.tsx:78`              | Wrap `/admin` route in `<Route element={<AdminGuard />}>`    | **DONE**    |
+| #15  | StarRating hardcoded LTR          | `StarRating.tsx:81`       | Intentionally LTR — not a bug                                | **INVALID** |
+| #17  | DailyReadingCard RTL detection    | `DailyReadingCard.tsx:22` | `const { isRTL } = useDirection()`                           | Open        |
+| #22  | Tab title never changes           | 6 page files              | Add `useEffect(() => { document.title = "Page — NPS" }, [])` | Open        |
+| #30  | Export menu mislabeled            | `ExportShareMenu.tsx:197` | `t("oracle.export_and_share")`                               | Open        |
+| #36  | Icon buttons missing aria-label   | 2 files                   | Add `aria-label={t(...)}` to 4 buttons                       | Open        |
+| #39  | Disabled nav items use div        | 2 files                   | `<button disabled aria-disabled="true">`                     | Open        |
+| #121 | Remove hardcoded API key default  | `config.py:27`            | Remove default value                                         | **DONE**    |
+| #125 | Undefined bg-nps-bg-button class  | N/A                       | **NOT A BUG** — class IS valid from `nps.bg.button`          | **INVALID** |
+| #130 | Translation endpoint bare throw   | `translation.py`          | Add try/except HTTPException                                 | Open        |
+| #132 | Bare except in coordinate helpers | `oracle.py:132,149`       | Catch specific SQLAlchemy exceptions                         | Open        |
+| #133 | Health check missing AI check     | `health.py`               | Add `ANTHROPIC_API_KEY` check                                | Open        |
+
+## Major Blockers (The App Can't Work Until These Are Fixed)
+
+### ~~Blocker 1 — Oracle Backend Returns 500 (Issues #2, #6)~~ RESOLVED 2026-02-20
+
+**Root cause found and fixed:** The `time_progress` callback in `api/app/routers/oracle.py` was missing the 4th `reading_type` parameter that `ReadingOrchestrator._send_progress()` passes. The fix was adding `rt: str = "time"` to the callback signature. Additionally, comprehensive exception handling (ImportError→503, generic Exception→500) was added to the `/readings` endpoint. All 5 reading types now work in production.
+
+### Blocker 2 — AI Reading Output Is Unreadable (Issue #4)
+
+**Even if Blocker 1 is fixed**, reading results are a wall of text with `————` separator lines embedded in a single `<p>` tag. Users cannot read their AI interpretations.
+
+**Fix scope:**
+
+- Backend: Store only the parsed `message` + `advice` + `caution` sections in `ai_interpretation`, not `full_text`
+- Backend: Add to system prompt: "Do not use separator lines (----). Use blank lines between paragraphs."
+- Frontend: `TranslatedReading.tsx:42` — replace `<p>{reading}</p>` with paragraph-aware renderer (split on `\n\n`)
+
+### ~~Blocker 3 — Admin Panel Is Accessible to Anyone (Issue #11)~~ RESOLVED 2026-02-20
+
+**Fixed:** `AdminGuard` is now wired into `App.tsx` wrapping all `/admin` routes. Non-admin users see a 403 page. A 404 catch-all route was also added (Issue #21).
+
+
+## Architecture Notes (Must-Know for Any Fix Session)
+
+### RTL System — Two Sources of Truth (Issue #7 Family)
+
+- **CSS direction**: set by `useEffect` on `document.documentElement.dir` in `App.tsx` — **async, runs after render**
+- **JS direction**: `useDirection()` hook returns `isRTL: i18n.language === "fa"` — **sync, updates with React**
+- **Rule**: NEVER mix Tailwind `rtl:`/`ltr:` prefix classes (CSS-based) with `isRTL` JS state in the same component for the same property. Use one or the other per component. Prefer `dir={isRTL ? "rtl" : "ltr"}` HTML attribute.
+
+### Color Token System — What Exists
+
+The Tailwind config (`frontend/tailwind.config.ts`) defines semantic tokens:
+
+- `text-nps-error` (#f85149) — error text
+- `text-nps-success` — success text
+- `text-nps-warning` — warning text
+- `bg-nps-bg-button` (#1f6feb) — button background (from nested `nps.bg.button` in Tailwind config — this IS valid, contrary to Issue #125)
+- `bg-nps-bg-danger` (#da3633) — danger backgrounds only (NOT for text)
+- `text-nps-oracle-accent` (#4fc3f7) — oracle blue accent
+- `text-nps-text-dim` — muted text
+- CSS variables: `var(--nps-glass-bg)`, `var(--nps-glass-border)`, `var(--nps-accent)`, `var(--nps-bg-elevated)`
+
+### AI Interpretation Data Shape (Issues #4, #25)
+
+The `ai_interpretation` field is stored inconsistently:
+
+- Time readings: stores `summary` string
+- Question/Name readings: stores `ai_interpretation` dict or string
+- Framework endpoint: stores only `full_text` from `ReadingInterpretation`
+- Frontend type: `StoredReading.ai_interpretation: string | null` vs `FrameworkReadingResponse.ai_interpretation: AIInterpretationSections | null`
+
+**Canonical fix**: All endpoints should store `AIInterpretationSections` dict serialized as JSON. Frontend type should be `AIInterpretationSections | null` everywhere.
+
+### Confidence Score Scale (Issue #26)
+
+- Framework model: 0–100 integer
+- Legacy numerology engines: may return 0.0–1.0 float
+- Frontend band-aid: `confidence > 1 ? confidence : confidence * 100`
+- **Fix**: Backend engines must normalize to 0–100. Remove frontend band-aid.
+
+### Auth Flow
+
+- JWT: issued by `POST /auth/login`, signed with `API_SECRET_KEY`
+- Refresh: `POST /auth/refresh` with refresh token in body
+- API Keys: 3-tier scopes (`admin`/`moderator`/`user`), stored hashed in `oracle_api_keys`
+- Frontend: sends `Authorization: Bearer <token>` where token is from localStorage or `VITE_API_KEY` fallback
+

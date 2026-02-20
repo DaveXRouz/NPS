@@ -12,7 +12,7 @@ Run these checks automatically and silently at session start. Only report proble
 ### Check 1: Project Structure Verification
 ```bash
 # Verify critical files exist
-test -f CLAUDE.md && test -f SESSION_LOG.md && test -f docker-compose.yml
+test -f CLAUDE.md && test -f BUILD_HISTORY.md && test -f docker-compose.yml
 test -d api/ && test -d frontend/ && test -d services/ && test -d database/
 ```
 **If missing:** Report to user which files/folders are missing.
@@ -22,7 +22,7 @@ test -d api/ && test -d frontend/ && test -d services/ && test -d database/
 git status --short
 git log --oneline -1
 ```
-**Store internally:** last commit hash and message. Use for SESSION_LOG context.
+**Store internally:** last commit hash and message. Use for BUILD_HISTORY context.
 
 ### Check 3: Environment File
 ```bash
@@ -57,7 +57,7 @@ After silent checks, determine session mode:
 
 ### Mode A: User says "continue" / "next" / "go" / says nothing
 ```
-1. SESSION_LOG.md already read at CLAUDE.md step 2 — use that context
+1. BUILD_HISTORY.md already read at CLAUDE.md step 2 — use that context
 2. Find last completed session entry
 3. Find "Next:" field from last entry
 4. Show 1-line: "Continuing session [N]: [task from Next field]"
@@ -68,7 +68,7 @@ After silent checks, determine session mode:
 ### Mode B: User gives specific task
 ```
 1. Understand the task
-2. Check if it aligns with current session block (SESSION_LOG.md)
+2. Check if it aligns with current session block (BUILD_HISTORY.md)
 3. If task needs a spec → read relevant .specs/ file
 4. Create plan if complex, execute directly if simple
 5. Do the work silently

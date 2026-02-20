@@ -12,7 +12,7 @@ One Claude Code terminal handles everything sequentially. This is the default mo
 ```
 OPEN SESSION
   → Silent boot checks (.claude/startup.md)
-  → Read SESSION_LOG.md
+  → Read BUILD_HISTORY.md
   → Show 1-line status
   → Read spec (if referenced)
   → Create comprehensive plan (100% coverage, 100% confidence)
@@ -22,7 +22,7 @@ OPEN SESSION
   → Run tests
   → Auto-format + lint
   → Git commit
-  → Update SESSION_LOG.md
+  → Update BUILD_HISTORY.md
   → Define next task
   → Show summary
 END SESSION
@@ -37,7 +37,7 @@ END SESSION
 ### Context Budget:
 - Target: 80% of context limit per session
 - Auto-compact at 70% if conversation grows long
-- If task exceeds budget: split at natural boundary, note in SESSION_LOG.md
+- If task exceeds budget: split at natural boundary, note in BUILD_HISTORY.md
 
 ---
 
@@ -57,25 +57,25 @@ Terminal 7 (T7): DEVOPS       — Monitoring, logging, alerts
 ```
 
 ### Rules for Multi-Terminal:
-1. Each terminal reads CLAUDE.md + SESSION_LOG.md at start
-2. Each terminal writes to its OWN section in SESSION_LOG.md
+1. Each terminal reads CLAUDE.md + BUILD_HISTORY.md at start
+2. Each terminal writes to its OWN section in BUILD_HISTORY.md
 3. Use file locking awareness — if two terminals edit same file, last write wins
 4. Cross-terminal dependencies noted in the shared dependencies table
-5. Stitching issues tracked at bottom of SESSION_LOG.md
+5. Stitching issues tracked at bottom of BUILD_HISTORY.md
 
 ### Communication Between Terminals:
 Terminals don't talk to each other directly. They communicate through:
-- **SESSION_LOG.md** — shared state file
+- **BUILD_HISTORY.md** — shared state file
 - **Proto files** — `proto/scanner.proto`, `proto/oracle.proto` define contracts
 - **Pydantic models** — `api/app/models/` define shared data shapes
 - **Database schema** — `database/init.sql` defines shared tables
 
 ---
 
-## SESSION_LOG.md FORMAT
+## BUILD_HISTORY.md FORMAT
 
 ```markdown
-# SESSION_LOG.md — Development Session Tracker
+# BUILD_HISTORY.md — Development Session Tracker
 
 ## Project State Summary
 **Plan:** 45-session Oracle rebuild (hybrid)
@@ -132,15 +132,15 @@ Track anything that needs fixing when layers connect:
 
 ### From Single to Multi:
 Dave says: "Let's go parallel" or "Use multiple terminals"
-1. Note current progress in SESSION_LOG.md
+1. Note current progress in BUILD_HISTORY.md
 2. Identify which terminals are needed
 3. Split remaining work across terminals
-4. Each terminal starts with CLAUDE.md + SESSION_LOG.md
+4. Each terminal starts with CLAUDE.md + BUILD_HISTORY.md
 
 ### From Multi to Single:
 Dave says: "Back to single" or just opens one terminal
 1. Each terminal completes its current task
-2. All terminals update SESSION_LOG.md
+2. All terminals update BUILD_HISTORY.md
 3. Resolve any stitching issues
 4. Single terminal picks up from combined state
 

@@ -38,7 +38,7 @@ This is the default. 80% of sessions follow this exact flow.
 ┌─────────────────────────────────────────────┐
 │  BOOT (silent, ~10 seconds)                  │
 │  1. Read CLAUDE.md                           │
-│  2. Read SESSION_LOG.md → find next session  │
+│  2. Read BUILD_HISTORY.md → find next session  │
 │  3. Run .claude/startup.md checks            │
 │  4. Show: "Continuing session N: [task]"     │
 └──────────────┬──────────────────────────────┘
@@ -55,7 +55,7 @@ This is the default. 80% of sessions follow this exact flow.
 │  SPEC CREATION (Phase 1)                     │
 │  1. Read relevant .specs/ for context        │
 │  2. Read logic/ docs for algorithms          │
-│  3. Read PROJECT_STATE_REPORT.md for gaps    │
+│  3. Read CURRENT_STATE.md for gaps    │
 │  4. Write .session-specs/SESSION_[N]_SPEC.md │
 │  5. Show spec to Dave                        │
 │  6. Wait for approval                        │
@@ -76,7 +76,7 @@ This is the default. 80% of sessions follow this exact flow.
 ┌─────────────────────────────────────────────┐
 │  SESSION END                                 │
 │  1. Run full test suite for affected layers  │
-│  2. Update SESSION_LOG.md                    │
+│  2. Update BUILD_HISTORY.md                    │
 │  3. Final git commit + push                  │
 │  4. Define next session's task               │
 │  5. Show summary to Dave                     │
@@ -100,10 +100,10 @@ Dave says something like: "write the spec for session 7" or "plan session 13"
 ┌─────────────────────────────────────────────┐
 │  CONTEXT GATHERING                           │
 │  1. Read CLAUDE.md → find block for [N]      │
-│  2. Read SESSION_LOG.md → what's done so far │
+│  2. Read BUILD_HISTORY.md → what's done so far │
 │  3. Read .specs/ → relevant reference specs  │
 │  4. Read logic/ → algorithms if applicable   │
-│  5. Read PROJECT_STATE_REPORT.md → gaps      │
+│  5. Read CURRENT_STATE.md → gaps      │
 │  6. Read previous session specs if they exist│
 └──────────────┬──────────────────────────────┘
                ▼
@@ -244,7 +244,7 @@ A session turns out to need more work than expected. Context runs out, or the ta
 │  1. Finish what's started (current milestone)│
 │  2. Run tests on completed work              │
 │  3. Git commit                               │
-│  4. Update SESSION_LOG.md:                   │
+│  4. Update BUILD_HISTORY.md:                   │
 │     - Mark session as "PARTIAL"              │
 │     - List what was completed                │
 │     - List what remains                      │
@@ -300,7 +300,7 @@ While working on Session 7, you discover something that needs a whole new sessio
 │                                              │
 │  YES (blocks current work):                  │
 │  → Fix it NOW as part of current session     │
-│  → Note it in SESSION_LOG.md under "Issues"  │
+│  → Note it in BUILD_HISTORY.md under "Issues"  │
 │  → Add extra time to current session         │
 │                                              │
 │  NO (important but not blocking):            │
@@ -312,12 +312,12 @@ While working on Session 7, you discover something that needs a whole new sessio
 ┌─────────────────────────────────────────────┐
 │  LOG THE DISCOVERED TASK                     │
 │                                              │
-│  Add to SESSION_LOG.md → Stitching Issues:   │
+│  Add to BUILD_HISTORY.md → Stitching Issues:   │
 │  | # | Issue | Layers | Status | Fix |       │
 │  | 1 | [what] | [where] | 🔴 Open | [how] │ │
 │                                              │
 │  If it's big enough for its own session:     │
-│  Add to SESSION_LOG.md → Session Log:        │
+│  Add to BUILD_HISTORY.md → Session Log:        │
 │  "Discovered: [task] needs its own session.  │
 │   Recommend inserting after Session [M]."    │
 │                                              │
@@ -355,7 +355,7 @@ When the last session of a block finishes, there's a checkpoint.
 │  1. All sessions in block are complete       │
 │  2. All tests pass (run full test suite)     │
 │  3. No open Stitching Issues for this block  │
-│  4. SESSION_LOG.md is current                │
+│  4. BUILD_HISTORY.md is current                │
 │  5. All specs in .session-specs/ are marked  │
 │     "Complete" in status table               │
 └──────────────┬──────────────────────────────┘
@@ -379,7 +379,7 @@ When the last session of a block finishes, there's a checkpoint.
 ┌─────────────────────────────────────────────┐
 │  NEXT BLOCK PREPARATION                      │
 │                                              │
-│  1. Update SESSION_LOG.md:                   │
+│  1. Update BUILD_HISTORY.md:                   │
 │     "Current block: [next block name]"       │
 │  2. Read next block's reference specs        │
 │  3. Optionally: batch-create specs for next  │
@@ -404,7 +404,7 @@ Dave closes the terminal and opens a new one. Everything must be reconstructed f
 ┌─────────────────────────────────────────────┐
 │  BOOT SEQUENCE (from CLAUDE.md)              │
 │  1. Read CLAUDE.md → full project rules      │
-│  2. Read SESSION_LOG.md → find where we are  │
+│  2. Read BUILD_HISTORY.md → find where we are  │
 │     - How many sessions completed?           │
 │     - What block are we in?                  │
 │     - What does "Next:" say?                 │
@@ -416,7 +416,7 @@ Dave closes the terminal and opens a new one. Everything must be reconstructed f
 │  WHAT DID DAVE SAY?                          │
 │                                              │
 │  "continue" / "next" / "go" / nothing:       │
-│  → Follow the "Next:" field in SESSION_LOG   │
+│  → Follow the "Next:" field in BUILD_HISTORY   │
 │  → Use Workflow 1 (Normal Session)           │
 │                                              │
 │  "write spec for session N":                 │
@@ -431,14 +431,14 @@ Dave closes the terminal and opens a new one. Everything must be reconstructed f
 │  → Still git commit when done                │
 │                                              │
 │  "what's the status?":                       │
-│  → Read SESSION_LOG.md + .session-specs/     │
+│  → Read BUILD_HISTORY.md + .session-specs/     │
 │  → Show current state summary                │
 │  → Don't start any work                      │
 └─────────────────────────────────────────────┘
 ```
 
 **Critical rule for new terminals:**
-Everything the AI needs to know is in the files. If it's not in CLAUDE.md, SESSION_LOG.md, or the spec files — it doesn't exist. Never assume context from a previous terminal.
+Everything the AI needs to know is in the files. If it's not in CLAUDE.md, BUILD_HISTORY.md, or the spec files — it doesn't exist. Never assume context from a previous terminal.
 
 ---
 
@@ -467,7 +467,7 @@ This lets Dave batch-approve specs while Claude executes them.
 └──────────────┬──────────────────────────────┘
                ▼
 │  1. Read block definition from CLAUDE.md     │
-│  2. Read PROJECT_STATE_REPORT.md for gaps    │
+│  2. Read CURRENT_STATE.md for gaps    │
 │  3. Create outline of all sessions in block  │
 │  4. Dave approves outline                    │
 │  5. Write each spec                          │
@@ -479,7 +479,7 @@ This lets Dave batch-approve specs while Claude executes them.
 │  EXECUTION TERMINAL (separate session)       │
 │  Dave: "go" or "continue"                    │
 │                                              │
-│  Boot → finds SESSION_LOG.md "Next" →        │
+│  Boot → finds BUILD_HISTORY.md "Next" →        │
 │  finds pre-written spec → shows plan →       │
 │  Dave: "approved" → executes                 │
 │                                              │
@@ -535,7 +535,7 @@ CLAUDE.md (master rules)
     ├── .claude/templates.md (file templates)
     ├── .claude/master-workflow.md ← THIS FILE (all paths)
     │
-    ├── SESSION_LOG.md (state tracker)
+    ├── BUILD_HISTORY.md (state tracker)
     │   ├── "Next:" field → drives Workflow 1
     │   ├── Session entries → history
     │   ├── Stitching Issues → discovered work
@@ -554,7 +554,7 @@ CLAUDE.md (master rules)
     │   ├── SCANNER_ORACLE_LOOP.md → collaboration pattern
     │   └── RECIPES.md → common task step-by-step
     │
-    ├── PROJECT_STATE_REPORT.md (current reality snapshot)
+    ├── CURRENT_STATE.md (current reality snapshot)
     │
     └── .project/ (project management playbooks)
 ```
@@ -564,11 +564,11 @@ CLAUDE.md (master rules)
 ```
 Dave says "go"
     → CLAUDE.md tells Claude HOW to work
-    → SESSION_LOG.md tells Claude WHAT to work on
+    → BUILD_HISTORY.md tells Claude WHAT to work on
     → .session-specs/ tells Claude the DETAILED PLAN
     → logic/ tells Claude the ALGORITHMS
     → .specs/ tells Claude what was PLANNED BEFORE (reference)
-    → PROJECT_STATE_REPORT.md tells Claude what ACTUALLY EXISTS
+    → CURRENT_STATE.md tells Claude what ACTUALLY EXISTS
     → .claude/ files tell Claude HOW TO BEHAVE
 ```
 
@@ -580,7 +580,7 @@ Dave says "go"
 Dave opens terminal and says...
 
 "continue" / "next" / "go"
-    └─→ Read SESSION_LOG.md "Next:" field
+    └─→ Read BUILD_HISTORY.md "Next:" field
         ├─→ Spec exists? → Execute (Workflow 1)
         └─→ No spec? → Create spec first (Workflow 2 → 1)
 
@@ -591,13 +591,13 @@ Dave opens terminal and says...
     └─→ Workflow 3 (Batch Specs)
 
 "what's the status?"
-    └─→ Read SESSION_LOG + .session-specs/ → summarize
+    └─→ Read BUILD_HISTORY + .session-specs/ → summarize
 
 "fix [specific thing]"
     └─→ Skip session flow, fix directly, commit
 
 "start session N" (out of order)
-    └─→ Check prerequisites from SESSION_LOG
+    └─→ Check prerequisites from BUILD_HISTORY
         ├─→ Prerequisites met → Execute (Workflow 1)
         └─→ Prerequisites missing → Warn Dave, suggest order
 
@@ -630,9 +630,9 @@ Spec files follow:    SESSION_7_SPEC.md
 - [ ] Linting clean (ruff/eslint/clippy)
 - [ ] Formatting clean (black/prettier/rustfmt)
 - [ ] Pre-commit hook passes
-- [ ] SESSION_LOG.md updated
+- [ ] BUILD_HISTORY.md updated
 - [ ] Git committed and pushed
-- [ ] "Next:" field defined in SESSION_LOG.md
+- [ ] "Next:" field defined in BUILD_HISTORY.md
 
 ### Every Block Must Pass (end of block):
 - [ ] All sessions in block complete
@@ -665,7 +665,7 @@ Terminal 1: Dave says "plan the foundation block"
   → Done. Close terminal.
 
 Terminal 2: Dave says "go"
-  → Boot → SESSION_LOG.md says "Next: Session 1"
+  → Boot → BUILD_HISTORY.md says "Next: Session 1"
   → Spec exists: SESSION_1_SPEC.md
   → Claude shows plan based on spec
   → Dave: "approved"
@@ -675,7 +675,7 @@ Terminal 2: Dave says "go"
   → Done. Close terminal.
 
 Terminal 3: Dave says "continue"
-  → Boot → SESSION_LOG.md says "Next: Session 2"
+  → Boot → BUILD_HISTORY.md says "Next: Session 2"
   → Spec exists: SESSION_2_SPEC.md
   → Claude shows plan, Dave approves
   → Halfway through, context hits 70%
@@ -685,7 +685,7 @@ Terminal 3: Dave says "continue"
   → Done. Close terminal.
 
 Terminal 4: Dave says "next"
-  → Boot → SESSION_LOG.md says "Next: Session 3"
+  → Boot → BUILD_HISTORY.md says "Next: Session 3"
   → Session 3 turns out to be HUGE
   → Claude splits: Session 3 Part 1 done
   → Creates SESSION_3b_SPEC.md for remaining work
@@ -693,7 +693,7 @@ Terminal 4: Dave says "next"
   → Done. Close terminal.
 
 Terminal 5: Dave says "continue"
-  → Boot → SESSION_LOG.md says "Next: Session 3 Part 2"
+  → Boot → BUILD_HISTORY.md says "Next: Session 3 Part 2"
   → Spec exists: SESSION_3b_SPEC.md
   → Completes remaining work
   → "Next: Session 4"
@@ -709,7 +709,7 @@ If this document doesn't cover a situation:
 1. Read CLAUDE.md for operating rules
 2. Read .claude/workflows.md for terminal behavior
 3. Ask Dave — but propose a solution, don't just report the problem
-4. Log the new situation in SESSION_LOG.md so future sessions know about it
+4. Log the new situation in BUILD_HISTORY.md so future sessions know about it
 5. Suggest adding it to this workflow document
 
 The goal is: **every terminal session knows exactly what to do.** No guessing, no assumptions, no lost context.
