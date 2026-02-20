@@ -63,6 +63,25 @@ function SettingsIcon() {
   );
 }
 
+function VaultIcon() {
+  return (
+    <svg {...ICON_PROPS}>
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      <circle cx="12" cy="16" r="1" />
+    </svg>
+  );
+}
+
+function LearningIcon() {
+  return (
+    <svg {...ICON_PROPS}>
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+    </svg>
+  );
+}
+
 function AdminIcon() {
   return (
     <svg {...ICON_PROPS}>
@@ -76,6 +95,8 @@ const NAV_ITEMS: NavItem[] = [
   { path: "/dashboard", labelKey: "nav.dashboard", icon: <DashboardIcon /> },
   { path: "/oracle", labelKey: "nav.oracle", icon: <OracleIcon /> },
   { path: "/history", labelKey: "nav.history", icon: <HistoryIcon /> },
+  { path: "/vault", labelKey: "nav.vault", icon: <VaultIcon /> },
+  { path: "/learning", labelKey: "nav.learning", icon: <LearningIcon /> },
   { path: "/settings", labelKey: "nav.settings", icon: <SettingsIcon /> },
   {
     path: "/admin",
@@ -104,7 +125,7 @@ export function Navigation({
               disabled
               aria-disabled="true"
               aria-label={`${t(item.labelKey)} — ${t("layout.coming_soon")}`}
-              className="flex items-center gap-3 px-4 py-2 mx-2 rounded text-sm text-[var(--nps-text-dim)] cursor-not-allowed opacity-50 w-full text-start"
+              className="flex items-center gap-3 px-4 py-2 mx-2 rounded text-sm text-[var(--nps-text-dim)] cursor-not-allowed opacity-50 w-full text-start min-h-[44px]"
             >
               <span className="flex-shrink-0 w-5 h-5">{item.icon}</span>
               {!collapsed && <span>{t(item.labelKey)}</span>}
@@ -119,7 +140,7 @@ export function Navigation({
             onClick={onItemClick}
             title={collapsed ? t(item.labelKey) : undefined}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2 mx-2 rounded-lg text-sm transition-all duration-200 ${
+              `flex items-center gap-3 px-4 py-2 mx-2 rounded-lg text-sm transition-all duration-200 min-h-[44px] ${
                 isActive
                   ? "bg-gradient-to-r from-[var(--nps-accent)]/15 to-transparent text-[var(--nps-accent)] border-s-2 border-[var(--nps-accent)]"
                   : "text-[var(--nps-text-dim)] hover:bg-[var(--nps-bg-hover)] hover:text-[var(--nps-text)]"

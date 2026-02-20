@@ -41,7 +41,9 @@ export function useTheme(): UseThemeReturn {
     return "dark";
   });
 
-  const resolved = resolveTheme(theme);
+  const [resolved, setResolved] = useState<"dark" | "light">(() =>
+    resolveTheme(theme),
+  );
 
   const setTheme = useCallback((mode: ThemeMode) => {
     setThemeState(mode);
@@ -57,6 +59,11 @@ export function useTheme(): UseThemeReturn {
     });
   }, []);
 
+  // Update resolved theme whenever theme mode changes
+  useEffect(() => {
+    setResolved(resolveTheme(theme));
+  }, [theme]);
+
   // Apply theme class whenever resolved theme changes
   useEffect(() => {
     applyThemeClass(resolved);
@@ -68,7 +75,8 @@ export function useTheme(): UseThemeReturn {
 
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = () => {
-      applyThemeClass(getSystemTheme());
+      const systemTheme = getSystemTheme();
+      setResolved(systemTheme);
     };
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);

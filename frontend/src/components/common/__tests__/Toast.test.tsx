@@ -4,6 +4,15 @@ import userEvent from "@testing-library/user-event";
 import { ToastProvider, ToastContainer } from "../Toast";
 import { useToast } from "@/hooks/useToast";
 
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = { "common.dismiss": "Dismiss" };
+      return map[key] ?? key;
+    },
+  }),
+}));
+
 function TestTrigger({
   type = "error" as const,
   message = "Test message",

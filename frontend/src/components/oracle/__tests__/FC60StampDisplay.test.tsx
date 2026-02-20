@@ -86,14 +86,14 @@ describe("FC60StampDisplay", () => {
     render(<FC60StampDisplay stamp={mockStampAM} />);
     const fireToken = screen.getByText("OXFI");
     expect(fireToken.getAttribute("data-element")).toBe("FI");
-    expect(fireToken.className).toContain("text-red-500");
+    expect(fireToken.className).toContain("text-[var(--nps-element-fire)]");
   });
 
   it("applies correct element color for Wood token", () => {
     render(<FC60StampDisplay stamp={mockStampAM} />);
     const woodToken = screen.getByText("RUWU");
     expect(woodToken.getAttribute("data-element")).toBe("WU");
-    expect(woodToken.className).toContain("text-green-500");
+    expect(woodToken.className).toContain("text-[var(--nps-element-wood)]");
   });
 
   it("applies correct element color for Water token", () => {
@@ -109,7 +109,7 @@ describe("FC60StampDisplay", () => {
     render(<FC60StampDisplay stamp={waterStamp} />);
     const waterToken = screen.getByText("PIWA");
     expect(waterToken.getAttribute("data-element")).toBe("WA");
-    expect(waterToken.className).toContain("text-blue-500");
+    expect(waterToken.className).toContain("text-[var(--nps-element-water)]");
   });
 
   it("applies correct element color for Metal token", () => {
@@ -125,7 +125,7 @@ describe("FC60StampDisplay", () => {
     render(<FC60StampDisplay stamp={metalStamp} />);
     const metalToken = screen.getByText("TIMT");
     expect(metalToken.getAttribute("data-element")).toBe("MT");
-    expect(metalToken.className).toContain("text-yellow-400");
+    expect(metalToken.className).toContain("text-[var(--nps-element-metal)]");
   });
 
   it("applies correct element color for Earth token", () => {
@@ -141,7 +141,7 @@ describe("FC60StampDisplay", () => {
     render(<FC60StampDisplay stamp={earthStamp} />);
     const earthToken = screen.getByText("DRER");
     expect(earthToken.getAttribute("data-element")).toBe("ER");
-    expect(earthToken.className).toContain("text-amber-700");
+    expect(earthToken.className).toContain("text-[var(--nps-element-earth)]");
   });
 
   it("shows Sun icon for AM (day) half", () => {

@@ -24,6 +24,9 @@ CREATE TABLE IF NOT EXISTS oracle_users (
     city VARCHAR(100),
     coordinates POINT,
 
+    -- Ownership (links to system users table)
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
     -- Metadata
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -40,10 +43,15 @@ COMMENT ON COLUMN oracle_users.name_persian IS 'Persian/Farsi name (RTL text, UT
 COMMENT ON COLUMN oracle_users.mother_name IS 'Mother name for numerology calculations';
 
 COMMENT ON COLUMN oracle_users.deleted_at IS 'Soft-delete timestamp; NULL means active';
+COMMENT ON COLUMN oracle_users.created_by IS 'FK to system users table — which auth user created this oracle profile';
 
 -- Partial unique index: prevent duplicate name+birthday among active (non-deleted) users
 CREATE UNIQUE INDEX IF NOT EXISTS idx_oracle_users_name_birthday_active
     ON oracle_users(name, birthday) WHERE deleted_at IS NULL;
+
+-- Index for ownership queries (filter oracle_users by system user)
+CREATE INDEX IF NOT EXISTS idx_oracle_users_created_by
+    ON oracle_users(created_by);
 
 -- Auto-update updated_at on row modification (requires update_updated_at() from init.sql)
 CREATE TRIGGER oracle_users_updated_at

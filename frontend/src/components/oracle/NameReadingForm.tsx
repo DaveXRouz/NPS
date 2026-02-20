@@ -1,7 +1,8 @@
-import { useState, lazy, Suspense, useCallback } from "react";
+import React, { useState, lazy, Suspense, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type { NameReading } from "@/types";
 import { useSubmitName } from "@/hooks/useOracleReadings";
+import { useSessionForm } from "@/hooks/useSessionForm";
 import { NumerologySystemSelector } from "./NumerologySystemSelector";
 
 const PersianKeyboard = lazy(() =>
@@ -17,6 +18,7 @@ interface NameReadingFormProps {
   userMotherNamePersian?: string;
   onResult: (result: NameReading) => void;
   onError?: (error: string) => void;
+  abortControllerRef?: React.MutableRefObject<AbortController | null>;
 }
 
 export function NameReadingForm({
@@ -27,12 +29,19 @@ export function NameReadingForm({
   userMotherNamePersian,
   onResult,
   onError,
+  abortControllerRef,
 }: NameReadingFormProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "fa";
 
-  const [name, setName] = useState("");
-  const [motherName, setMotherName] = useState("");
+  const [name, setName, clearName] = useSessionForm<string>(
+    "nps:name-form:name",
+    "",
+  );
+  const [motherName, setMotherName, clearMotherName] = useSessionForm<string>(
+    "nps:name-form:motherName",
+    "",
+  );
   const [showKeyboard, setShowKeyboard] = useState(false);
   const [showMotherKeyboard, setShowMotherKeyboard] = useState(false);
   const [numerologySystem, setNumerologySystem] =
@@ -92,18 +101,31 @@ export function NameReadingForm({
       }
 
       setError(null);
+
+      // Create AbortController for this request
+      const controller = new AbortController();
+      if (abortControllerRef) {
+        abortControllerRef.current = controller;
+      }
+
       mutation.mutate(
         {
           name: trimmedName,
           motherName: trimmedMother || undefined,
           userId,
           system: numerologySystem,
+          signal: controller.signal,
         },
         {
           onSuccess: (data) => {
+            clearName();
+            clearMotherName();
             onResult(data);
           },
           onError: (err) => {
+            // Silently ignore abort errors
+            if (err instanceof DOMException && err.name === "AbortError")
+              return;
             const msg =
               err instanceof Error ? err.message : t("oracle.error_submit");
             setError(msg);
@@ -120,6 +142,9 @@ export function NameReadingForm({
       mutation,
       onResult,
       onError,
+      clearName,
+      clearMotherName,
+      abortControllerRef,
       t,
     ],
   );
@@ -184,7 +209,7 @@ export function NameReadingForm({
             <button
               type="button"
               onClick={() => setShowKeyboard(!showKeyboard)}
-              className="absolute top-3 end-3 w-6 h-6 flex items-center justify-center text-[var(--nps-text-dim)] hover:text-[var(--nps-accent)] transition-colors rounded"
+              className="absolute top-1 end-1 w-10 h-10 flex items-center justify-center text-[var(--nps-text-dim)] hover:text-[var(--nps-accent)] transition-colors rounded"
               aria-label={t("oracle.keyboard_toggle")}
               title={t("oracle.keyboard_persian")}
               data-testid="keyboard-toggle"
@@ -222,7 +247,7 @@ export function NameReadingForm({
               type="button"
               onClick={handleUseProfileName}
               disabled={mutation.isPending}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 mt-2 rounded-full bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border border-[var(--nps-accent)]/20 hover:bg-[var(--nps-accent)]/20 transition-colors text-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-2.5 mt-2 rounded-full bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border border-[var(--nps-accent)]/20 hover:bg-[var(--nps-accent)]/20 transition-colors text-xs min-h-[44px]"
               data-testid="use-profile-name"
             >
               <svg
@@ -267,7 +292,7 @@ export function NameReadingForm({
             <button
               type="button"
               onClick={() => setShowMotherKeyboard(!showMotherKeyboard)}
-              className="absolute top-3 end-3 w-6 h-6 flex items-center justify-center text-[var(--nps-text-dim)] hover:text-[var(--nps-accent)] transition-colors rounded"
+              className="absolute top-1 end-1 w-10 h-10 flex items-center justify-center text-[var(--nps-text-dim)] hover:text-[var(--nps-accent)] transition-colors rounded"
               aria-label={t("oracle.keyboard_toggle")}
               title={t("oracle.keyboard_persian")}
               data-testid="mother-keyboard-toggle"
@@ -305,7 +330,7 @@ export function NameReadingForm({
               type="button"
               onClick={handleUseProfileMotherName}
               disabled={mutation.isPending}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 mt-2 rounded-full bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border border-[var(--nps-accent)]/20 hover:bg-[var(--nps-accent)]/20 transition-colors text-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-2.5 mt-2 rounded-full bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border border-[var(--nps-accent)]/20 hover:bg-[var(--nps-accent)]/20 transition-colors text-xs min-h-[44px]"
               data-testid="use-profile-mother-name"
             >
               <svg

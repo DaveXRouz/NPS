@@ -212,8 +212,19 @@ if frontend_dist.is_dir():
         app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="static-assets")
 
     # SPA catch-all: serve index.html for any non-API route
+    # This ensures client-side routing works in production (e.g., /reading/123, /settings)
     _index_html = frontend_dist / "index.html"
 
     @app.get("/{path:path}")
     async def serve_spa(path: str):
+        """Catch-all route for SPA client-side routing.
+
+        Serves index.html for all non-API paths so React Router
+        handles navigation. Static files in /assets/ are served
+        directly by the StaticFiles mount above.
+        """
+        # Try to serve the exact file if it exists (e.g., favicon.ico, robots.txt)
+        requested_file = frontend_dist / path
+        if path and requested_file.is_file() and ".." not in path:
+            return FileResponse(str(requested_file))
         return FileResponse(str(_index_html), media_type="text/html")

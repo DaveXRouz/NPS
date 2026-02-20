@@ -9,8 +9,11 @@ import bcrypt as _bcrypt
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app.orm.oracle_feedback import OracleReadingFeedback
 from app.orm.oracle_reading import OracleDailyReading, OracleReading, OracleReadingUser
+from app.orm.oracle_settings import OracleSettings
 from app.orm.oracle_user import OracleUser
+from app.orm.share_link import ShareLink
 from app.orm.user import User
 
 logger = logging.getLogger(__name__)
@@ -263,9 +266,30 @@ class AdminService:
             "reading_count": 0,
         }
 
-        # Clean up related records
+        # Collect reading IDs for this profile before deletion
+        reading_ids = [
+            r.id
+            for r in self.db.query(OracleReading.id)
+            .filter(OracleReading.user_id == profile_id)
+            .all()
+        ]
+
+        # Clean up related records that reference readings
+        if reading_ids:
+            self.db.query(OracleReadingFeedback).filter(
+                OracleReadingFeedback.reading_id.in_(reading_ids)
+            ).delete(synchronize_session=False)
+            self.db.query(ShareLink).filter(ShareLink.reading_id.in_(reading_ids)).delete(
+                synchronize_session=False
+            )
+
+        # Clean up records that reference the user profile directly
+        self.db.query(OracleReadingFeedback).filter(
+            OracleReadingFeedback.user_id == profile_id
+        ).delete()
         self.db.query(OracleReadingUser).filter(OracleReadingUser.user_id == profile_id).delete()
         self.db.query(OracleDailyReading).filter(OracleDailyReading.user_id == profile_id).delete()
+        self.db.query(OracleSettings).filter(OracleSettings.user_id == profile_id).delete()
         self.db.query(OracleReading).filter(OracleReading.primary_user_id == profile_id).update(
             {"primary_user_id": None}
         )

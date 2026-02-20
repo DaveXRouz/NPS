@@ -9,7 +9,7 @@ import { FadeIn } from "@/components/common/FadeIn";
 import {
   useDashboardStats,
   useRecentReadings,
-  useDailyReading,
+  useDashboardDailyReading,
 } from "@/hooks/useDashboard";
 
 interface DailyInsight {
@@ -45,7 +45,7 @@ export default function Dashboard() {
     isLoading: dailyLoading,
     isError: dailyError,
     refetch: retryDaily,
-  } = useDailyReading();
+  } = useDashboardDailyReading();
 
   return (
     <div className="flex flex-col gap-6">

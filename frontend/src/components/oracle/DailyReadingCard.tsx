@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  useDailyReading,
+  useOracleDailyReading,
   useGenerateDailyReading,
 } from "@/hooks/useOracleReadings";
 import { MoonPhaseIcon } from "@/components/common/icons";
@@ -24,7 +24,10 @@ export default function DailyReadingCard({
     undefined,
   );
 
-  const { data: cached, isLoading } = useDailyReading(userId, selectedDate);
+  const { data: cached, isLoading } = useOracleDailyReading(
+    userId,
+    selectedDate,
+  );
   const generateMutation = useGenerateDailyReading();
 
   const reading = cached?.reading ?? null;

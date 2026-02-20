@@ -142,9 +142,15 @@ export function DailyReadingCard({
         </div>
 
         {/* Summary */}
-        <p className="text-sm text-nps-text leading-relaxed mb-4">
-          {dailyReading.summary}
-        </p>
+        {dailyReading.summary ? (
+          <p className="text-sm text-nps-text leading-relaxed mb-4">
+            {dailyReading.summary}
+          </p>
+        ) : (
+          <p className="text-sm text-nps-text-dim italic leading-relaxed mb-4">
+            {t("dashboard.daily_no_summary")}
+          </p>
+        )}
 
         {/* FC60 stamp badge */}
         {dailyReading.fc60_stamp && (

@@ -16,7 +16,7 @@ export function useRecentReadings(limit = 5) {
   });
 }
 
-export function useDailyReading(date?: string) {
+export function useDashboardDailyReading(date?: string) {
   return useQuery({
     queryKey: ["dailyReading", date],
     queryFn: () => oracle.daily(date),

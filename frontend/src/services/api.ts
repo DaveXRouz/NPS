@@ -41,10 +41,14 @@ function localizedHttpError(status: number): string {
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE}${path}`;
+  const method = (options.method || "GET").toUpperCase();
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
     ...(options.headers as Record<string, string>),
   };
+  // Only set Content-Type for requests that may have a body
+  if (method !== "GET" && method !== "HEAD" && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
 
   // Auth token: JWT from localStorage or fallback to API key from env
   const token =
@@ -55,7 +59,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   let response: Response;
   try {
     response = await fetch(url, { ...options, headers });
-  } catch {
+  } catch (err) {
+    // Re-throw AbortError so callers can distinguish cancellation from network errors
+    if (err instanceof DOMException && err.name === "AbortError") throw err;
     throw new ApiError(i18n.t("errors.network"), 0);
   }
 
@@ -88,7 +94,12 @@ export const oracle = {
       method: "POST",
       body: JSON.stringify({ datetime }),
     }),
-  question: (question: string, userId?: number, system?: string) =>
+  question: (
+    question: string,
+    userId?: number,
+    system?: string,
+    signal?: AbortSignal,
+  ) =>
     request<import("@/types").QuestionReadingResult>("/oracle/question", {
       method: "POST",
       body: JSON.stringify({
@@ -97,8 +108,15 @@ export const oracle = {
         numerology_system: system || "auto",
         include_ai: true,
       }),
+      signal,
     }),
-  name: (name: string, userId?: number, system?: string, motherName?: string) =>
+  name: (
+    name: string,
+    userId?: number,
+    system?: string,
+    motherName?: string,
+    signal?: AbortSignal,
+  ) =>
     request<import("@/types").NameReading>("/oracle/name", {
       method: "POST",
       body: JSON.stringify({
@@ -108,6 +126,7 @@ export const oracle = {
         numerology_system: system || "pythagorean",
         include_ai: true,
       }),
+      signal,
     }),
   daily: (date?: string) =>
     request(`/oracle/daily${date ? `?date=${date}` : ""}`),
@@ -131,6 +150,8 @@ export const oracle = {
     if (params?.date_to) query.set("date_to", params.date_to);
     if (params?.is_favorite !== undefined)
       query.set("is_favorite", String(params.is_favorite));
+    if (params?.sort_by) query.set("sort_by", params.sort_by);
+    if (params?.sort_order) query.set("sort_order", params.sort_order);
     return request<import("@/types").StoredReadingListResponse>(
       `/oracle/readings?${query}`,
     );
@@ -151,10 +172,14 @@ export const oracle = {
       method: "POST",
       body: JSON.stringify({ stamp }),
     }),
-  timeReading: (data: import("@/types").TimeReadingRequest) =>
+  timeReading: (
+    data: import("@/types").TimeReadingRequest,
+    signal?: AbortSignal,
+  ) =>
     request<import("@/types").FrameworkReadingResponse>("/oracle/readings", {
       method: "POST",
       body: JSON.stringify(data),
+      signal,
     }),
   dailyReading: (data: import("@/types").DailyReadingRequest) =>
     request<import("@/types").FrameworkReadingResponse>("/oracle/readings", {
@@ -214,7 +239,8 @@ export const vault = {
   findings: (params?: { limit?: number; offset?: number; chain?: string }) => {
     const query = new URLSearchParams();
     if (params?.limit) query.set("limit", String(params.limit));
-    if (params?.offset) query.set("offset", String(params.offset));
+    if (params?.offset !== undefined)
+      query.set("offset", String(params.offset));
     if (params?.chain) query.set("chain", params.chain);
     return request<import("@/types").Finding[]>(`/vault/findings?${query}`);
   },
@@ -383,6 +409,36 @@ export const admin = {
       `/admin/backups/${encodeURIComponent(filename)}`,
       { method: "DELETE" },
     ),
+};
+
+// ─── Settings ───
+
+export const settings = {
+  get: () => request<import("@/types").SettingsResponse>("/settings"),
+  update: (data: Record<string, string>) =>
+    request<import("@/types").SettingsResponse>("/settings", {
+      method: "PUT",
+      body: JSON.stringify({ settings: data }),
+    }),
+};
+
+// ─── Auth API Keys ───
+
+export const authKeys = {
+  list: () => request<import("@/types").ApiKeyDisplay[]>("/auth/api-keys"),
+  create: (params: {
+    name: string;
+    scopes?: string[];
+    expires_in_days?: number;
+  }) =>
+    request<import("@/types").ApiKeyDisplay>("/auth/api-keys", {
+      method: "POST",
+      body: JSON.stringify(params),
+    }),
+  revoke: (keyId: string) =>
+    request<{ detail: string }>(`/auth/api-keys/${keyId}`, {
+      method: "DELETE",
+    }),
 };
 
 // ─── Admin Health / Monitoring (Session 39) ───

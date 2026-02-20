@@ -246,9 +246,13 @@ def map_oracle_user_to_framework_kwargs(oracle_user: Any) -> Dict[str, Any]:
         if coords is not None:
             if isinstance(coords, str) and coords.startswith("("):
                 # PostgreSQL POINT format: "(lon,lat)"
-                clean = coords.strip("()").split(",")
-                longitude = float(clean[0])
-                latitude = float(clean[1])
+                try:
+                    clean = coords.strip("()").split(",")
+                    if len(clean) == 2:
+                        longitude = float(clean[0])
+                        latitude = float(clean[1])
+                except (ValueError, IndexError) as exc:
+                    logger.debug("Failed to parse coordinates %r: %s", coords, exc)
 
     kwargs: Dict[str, Any] = {
         "full_name": _get(oracle_user, "name", ""),
@@ -307,6 +311,40 @@ MOON_PHASE_MEANINGS = [
     "Gratitude, sharing, distribution",
     "Letting go, forgiveness, release",
     "Rest, reflection, preparation",
+]
+
+# Persian moon phase names and abbreviations (Issue #149)
+MOON_PHASE_NAMES_FA = [
+    "\u0645\u0627\u0647 \u0646\u0648",  # ماه نو (New Moon)
+    "\u0647\u0644\u0627\u0644 \u0631\u0648 \u0628\u0647 \u0631\u0634\u062f",  # هلال رو به رشد (Waxing Crescent)
+    "\u062a\u0631\u0628\u06cc\u0639 \u0627\u0648\u0644",  # تربیع اول (First Quarter)
+    "\u0628\u062f\u0631 \u0631\u0648 \u0628\u0647 \u0631\u0634\u062f",  # بدر رو به رشد (Waxing Gibbous)
+    "\u0628\u062f\u0631 \u06a9\u0627\u0645\u0644",  # بدر کامل (Full Moon)
+    "\u0628\u062f\u0631 \u0631\u0648 \u0628\u0647 \u06a9\u0627\u0647\u0634",  # بدر رو به کاهش (Waning Gibbous)
+    "\u062a\u0631\u0628\u06cc\u0639 \u0622\u062e\u0631",  # تربیع آخر (Last Quarter)
+    "\u0647\u0644\u0627\u0644 \u0631\u0648 \u0628\u0647 \u06a9\u0627\u0647\u0634",  # هلال رو به کاهش (Waning Crescent)
+]
+
+MOON_PHASE_ABBREV_FA = [
+    "\u0646\u0648",  # نو (New)
+    "\u0647.\u0631",  # ه.ر (Waxing Crescent abbrev)
+    "\u062a.\u0627",  # ت.ا (First Quarter abbrev)
+    "\u0628.\u0631",  # ب.ر (Waxing Gibbous abbrev)
+    "\u0628\u062f\u0631",  # بدر (Full)
+    "\u0628.\u06a9",  # ب.ک (Waning Gibbous abbrev)
+    "\u062a.\u0622",  # ت.آ (Last Quarter abbrev)
+    "\u0647.\u06a9",  # ه.ک (Waning Crescent abbrev)
+]
+
+MOON_PHASE_MEANINGS_FA = [
+    "\u0622\u063a\u0627\u0632\u0647\u0627\u06cc \u0646\u0648\u060c \u06a9\u0627\u0634\u062a\u0646 \u0628\u0630\u0631",  # آغازهای نو، کاشتن بذر
+    "\u062a\u0639\u06cc\u06cc\u0646 \u0646\u06cc\u062a\u060c \u0633\u0627\u062e\u062a\u0646",  # تعیین نیت، ساختن
+    "\u0686\u0627\u0644\u0634\u200c\u0647\u0627\u060c \u062a\u0635\u0645\u06cc\u0645\u200c\u06af\u06cc\u0631\u06cc\u060c \u0639\u0645\u0644",  # چالش‌ها، تصمیم‌گیری، عمل
+    "\u067e\u0627\u0644\u0627\u06cc\u0634\u060c \u0635\u0628\u0631\u060c \u0646\u0632\u062f\u06cc\u06a9 \u0628\u0647 \u0627\u062a\u0645\u0627\u0645",  # پالایش، صبر، نزدیک به اتمام
+    "\u0627\u0648\u062c\u060c \u0631\u0648\u0634\u0646\u0627\u06cc\u06cc\u060c \u0631\u0647\u0627\u06cc\u06cc",  # اوج، روشنایی، رهایی
+    "\u0633\u067e\u0627\u0633\u060c \u0627\u0634\u062a\u0631\u0627\u06a9\u060c \u062a\u0648\u0632\u06cc\u0639",  # سپاس، اشتراک، توزیع
+    "\u0631\u0647\u0627 \u06a9\u0631\u062f\u0646\u060c \u0628\u062e\u0634\u0634\u060c \u0622\u0632\u0627\u062f\u0633\u0627\u0632\u06cc",  # رها کردن، بخشش، آزادسازی
+    "\u0627\u0633\u062a\u0631\u0627\u062d\u062a\u060c \u062a\u0623\u0645\u0644\u060c \u0622\u0645\u0627\u062f\u0647\u200c\u0633\u0627\u0632\u06cc",  # استراحت، تأمل، آماده‌سازی
 ]
 
 ANIMAL_POWER = [

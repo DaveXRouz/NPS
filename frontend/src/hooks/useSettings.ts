@@ -1,57 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ApiKeyDisplay, SettingsResponse } from "@/types";
-
-const API_BASE = "/api";
-
-function authHeaders(): Record<string, string> {
-  const token =
-    localStorage.getItem("nps_token") || import.meta.env.VITE_API_KEY;
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-  return headers;
-}
-
-async function fetchJson<T>(
-  url: string,
-  options: RequestInit = {},
-): Promise<T> {
-  const resp = await fetch(url, {
-    ...options,
-    headers: {
-      ...authHeaders(),
-      ...(options.headers as Record<string, string>),
-    },
-  });
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({ detail: resp.statusText }));
-    throw new Error(err.detail || `HTTP ${resp.status}`);
-  }
-  return resp.json();
-}
+import { settings, authKeys } from "@/services/api";
 
 const SETTINGS_KEY = ["userSettings"] as const;
 const API_KEYS_KEY = ["apiKeys"] as const;
 
+function hasAuth(): boolean {
+  return !!(localStorage.getItem("nps_token") || import.meta.env.VITE_API_KEY);
+}
+
 export function useSettings() {
   return useQuery({
     queryKey: SETTINGS_KEY,
-    queryFn: () => fetchJson<SettingsResponse>(`${API_BASE}/settings`),
-    enabled: !!(
-      localStorage.getItem("nps_token") || import.meta.env.VITE_API_KEY
-    ),
+    queryFn: () => settings.get(),
+    enabled: hasAuth(),
   });
 }
 
 export function useUpdateSettings() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: Record<string, string>) =>
-      fetchJson<SettingsResponse>(`${API_BASE}/settings`, {
-        method: "PUT",
-        body: JSON.stringify({ settings: data }),
-      }),
+    mutationFn: (data: Record<string, string>) => settings.update(data),
     onSuccess: () => qc.invalidateQueries({ queryKey: SETTINGS_KEY }),
   });
 }
@@ -59,10 +27,8 @@ export function useUpdateSettings() {
 export function useApiKeys() {
   return useQuery({
     queryKey: API_KEYS_KEY,
-    queryFn: () => fetchJson<ApiKeyDisplay[]>(`${API_BASE}/auth/api-keys`),
-    enabled: !!(
-      localStorage.getItem("nps_token") || import.meta.env.VITE_API_KEY
-    ),
+    queryFn: () => authKeys.list(),
+    enabled: hasAuth(),
   });
 }
 
@@ -73,11 +39,7 @@ export function useCreateApiKey() {
       name: string;
       scopes?: string[];
       expires_in_days?: number;
-    }) =>
-      fetchJson<ApiKeyDisplay>(`${API_BASE}/auth/api-keys`, {
-        method: "POST",
-        body: JSON.stringify(params),
-      }),
+    }) => authKeys.create(params),
     onSuccess: () => qc.invalidateQueries({ queryKey: API_KEYS_KEY }),
   });
 }
@@ -85,10 +47,7 @@ export function useCreateApiKey() {
 export function useRevokeApiKey() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (keyId: string) =>
-      fetchJson<{ detail: string }>(`${API_BASE}/auth/api-keys/${keyId}`, {
-        method: "DELETE",
-      }),
+    mutationFn: (keyId: string) => authKeys.revoke(keyId),
     onSuccess: () => qc.invalidateQueries({ queryKey: API_KEYS_KEY }),
   });
 }

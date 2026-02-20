@@ -235,7 +235,9 @@ def _chaldean_reduce(name):
 
 def _parse_date(date_str):
     """
-    Parse a YYYY-MM-DD date string.
+    Parse a YYYY-MM-DD date string with impossible date rejection.
+
+    Rejects dates like Feb 30, Apr 31, etc. Handles leap years correctly.
 
     Parameters
     ----------
@@ -256,8 +258,15 @@ def _parse_date(date_str):
         year = int(parts[0])
         month = int(parts[1])
         day = int(parts[2])
-        # Basic validation
+        # Basic range validation
         if not (1 <= month <= 12 and 1 <= day <= 31 and year > 0):
+            return None
+        # Per-month day validation (Issue #150: reject impossible dates)
+        days_in_month = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+        # Leap year check
+        if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
+            days_in_month[2] = 29
+        if day > days_in_month[month]:
             return None
         return (year, month, day)
     except (ValueError, TypeError, AttributeError):

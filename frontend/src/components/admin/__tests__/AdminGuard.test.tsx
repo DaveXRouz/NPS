@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "@/test/testUtils";
 import { AdminGuard } from "../AdminGuard";
 
@@ -24,28 +24,42 @@ vi.mock("react-router-dom", async () => {
   };
 });
 
+const mockDetailed = vi.fn();
+vi.mock("@/services/api", () => ({
+  adminHealth: {
+    detailed: () => mockDetailed(),
+  },
+}));
+
 describe("AdminGuard", () => {
   beforeEach(() => {
     localStorage.clear();
+    mockDetailed.mockReset();
   });
 
-  it("renders outlet for admin role", () => {
+  it("renders outlet when API confirms admin", async () => {
     localStorage.setItem("nps_user_role", "admin");
+    mockDetailed.mockResolvedValue({ status: "healthy" });
     renderWithProviders(<AdminGuard />);
-    expect(screen.getByTestId("outlet")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId("outlet")).toBeInTheDocument();
+    });
   });
 
-  it("renders forbidden message for non-admin", () => {
-    localStorage.setItem("nps_user_role", "user");
+  it("renders forbidden message when API rejects", async () => {
+    localStorage.setItem("nps_user_role", "admin");
+    mockDetailed.mockRejectedValue(new Error("Unauthorized"));
     renderWithProviders(<AdminGuard />);
-    expect(screen.getByText("Access Denied")).toBeInTheDocument();
-    expect(
-      screen.getByText("You need admin privileges to access this page."),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Access Denied")).toBeInTheDocument();
+    });
   });
 
-  it("renders forbidden message when no role is set", () => {
+  it("renders forbidden message when no role is set", async () => {
+    mockDetailed.mockRejectedValue(new Error("Unauthorized"));
     renderWithProviders(<AdminGuard />);
-    expect(screen.getByText("Access Denied")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Access Denied")).toBeInTheDocument();
+    });
   });
 });

@@ -2,7 +2,7 @@
 
 import logging
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.middleware.auth import require_scope
 from app.models.translation import (
@@ -30,8 +30,14 @@ _svc = TranslationService()
 )
 def translate_text(body: TranslateRequest):
     """Translate text between English and Persian."""
-    result = _svc.translate(body.text, body.source_lang, body.target_lang)
-    return TranslateResponse(**result)
+    try:
+        result = _svc.translate(body.text, body.source_lang, body.target_lang)
+        return TranslateResponse(**result)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        logger.exception("Translation engine error")
+        raise HTTPException(status_code=502, detail="Translation service unavailable") from exc
 
 
 @router.post(
@@ -41,10 +47,16 @@ def translate_text(body: TranslateRequest):
 )
 def translate_reading(body: ReadingTranslationRequest):
     """Translate a reading with type-specific context."""
-    result = _svc.translate_reading(
-        body.text, body.reading_type, body.source_lang, body.target_lang
-    )
-    return TranslateResponse(**result)
+    try:
+        result = _svc.translate_reading(
+            body.text, body.reading_type, body.source_lang, body.target_lang
+        )
+        return TranslateResponse(**result)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        logger.exception("Reading translation engine error")
+        raise HTTPException(status_code=502, detail="Translation service unavailable") from exc
 
 
 @router.post(
@@ -54,8 +66,14 @@ def translate_reading(body: ReadingTranslationRequest):
 )
 def batch_translate(body: BatchTranslationRequest):
     """Translate multiple strings in one request."""
-    results = _svc.batch_translate(body.texts, body.source_lang, body.target_lang)
-    return BatchTranslationResponse(translations=[TranslateResponse(**r) for r in results])
+    try:
+        results = _svc.batch_translate(body.texts, body.source_lang, body.target_lang)
+        return BatchTranslationResponse(translations=[TranslateResponse(**r) for r in results])
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        logger.exception("Batch translation engine error")
+        raise HTTPException(status_code=502, detail="Translation service unavailable") from exc
 
 
 @router.get(

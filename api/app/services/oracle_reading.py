@@ -467,10 +467,10 @@ class OracleReadingService:
             question="",
             sign_type="multi_user",
             sign_value=f"{result_dict.get('user_count', 0)}-user analysis",
-            reading_result=json.dumps(result_dict),
-            individual_results=json.dumps(result_dict.get("profiles", [])),
-            compatibility_matrix=json.dumps(result_dict.get("pairwise_compatibility", [])),
-            combined_energy=json.dumps(result_dict.get("group_energy", {})),
+            reading_result=result_dict,
+            individual_results=result_dict.get("profiles", []),
+            compatibility_matrix=result_dict.get("pairwise_compatibility", []),
+            combined_energy=result_dict.get("group_energy", {}),
             ai_interpretation=enc_ai,
         )
         self.db.add(reading)
@@ -583,17 +583,17 @@ class OracleReadingService:
         if not reading:
             return None
 
-        # Reconstruct response from stored reading
+        # Reconstruct response from stored reading (JSONB returns dict directly)
         reading_result = None
         if reading.reading_result:
-            try:
-                reading_result = (
-                    json.loads(reading.reading_result)
-                    if isinstance(reading.reading_result, str)
-                    else reading.reading_result
-                )
-            except (json.JSONDecodeError, TypeError):
-                reading_result = {}
+            if isinstance(reading.reading_result, str):
+                # Legacy: handle pre-migration string data
+                try:
+                    reading_result = json.loads(reading.reading_result)
+                except (json.JSONDecodeError, TypeError):
+                    reading_result = {}
+            else:
+                reading_result = reading.reading_result
         reading_result = reading_result or {}
 
         created_at = reading.created_at
@@ -963,8 +963,7 @@ class OracleReadingService:
             sign_type=sign_type,
             sign_value=sign_value,
             question=enc_question,
-            # TODO (Issue #108): Remove json.dumps() after ORM column migration to JSONB
-            reading_result=json.dumps(reading_result) if reading_result else None,
+            reading_result=reading_result,
             ai_interpretation=enc_ai,
         )
         self.db.add(reading)
@@ -1135,13 +1134,14 @@ class OracleReadingService:
                 .all()
             )
             conf_values: list[float] = []
-            for (result_str,) in conf_rows:
-                if not result_str:
+            for (result_data,) in conf_rows:
+                if not result_data:
                     continue
                 try:
-                    import json as _json
-
-                    parsed = _json.loads(result_str) if isinstance(result_str, str) else result_str
+                    # JSONB returns dict directly; handle legacy string data
+                    parsed = (
+                        json.loads(result_data) if isinstance(result_data, str) else result_data
+                    )
                     conf = parsed.get("confidence")
                     if isinstance(conf, dict):
                         score = conf.get("score")
@@ -1219,12 +1219,16 @@ class OracleReadingService:
                 else ai_interpretation
             )
 
+        # JSONB returns dict directly; handle legacy string data
         reading_result = None
         if row.reading_result:
-            try:
-                reading_result = json.loads(row.reading_result)
-            except (json.JSONDecodeError, TypeError):
-                reading_result = None
+            if isinstance(row.reading_result, str):
+                try:
+                    reading_result = json.loads(row.reading_result)
+                except (json.JSONDecodeError, TypeError):
+                    reading_result = None
+            else:
+                reading_result = row.reading_result
 
         created_at = row.created_at
         if isinstance(created_at, datetime):

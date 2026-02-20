@@ -2,10 +2,11 @@
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, Integer, JSON, String, func
+from sqlalchemy import Boolean, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
+from app.orm import PlatformJSONB
 
 
 class OracleAuditLog(Base):
@@ -20,4 +21,4 @@ class OracleAuditLog(Base):
     success: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     ip_address: Mapped[str | None] = mapped_column(String(45))
     api_key_hash: Mapped[str | None] = mapped_column(String(64))
-    details: Mapped[dict | None] = mapped_column(JSON)
+    details: Mapped[dict | None] = mapped_column(PlatformJSONB)

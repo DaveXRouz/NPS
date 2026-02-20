@@ -23,13 +23,16 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
   const [isLoadingCities, setIsLoadingCities] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectError, setDetectError] = useState<string | null>(null);
+  const [countryError, setCountryError] = useState(false);
   const [showManualCoords, setShowManualCoords] = useState(false);
 
   // Fetch countries on mount
   useEffect(() => {
     setIsLoadingCountries(true);
+    setCountryError(false);
     fetchCountries(lang)
       .then(setCountries)
+      .catch(() => setCountryError(true))
       .finally(() => setIsLoadingCountries(false));
   }, [lang]);
 
@@ -39,6 +42,7 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
       setIsLoadingCities(true);
       fetchCities(value.countryCode, lang)
         .then(setCities)
+        .catch(() => setCities([]))
         .finally(() => setIsLoadingCities(false));
     } else {
       setCities([]);
@@ -57,6 +61,14 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
       setIsDetecting(false);
     }
   }
+
+  // Auto-detect geolocation on mount if no value is set
+  useEffect(() => {
+    if (!value && navigator.geolocation) {
+      handleAutoDetect();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleCountrySelect(code: string) {
     if (!code) return;
@@ -112,7 +124,7 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
           onClick={handleAutoDetect}
           disabled={isDetecting}
           aria-busy={isDetecting}
-          className="text-xs text-nps-oracle-accent hover:underline disabled:opacity-50"
+          className="text-xs text-nps-oracle-accent hover:underline disabled:opacity-50 min-h-[44px] py-2 px-2"
         >
           {isDetecting ? (
             <span className="flex items-center gap-1">
@@ -136,6 +148,26 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
         <p className="text-xs text-nps-text-dim">
           {t("oracle.location_loading_countries")}
         </p>
+      ) : countryError ? (
+        <div className="flex items-center gap-2 text-xs">
+          <p className="text-nps-error">
+            {t("oracle.location_country_error", "Failed to load countries")}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setIsLoadingCountries(true);
+              setCountryError(false);
+              fetchCountries(lang)
+                .then(setCountries)
+                .catch(() => setCountryError(true))
+                .finally(() => setIsLoadingCountries(false));
+            }}
+            className="text-nps-oracle-accent hover:underline min-h-[44px] py-2 px-2"
+          >
+            {t("common.retry")}
+          </button>
+        </div>
       ) : (
         <div className="flex flex-col sm:flex-row gap-2">
           <select
@@ -188,7 +220,7 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
       <button
         type="button"
         onClick={() => setShowManualCoords(!showManualCoords)}
-        className="mt-1 text-xs text-nps-oracle-accent hover:underline"
+        className="mt-1 text-xs text-nps-oracle-accent hover:underline min-h-[44px] py-2"
       >
         {t("oracle.location_manual_coords")}
       </button>

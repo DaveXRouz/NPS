@@ -64,7 +64,7 @@ function mockGenerateMutation() {
 }
 
 vi.mock("@/hooks/useOracleReadings", () => ({
-  useDailyReading: () => dailyReadingData,
+  useOracleDailyReading: () => dailyReadingData,
   useGenerateDailyReading: () => generateMutationData,
 }));
 

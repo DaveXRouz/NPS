@@ -167,6 +167,7 @@ describe("QuestionReadingForm", () => {
         "Will I succeed in my career?",
         1,
         "auto",
+        expect.any(AbortSignal),
       );
     });
   });

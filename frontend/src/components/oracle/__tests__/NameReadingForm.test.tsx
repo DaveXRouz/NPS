@@ -114,6 +114,7 @@ describe("NameReadingForm", () => {
         1,
         "pythagorean",
         undefined,
+        expect.any(AbortSignal),
       );
     });
   });

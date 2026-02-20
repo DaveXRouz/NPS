@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import type { ReadingType } from "./ReadingTypeSelector";
 import type {
@@ -29,6 +29,7 @@ interface OracleConsultationFormProps {
   selectedUsers: SelectedUsers | null;
   onResult: (result: ConsultationResult) => void;
   onLoadingChange: (isLoading: boolean) => void;
+  abortControllerRef?: RefObject<AbortController | null>;
 }
 
 function normalizeFrameworkResult(
@@ -120,6 +121,7 @@ export function OracleConsultationForm({
   selectedUsers,
   onResult,
   onLoadingChange,
+  abortControllerRef,
 }: OracleConsultationFormProps) {
   switch (readingType) {
     case "time":
@@ -128,6 +130,7 @@ export function OracleConsultationForm({
           <TimeReadingForm
             userId={userId}
             userName={userName}
+            abortControllerRef={abortControllerRef}
             onResult={(response) => {
               onResult(normalizeFrameworkResult(response, "reading"));
               onLoadingChange(false);
@@ -141,9 +144,10 @@ export function OracleConsultationForm({
           <NameReadingForm
             userId={userId}
             userName={userName}
-            userNamePersian={selectedUsers?.primary.name_persian}
-            userMotherName={selectedUsers?.primary.mother_name}
-            userMotherNamePersian={selectedUsers?.primary.mother_name_persian}
+            userNamePersian={selectedUsers?.primary?.name_persian}
+            userMotherName={selectedUsers?.primary?.mother_name}
+            userMotherNamePersian={selectedUsers?.primary?.mother_name_persian}
+            abortControllerRef={abortControllerRef}
             onResult={(data: NameReading) => {
               onResult({ type: "name", data });
               onLoadingChange(false);
@@ -156,6 +160,7 @@ export function OracleConsultationForm({
         <FadeIn key="question">
           <QuestionReadingForm
             userId={userId}
+            abortControllerRef={abortControllerRef}
             onResult={(data: QuestionReadingResult) => {
               onResult({ type: "question", data });
               onLoadingChange(false);

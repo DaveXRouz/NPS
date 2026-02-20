@@ -49,14 +49,18 @@ export function AnalyticsCharts() {
   const { t } = useTranslation();
   const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState(30);
 
   const fetchAnalytics = useCallback(async () => {
     try {
+      setError(null);
       const data = await adminHealth.analytics(days);
       setAnalytics(data);
-    } catch {
-      // silent
+    } catch (err: unknown) {
+      const msg =
+        (err as { message?: string })?.message || "Failed to load analytics";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -72,7 +76,21 @@ export function AnalyticsCharts() {
   if (loading && !analytics) {
     return (
       <div className="flex items-center justify-center py-16 text-[var(--nps-text-dim)]">
-        Loading analytics...
+        {t("admin.monitoring_loading")}
+      </div>
+    );
+  }
+
+  if (error && !analytics) {
+    return (
+      <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-nps-error/30 rounded-xl p-8 text-center">
+        <p className="text-nps-error text-sm mb-3">{error}</p>
+        <button
+          onClick={fetchAnalytics}
+          className="px-4 py-2 text-sm rounded-lg bg-nps-bg-elevated text-nps-text hover:text-nps-text-bright transition-colors nps-btn-lift"
+        >
+          {t("common.retry")}
+        </button>
       </div>
     );
   }
@@ -94,7 +112,9 @@ export function AnalyticsCharts() {
       {/* Period selector */}
       <FadeIn delay={0}>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-[var(--nps-text-dim)]">Period:</span>
+          <span className="text-sm text-[var(--nps-text-dim)]">
+            {t("admin.monitoring_period")}:
+          </span>
           <select
             value={days}
             onChange={(e) => setDays(Number(e.target.value))}
@@ -254,7 +274,7 @@ export function AnalyticsCharts() {
                       contentStyle={TOOLTIP_STYLE}
                       formatter={(value: number | undefined) => [
                         `${(value ?? 0).toFixed(1)}%`,
-                        "Confidence",
+                        t("admin.monitoring_confidence_label"),
                       ]}
                     />
                     <Line

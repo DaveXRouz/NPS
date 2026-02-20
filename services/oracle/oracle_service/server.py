@@ -41,7 +41,7 @@ from engines.oracle import (
     read_name,
     question_sign,
     daily_insight,
-    _get_zodiac,
+    _get_zodiac as get_zodiac,
 )
 from engines.timing_advisor import get_current_quality, get_optimal_hours_today
 
@@ -202,7 +202,7 @@ class OracleServiceImpl(oracle_pb2_grpc.OracleServiceServicer):
             )
 
             # Zodiac
-            zodiac_info = _get_zodiac(m, d)
+            zodiac_info = get_zodiac(m, d)
             zodiac = oracle_pb2.ZodiacInfo(
                 sign=zodiac_info.get("sign", ""),
                 element=zodiac_info.get("element", ""),

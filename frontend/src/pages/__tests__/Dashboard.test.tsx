@@ -60,7 +60,7 @@ vi.mock("react-router-dom", () => ({
 vi.mock("@/hooks/useDashboard", () => ({
   useDashboardStats: () => ({ data: undefined, isLoading: false }),
   useRecentReadings: () => ({ data: undefined, isLoading: false }),
-  useDailyReading: () => ({
+  useDashboardDailyReading: () => ({
     data: undefined,
     isLoading: false,
     isError: false,

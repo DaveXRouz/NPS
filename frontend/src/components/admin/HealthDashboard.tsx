@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { adminHealth } from "@/services/api";
 import { StaggerChildren } from "@/components/common/StaggerChildren";
 import { FadeIn } from "@/components/common/FadeIn";
@@ -101,6 +102,7 @@ function ServiceCard({
 }
 
 export function HealthDashboard() {
+  const { t } = useTranslation();
   const [health, setHealth] = useState<DetailedHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -163,9 +165,9 @@ export function HealthDashboard() {
         </p>
         <button
           onClick={fetchHealth}
-          className="mt-2 text-sm text-[var(--nps-accent)] hover:text-[var(--nps-text-bright)] transition-colors"
+          className="mt-2 py-2 px-3 min-h-[44px] text-sm text-[var(--nps-accent)] hover:text-[var(--nps-text-bright)] transition-colors"
         >
-          Retry
+          {t("common.retry")}
         </button>
       </div>
     );
@@ -186,16 +188,16 @@ export function HealthDashboard() {
               </span>
             </div>
             <span className="text-[var(--nps-text-dim)]">
-              Uptime: {formatUptime(health.uptime_seconds)}
+              {t("admin.health_uptime")}: {formatUptime(health.uptime_seconds)}
             </span>
             <span className="text-[var(--nps-text-dim)]">
-              Memory: {health.system.process_memory_mb} MB
+              {t("admin.health_memory")}: {health.system.process_memory_mb} MB
             </span>
             <span className="text-[var(--nps-text-dim)]">
-              CPUs: {health.system.cpu_count}
+              {t("admin.health_cpus")}: {health.system.cpu_count}
             </span>
             <span className="text-[var(--nps-text-dim)]">
-              Python {health.system.python_version}
+              {t("admin.health_python")} {health.system.python_version}
             </span>
           </div>
         </div>
@@ -216,13 +218,14 @@ export function HealthDashboard() {
       <FadeIn delay={240}>
         <div className="flex items-center justify-between text-xs text-[var(--nps-text-dim)]">
           <span>
-            Last refresh: {lastRefresh ? lastRefresh.toLocaleTimeString() : "—"}
+            {t("admin.health_last_refresh")}:{" "}
+            {lastRefresh ? lastRefresh.toLocaleTimeString() : "—"}
           </span>
           <button
             onClick={fetchHealth}
-            className="px-3 py-1.5 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text-dim)] hover:text-[var(--nps-text-bright)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
+            className="px-3 py-2 min-h-[44px] bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text-dim)] hover:text-[var(--nps-text-bright)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
           >
-            Refresh Now
+            {t("admin.health_refresh_now")}
           </button>
         </div>
       </FadeIn>

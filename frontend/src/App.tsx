@@ -19,6 +19,8 @@ const AdminProfiles = lazy(() => import("./pages/AdminProfiles"));
 const SharedReading = lazy(() => import("./pages/SharedReading"));
 const AdminMonitoring = lazy(() => import("./pages/AdminMonitoring"));
 const BackupManager = lazy(() => import("./components/admin/BackupManager"));
+const Vault = lazy(() => import("./pages/Vault"));
+const Learning = lazy(() => import("./pages/Learning"));
 
 function NotFound() {
   const { t } = useTranslation();
@@ -95,6 +97,22 @@ export default function App() {
             element={
               <ErrorBoundary>
                 <Settings />
+              </ErrorBoundary>
+            }
+          />
+          <Route
+            path="/vault"
+            element={
+              <ErrorBoundary>
+                <Vault />
+              </ErrorBoundary>
+            }
+          />
+          <Route
+            path="/learning"
+            element={
+              <ErrorBoundary>
+                <Learning />
               </ErrorBoundary>
             }
           />

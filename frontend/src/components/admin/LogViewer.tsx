@@ -59,6 +59,7 @@ export function LogViewer() {
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [severity, setSeverity] = useState("");
   const [search, setSearch] = useState("");
   const [hours, setHours] = useState(24);
@@ -68,6 +69,7 @@ export function LogViewer() {
   const fetchLogs = useCallback(
     async (currentOffset: number, currentSearch: string) => {
       setLoading(true);
+      setError(null);
       try {
         const data = await adminHealth.logs({
           limit: PAGE_SIZE,
@@ -78,14 +80,23 @@ export function LogViewer() {
         });
         setLogs(data.logs);
         setTotal(data.total);
-      } catch {
-        // silent
+      } catch (err: unknown) {
+        const msg =
+          (err as { message?: string })?.message || "Failed to load logs";
+        setError(msg);
       } finally {
         setLoading(false);
       }
     },
     [severity, hours],
   );
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   // Reset offset and fetch when filters change
   useEffect(() => {
@@ -122,10 +133,10 @@ export function LogViewer() {
             className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
           >
             <option value="">{t("admin.monitoring_all_severities")}</option>
-            <option value="info">Info</option>
-            <option value="warning">Warning</option>
-            <option value="error">Error</option>
-            <option value="critical">Critical</option>
+            <option value="info">{t("admin.log_severity_info")}</option>
+            <option value="warning">{t("admin.log_severity_warning")}</option>
+            <option value="error">{t("admin.log_severity_error")}</option>
+            <option value="critical">{t("admin.log_severity_critical")}</option>
           </select>
 
           <input
@@ -150,9 +161,9 @@ export function LogViewer() {
 
           <button
             onClick={() => fetchLogs(offset, search)}
-            className="px-3 py-1.5 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-sm text-[var(--nps-text-dim)] hover:text-[var(--nps-text-bright)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
+            className="px-3 py-2 min-h-[44px] bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-sm text-[var(--nps-text-dim)] hover:text-[var(--nps-text-bright)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
           >
-            Refresh
+            {t("common.refresh")}
           </button>
         </div>
       </FadeIn>
@@ -163,22 +174,46 @@ export function LogViewer() {
           <table className="w-full font-mono text-sm">
             <thead>
               <tr className="border-b border-[var(--nps-glass-border)] text-[var(--nps-text-dim)] text-xs">
-                <th className="text-start py-2 px-3">Time</th>
-                <th className="text-start py-2 px-3">Severity</th>
-                <th className="text-start py-2 px-3">Action</th>
-                <th className="text-start py-2 px-3">Resource</th>
-                <th className="text-start py-2 px-3">Status</th>
-                <th className="text-start py-2 px-3">IP</th>
+                <th className="text-start py-2 px-3">
+                  {t("admin.log_col_time")}
+                </th>
+                <th className="text-start py-2 px-3">
+                  {t("admin.log_col_severity")}
+                </th>
+                <th className="text-start py-2 px-3">
+                  {t("admin.log_col_action")}
+                </th>
+                <th className="text-start py-2 px-3">
+                  {t("admin.log_col_resource")}
+                </th>
+                <th className="text-start py-2 px-3">
+                  {t("admin.log_col_status")}
+                </th>
+                <th className="text-start py-2 px-3">
+                  {t("admin.log_col_ip")}
+                </th>
               </tr>
             </thead>
             <tbody>
-              {loading && logs.length === 0 ? (
+              {error && logs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center">
+                    <p className="text-nps-error text-sm mb-2">{error}</p>
+                    <button
+                      onClick={() => fetchLogs(offset, search)}
+                      className="px-3 py-2 min-h-[44px] text-xs rounded-lg bg-nps-bg-elevated text-nps-text hover:text-nps-text-bright transition-colors"
+                    >
+                      {t("common.retry")}
+                    </button>
+                  </td>
+                </tr>
+              ) : loading && logs.length === 0 ? (
                 <tr>
                   <td
                     colSpan={6}
                     className="py-8 text-center text-[var(--nps-text-dim)]"
                   >
-                    Loading...
+                    {t("admin.log_loading")}
                   </td>
                 </tr>
               ) : logs.length === 0 ? (
@@ -212,9 +247,13 @@ export function LogViewer() {
                       </td>
                       <td className="py-1.5 px-3">
                         {log.success ? (
-                          <span className="text-green-400">OK</span>
+                          <span className="text-green-400">
+                            {t("admin.log_status_ok")}
+                          </span>
                         ) : (
-                          <span className="text-red-400">FAIL</span>
+                          <span className="text-red-400">
+                            {t("admin.log_status_fail")}
+                          </span>
                         )}
                       </td>
                       <td className="py-1.5 px-3 text-[var(--nps-text-dim)]">
@@ -245,22 +284,22 @@ export function LogViewer() {
       {total > 0 && (
         <div className="flex items-center justify-between text-xs text-[var(--nps-text-dim)]">
           <span>
-            Showing {showFrom}–{showTo} of {total}
+            {t("common.showing_range", { from: showFrom, to: showTo, total })}
           </span>
           <div className="flex gap-2">
             <button
               disabled={offset === 0}
               onClick={() => handlePageChange(Math.max(0, offset - PAGE_SIZE))}
-              className="px-3 py-1.5 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-sm hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
+              className="px-3 py-2 min-h-[44px] bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-sm hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
             >
-              Prev
+              {t("common.prev")}
             </button>
             <button
               disabled={offset + PAGE_SIZE >= total}
               onClick={() => handlePageChange(offset + PAGE_SIZE)}
-              className="px-3 py-1.5 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-sm hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
+              className="px-3 py-2 min-h-[44px] bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-sm hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
             >
-              Next
+              {t("common.next")}
             </button>
           </div>
         </div>

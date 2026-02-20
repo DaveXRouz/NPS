@@ -67,12 +67,14 @@ COMMANDS = {
 _MAX_MESSAGE_LENGTH = 4096
 
 # ================================================================
-# Bot Health & Auto-Disable
+# Bot Health & Auto-Disable with Circuit Breaker (Issue #151)
 # ================================================================
 
 _consecutive_failures = 0
 _bot_disabled = False
 _BOT_DISABLE_THRESHOLD = 5
+_COOLDOWN_SECONDS = 300  # 5 minutes before retrying after circuit opens
+_disabled_at: float = 0.0
 
 
 # ================================================================
@@ -98,9 +100,17 @@ def _emit_event(event_type, data):
     """Emit an event to the registered callback, if any.
 
     Since the callback is async, we use a best-effort fire-and-forget approach.
+    Respects the circuit breaker: skips emission if bot is disabled (Issue #151).
     """
     if _event_callback is None:
         logger.debug("No callback registered; dropped event: %s", event_type)
+        return
+    if not is_bot_healthy():
+        logger.debug(
+            "Event skipped (circuit open, %d failures): %s",
+            _consecutive_failures,
+            event_type,
+        )
         return
     try:
         import asyncio
@@ -117,28 +127,47 @@ def _emit_event(event_type, data):
 
 
 def is_bot_healthy():
-    """Return True if the bot has not been auto-disabled due to consecutive failures."""
-    return not _bot_disabled
+    """Return True if the bot is available.
+
+    If the bot was disabled (circuit open), it automatically re-enables
+    after _COOLDOWN_SECONDS to allow a retry probe (Issue #151).
+    """
+    global _bot_disabled, _disabled_at
+    if _bot_disabled:
+        elapsed = time.time() - _disabled_at
+        if elapsed >= _COOLDOWN_SECONDS:
+            logger.info(
+                "Telegram bot cooldown elapsed (%.0fs), re-enabling for retry",
+                elapsed,
+            )
+            _bot_disabled = False
+            _disabled_at = 0.0
+            return True
+        return False
+    return True
 
 
 def _record_success():
     """Record a successful callback; re-enable bot if it was disabled."""
-    global _consecutive_failures, _bot_disabled
+    global _consecutive_failures, _bot_disabled, _disabled_at
     _consecutive_failures = 0
     if _bot_disabled:
         _bot_disabled = False
+        _disabled_at = 0.0
         logger.info("Telegram bot re-enabled after successful callback")
 
 
 def _record_failure():
-    """Record a failed callback; disable bot after threshold."""
-    global _consecutive_failures, _bot_disabled
+    """Record a failed callback; disable bot after threshold with cooldown."""
+    global _consecutive_failures, _bot_disabled, _disabled_at
     _consecutive_failures += 1
     if _consecutive_failures >= _BOT_DISABLE_THRESHOLD and not _bot_disabled:
         _bot_disabled = True
+        _disabled_at = time.time()
         logger.error(
-            "Telegram bot auto-disabled after %d consecutive failures",
+            "Telegram bot auto-disabled after %d consecutive failures (cooldown: %ds)",
             _consecutive_failures,
+            _COOLDOWN_SECONDS,
         )
 
 

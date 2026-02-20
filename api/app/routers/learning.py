@@ -112,8 +112,6 @@ async def submit_feedback(
     for sf in body.section_feedback:
         section_dict[sf.section] = "helpful" if sf.helpful else "not_helpful"
 
-    section_json = json.dumps(section_dict)
-
     # Check for existing feedback (upsert)
     existing = (
         db.query(OracleReadingFeedback)
@@ -126,7 +124,7 @@ async def submit_feedback(
 
     if existing:
         existing.rating = body.rating
-        existing.section_feedback = section_json
+        existing.section_feedback = section_dict
         existing.text_feedback = body.text_feedback
         db.commit()
         db.refresh(existing)
@@ -144,7 +142,7 @@ async def submit_feedback(
         reading_id=reading_id,
         user_id=auth_user_id,
         rating=body.rating,
-        section_feedback=section_json,
+        section_feedback=section_dict,
         text_feedback=body.text_feedback,
     )
     db.add(feedback)
@@ -174,10 +172,14 @@ async def get_feedback_for_reading(
     )
     results = []
     for row in rows:
-        try:
-            section_dict = json.loads(row.section_feedback) if row.section_feedback else {}
-        except (json.JSONDecodeError, TypeError):
-            section_dict = {}
+        # JSONB returns dict directly; handle legacy string data
+        if isinstance(row.section_feedback, str):
+            try:
+                section_dict = json.loads(row.section_feedback) if row.section_feedback else {}
+            except (json.JSONDecodeError, TypeError):
+                section_dict = {}
+        else:
+            section_dict = row.section_feedback or {}
         results.append(
             FeedbackResponse(
                 id=row.id,
@@ -219,7 +221,7 @@ async def get_oracle_learning_stats(db: Session = Depends(get_db)):
     )
     avg_by_reading_type = {t: round(float(a), 2) for t, a in type_rows}
 
-    # Section helpful percentages (parse JSONB stored as text)
+    # Section helpful percentages (JSONB column, handle legacy string data)
     all_feedback = db.query(OracleReadingFeedback.section_feedback).all()
     section_totals: dict[str, int] = {}
     section_helpful: dict[str, int] = {}

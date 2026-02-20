@@ -188,6 +188,8 @@ export interface ReadingSearchParams {
   date_from?: string;
   date_to?: string;
   is_favorite?: boolean;
+  sort_by?: string;
+  sort_order?: "asc" | "desc";
 }
 
 // Reading statistics — mirrors backend ReadingStatsResponse

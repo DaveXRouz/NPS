@@ -15,6 +15,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
+from app.orm import PlatformJSONB
 
 
 class OracleReadingFeedback(Base):
@@ -28,7 +29,7 @@ class OracleReadingFeedback(Base):
         Integer, ForeignKey("oracle_users.id", ondelete="SET NULL")
     )
     rating: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-    section_feedback: Mapped[str | None] = mapped_column(Text, default="{}")
+    section_feedback: Mapped[dict | None] = mapped_column(PlatformJSONB, server_default="{}")
     text_feedback: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
@@ -43,6 +44,6 @@ class OracleLearningData(Base):
     metric_key: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     metric_value: Mapped[float] = mapped_column(Double, nullable=False, default=0)
     sample_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    details: Mapped[str | None] = mapped_column(Text, default="{}")
+    details: Mapped[dict | None] = mapped_column(PlatformJSONB, server_default="{}")
     prompt_emphasis: Mapped[str | None] = mapped_column(Text)
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)

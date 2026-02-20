@@ -59,12 +59,12 @@ export function ReadingCard({
             e.stopPropagation();
             onToggleFavorite(reading.id);
           }}
-          className="text-xs opacity-60 hover:opacity-100 transition-opacity"
+          className="flex items-center justify-center w-10 h-10 -m-2 text-xs opacity-60 hover:opacity-100 transition-opacity rounded"
           aria-label={t("oracle.toggle_favorite")}
           title={t("oracle.toggle_favorite")}
         >
           <Star
-            className={`w-3.5 h-3.5 ${reading.is_favorite ? "fill-current text-amber-400" : "text-current"}`}
+            className={`w-4 h-4 ${reading.is_favorite ? "fill-current text-amber-400" : "text-current"}`}
           />
         </button>
         <button
@@ -73,7 +73,7 @@ export function ReadingCard({
             e.stopPropagation();
             onDelete(reading.id);
           }}
-          className="text-sm text-[var(--nps-text-dim)] opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:text-red-400 transition-all duration-200"
+          className="flex items-center justify-center w-10 h-10 -m-2 text-sm text-[var(--nps-text-dim)] opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:text-red-400 transition-all duration-200 rounded"
           aria-label={t("oracle.delete_reading")}
           title={t("oracle.delete_reading")}
         >

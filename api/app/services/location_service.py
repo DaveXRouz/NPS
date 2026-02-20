@@ -68,7 +68,8 @@ def _get_timezone(lat: float, lon: float) -> str | None:
         return tf.timezone_at(lat=lat, lng=lon)
     except ImportError:
         return None
-    except Exception:
+    except (ValueError, TypeError, OSError) as exc:
+        logger.debug("Timezone lookup failed for (%s, %s): %s", lat, lon, exc)
         return None
 
 

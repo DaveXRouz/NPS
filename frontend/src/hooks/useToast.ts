@@ -1,4 +1,10 @@
-import { createContext, useContext, useCallback, useRef } from "react";
+import {
+  createContext,
+  useContext,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 
 export type ToastType = "success" | "error" | "warning" | "info";
 
@@ -102,6 +108,15 @@ export function useToastState() {
   }, []);
 
   const getToasts = useCallback(() => toastsRef.current, []);
+
+  // Cleanup all pending timers on unmount
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => {
+      timers.forEach((timer) => clearTimeout(timer));
+      timers.clear();
+    };
+  }, []);
 
   return { addToast, dismissToast, subscribe, getToasts };
 }

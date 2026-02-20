@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FadeIn } from "@/components/common/FadeIn";
@@ -64,6 +64,15 @@ export default function Oracle() {
   const [resultKey, setResultKey] = useState(0);
   const resultsRef = useRef<HTMLDivElement>(null);
 
+  // AbortController for cancelling in-flight reading requests
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const handleCancel = useCallback(() => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setIsLoading(false);
+  }, []);
+
   // Restore persisted primary user on load
   useEffect(() => {
     if (users.length === 0 || selectedUsers) return;
@@ -78,7 +87,7 @@ export default function Oracle() {
 
   // Persist selected primary user
   useEffect(() => {
-    if (selectedUsers) {
+    if (selectedUsers?.primary) {
       localStorage.setItem(SELECTED_USER_KEY, String(selectedUsers.primary.id));
     } else {
       localStorage.removeItem(SELECTED_USER_KEY);
@@ -88,7 +97,7 @@ export default function Oracle() {
   // Clear selection if primary user no longer exists
   useEffect(() => {
     if (
-      selectedUsers &&
+      selectedUsers?.primary &&
       users.length > 0 &&
       !users.find((u) => u.id === selectedUsers.primary.id)
     ) {
@@ -111,7 +120,7 @@ export default function Oracle() {
   }
 
   function handleUpdate(data: OracleUserCreate) {
-    if (!selectedUsers) return;
+    if (!selectedUsers?.primary) return;
     setFormError(null);
     updateUser.mutate(
       { id: selectedUsers.primary.id, data },
@@ -126,7 +135,7 @@ export default function Oracle() {
   }
 
   function handleDelete() {
-    if (!selectedUsers) return;
+    if (!selectedUsers?.primary) return;
     deleteUser.mutate(selectedUsers.primary.id, {
       onSuccess: () => {
         setSelectedUsers(null);
@@ -274,9 +283,7 @@ export default function Oracle() {
                 message={
                   readingProgress.message || t("oracle.loading_generating")
                 }
-                onCancel={() => {
-                  setIsLoading(false);
-                }}
+                onCancel={handleCancel}
               />
             ) : primaryUser || readingType === "daily" ? (
               <OracleConsultationForm
@@ -286,6 +293,7 @@ export default function Oracle() {
                 selectedUsers={selectedUsers}
                 onResult={handleResult}
                 onLoadingChange={handleLoadingChange}
+                abortControllerRef={abortControllerRef}
               />
             ) : (
               <p className="text-[var(--nps-text-dim)] text-sm">

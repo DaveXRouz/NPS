@@ -31,6 +31,13 @@ export function useRetry<T>(
   const [attempt, setAttempt] = useState(0);
   const abortRef = useRef(false);
 
+  // Store asyncFn and onRetry in refs to avoid stale closures
+  const asyncFnRef = useRef(asyncFn);
+  asyncFnRef.current = asyncFn;
+
+  const onRetryRef = useRef(onRetry);
+  onRetryRef.current = onRetry;
+
   const reset = useCallback(() => {
     setAttempt(0);
     setIsRetrying(false);
@@ -43,7 +50,7 @@ export function useRetry<T>(
 
     for (let i = 0; i < maxRetries; i++) {
       try {
-        const result = await asyncFn();
+        const result = await asyncFnRef.current();
         setIsRetrying(false);
         return result;
       } catch (err) {
@@ -61,7 +68,7 @@ export function useRetry<T>(
         if (i < maxRetries - 1 && !abortRef.current) {
           setIsRetrying(true);
           setAttempt(i + 2);
-          onRetry?.(i + 1, error);
+          onRetryRef.current?.(i + 1, error);
 
           // Exponential backoff with jitter
           const rawDelay = baseDelay * Math.pow(backoffFactor, i);
@@ -78,7 +85,7 @@ export function useRetry<T>(
 
     // Should never reach here, but TypeScript needs it
     throw new Error("Retry exhausted");
-  }, [asyncFn, maxRetries, baseDelay, maxDelay, backoffFactor, onRetry]);
+  }, [maxRetries, baseDelay, maxDelay, backoffFactor]);
 
   return { execute, isRetrying, attempt, reset };
 }

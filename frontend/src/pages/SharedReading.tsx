@@ -4,6 +4,15 @@ import { useTranslation } from "react-i18next";
 import { share } from "@/services/api";
 import type { SharedReadingData } from "@/types";
 
+function sanitizeForMeta(raw: string, maxLen = 200): string {
+  // Strip HTML tags, collapse whitespace, trim to maxLen
+  const text = raw
+    .replace(/<[^>]*>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > maxLen ? text.slice(0, maxLen) + "..." : text;
+}
+
 function setMetaTag(property: string, content: string) {
   let meta = document.querySelector(`meta[property="${property}"]`);
   if (!meta) {
@@ -27,16 +36,15 @@ export default function SharedReading() {
       .get(token)
       .then(setData)
       .catch((err) => {
+        // Store the error key — translate at render time so language changes apply
         if (err?.status === 410) {
-          setError(t("oracle.share_expired") || "This link has expired");
+          setError("oracle.share_expired");
         } else {
-          setError(
-            t("oracle.share_not_found") || "Reading not found or link expired",
-          );
+          setError("oracle.share_not_found");
         }
       })
       .finally(() => setLoading(false));
-  }, [token, t]);
+  }, [token]);
 
   // Set OG meta tags
   useEffect(() => {
@@ -45,7 +53,9 @@ export default function SharedReading() {
     setMetaTag("og:title", t("oracle.shared_reading_title"));
     setMetaTag(
       "og:description",
-      (data.reading.ai_interpretation as string) || "Oracle Reading",
+      sanitizeForMeta(
+        (data.reading.ai_interpretation as string) || "Oracle Reading",
+      ),
     );
     setMetaTag("og:type", "article");
   }, [data, t]);
@@ -68,7 +78,7 @@ export default function SharedReading() {
             NPS Oracle
           </h1>
           <p className="text-sm text-nps-error" role="alert">
-            {error}
+            {t(error)}
           </p>
         </div>
       </div>

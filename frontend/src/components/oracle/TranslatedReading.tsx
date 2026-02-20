@@ -42,8 +42,18 @@ export function TranslatedReading({ reading }: TranslatedReadingProps) {
       const result = await translation.translate(reading, "en", "fa");
       setTranslatedText(result.translated_text);
       setShowTranslation(true);
-    } catch {
-      setError(t("oracle.translate_error"));
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 502) {
+        setError(
+          t(
+            "oracle.translate_unavailable",
+            "Translation service is temporarily unavailable.",
+          ),
+        );
+      } else {
+        setError(t("oracle.translate_error"));
+      }
     } finally {
       setIsTranslating(false);
     }
@@ -90,11 +100,18 @@ export function TranslatedReading({ reading }: TranslatedReadingProps) {
         )}
       </div>
 
-      {/* Error */}
+      {/* Error with retry */}
       {error && (
-        <p role="alert" className="text-xs text-nps-error">
-          {error}
-        </p>
+        <div role="alert" className="flex items-center gap-2 text-xs">
+          <p className="text-nps-error">{error}</p>
+          <button
+            onClick={handleTranslate}
+            disabled={isTranslating}
+            className="text-nps-oracle-accent hover:underline"
+          >
+            {t("common.retry")}
+          </button>
+        </div>
       )}
     </div>
   );

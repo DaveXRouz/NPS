@@ -68,7 +68,7 @@ async def health_check():
 
 @router.get("/ready")
 async def readiness_check(request: Request):
-    """Readiness probe — checks database and service connectivity."""
+    """Readiness probe — checks database, Redis, and Anthropic connectivity."""
     checks = {}
 
     if is_database_ready():
@@ -96,6 +96,38 @@ async def readiness_check(request: Request):
         checks["redis"] = "not_connected"
 
     checks["oracle_service"] = "direct_mode"
+
+    # Anthropic API key validation (Issue #133)
+    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if anthropic_key:
+        try:
+            import httpx
+
+            async with httpx.AsyncClient(timeout=3.0) as client:
+                resp = await client.get(
+                    "https://api.anthropic.com/v1/models",
+                    headers={
+                        "x-api-key": anthropic_key,
+                        "anthropic-version": "2023-06-01",
+                    },
+                )
+                if resp.status_code == 200:
+                    checks["anthropic"] = "healthy"
+                elif resp.status_code == 401:
+                    checks["anthropic"] = "invalid_key"
+                else:
+                    checks["anthropic"] = f"error_{resp.status_code}"
+        except ImportError:
+            # httpx not installed — validate key format only
+            if anthropic_key.startswith("sk-ant-"):
+                checks["anthropic"] = "key_present"
+            else:
+                checks["anthropic"] = "key_format_invalid"
+        except Exception as exc:
+            logger.warning("Anthropic connectivity check failed: %s", exc)
+            checks["anthropic"] = "unreachable"
+    else:
+        checks["anthropic"] = "not_configured"
 
     core_healthy = checks["database"] == "healthy"
     return {

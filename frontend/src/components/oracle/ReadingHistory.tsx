@@ -59,6 +59,8 @@ export function ReadingHistory() {
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
     is_favorite: favoritesOnly ? true : undefined,
+    sort_by: "created_at",
+    sort_order: "desc",
   });
 
   const { data: stats } = useReadingStats();

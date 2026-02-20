@@ -31,6 +31,16 @@ vi.mock("react-i18next", () => ({
       };
       return map[key] ?? key;
     },
+    i18n: { language: "en" },
+  }),
+}));
+
+vi.mock("@/hooks/useToast", () => ({
+  useToast: () => ({ addToast: vi.fn(), dismissToast: vi.fn(), toasts: [] }),
+  useToastState: () => ({
+    toasts: [],
+    addToast: vi.fn(),
+    dismissToast: vi.fn(),
   }),
 }));
 

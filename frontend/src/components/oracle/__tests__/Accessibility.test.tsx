@@ -72,6 +72,18 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
+vi.mock("react-router-dom", () => ({
+  useNavigate: () => vi.fn(),
+}));
+
+vi.mock("@/hooks/useOracleReadings", () => ({
+  useReadingHistory: () => ({
+    data: { readings: [], total: 0 },
+    isLoading: false,
+    isError: false,
+  }),
+}));
+
 // ─── Child component mocks ───
 vi.mock("../SummaryTab", () => ({
   SummaryTab: () => <div data-testid="summary-tab">Summary Content</div>,

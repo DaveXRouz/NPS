@@ -2,8 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { oracle } from "@/services/api";
 import type { ReadingSearchParams } from "@/types";
 
-/** Shared retry config: 3 retries with exponential backoff, skip client errors */
-const retryConfig = {
+/** Shared retry config for queries: 3 retries with exponential backoff, skip client errors */
+const queryRetryConfig = {
   retry: (failureCount: number, error: Error) => {
     if (
       "isClientError" in error &&
@@ -24,7 +24,7 @@ export function useSubmitReading() {
   return useMutation({
     mutationFn: (datetime?: string) => oracle.reading(datetime),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
-    ...retryConfig,
+    retry: 0,
   });
 }
 
@@ -35,9 +35,16 @@ export function useSubmitQuestion() {
       question: string;
       userId?: number;
       system?: string;
-    }) => oracle.question(params.question, params.userId, params.system),
+      signal?: AbortSignal;
+    }) =>
+      oracle.question(
+        params.question,
+        params.userId,
+        params.system,
+        params.signal,
+      ),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
-    ...retryConfig,
+    retry: 0,
   });
 }
 
@@ -49,30 +56,41 @@ export function useSubmitName() {
       motherName?: string;
       userId?: number;
       system?: string;
+      signal?: AbortSignal;
     }) =>
-      oracle.name(params.name, params.userId, params.system, params.motherName),
+      oracle.name(
+        params.name,
+        params.userId,
+        params.system,
+        params.motherName,
+        params.signal,
+      ),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
-    ...retryConfig,
+    retry: 0,
   });
 }
 
 export function useSubmitTimeReading() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: import("@/types").TimeReadingRequest) =>
-      oracle.timeReading(data),
+    mutationFn: (
+      data: import("@/types").TimeReadingRequest & { signal?: AbortSignal },
+    ) => {
+      const { signal, ...readingData } = data;
+      return oracle.timeReading(readingData, signal);
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
-    ...retryConfig,
+    retry: 0,
   });
 }
 
-export function useDailyReading(userId: number | null, date?: string) {
+export function useOracleDailyReading(userId: number | null, date?: string) {
   return useQuery({
     queryKey: ["dailyReading", userId, date],
     queryFn: () => oracle.getDailyReading(userId!, date),
     enabled: !!userId,
     staleTime: 5 * 60 * 1000, // 5 min — daily readings don't change often
-    ...retryConfig,
+    ...queryRetryConfig,
   });
 }
 
@@ -87,7 +105,7 @@ export function useGenerateDailyReading() {
       });
       qc.invalidateQueries({ queryKey: HISTORY_KEY });
     },
-    ...retryConfig,
+    retry: 0,
   });
 }
 
@@ -97,7 +115,7 @@ export function useSubmitMultiUserReading() {
     mutationFn: (data: import("@/types").MultiUserFrameworkRequest) =>
       oracle.multiUserFrameworkReading(data),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
-    ...retryConfig,
+    retry: 0,
   });
 }
 
@@ -105,7 +123,7 @@ export function useReadingHistory(params?: ReadingSearchParams) {
   return useQuery({
     queryKey: [...HISTORY_KEY, params],
     queryFn: () => oracle.history(params),
-    ...retryConfig,
+    ...queryRetryConfig,
   });
 }
 
@@ -136,6 +154,6 @@ export function useReadingStats() {
     queryKey: [...STATS_KEY],
     queryFn: () => oracle.readingStats(),
     staleTime: 60 * 1000, // 1 min
-    ...retryConfig,
+    ...queryRetryConfig,
   });
 }

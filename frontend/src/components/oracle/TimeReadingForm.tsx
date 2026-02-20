@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type { FrameworkReadingResponse } from "@/types";
 import { useSubmitTimeReading } from "@/hooks/useOracleReadings";
+import { useSessionForm } from "@/hooks/useSessionForm";
 import { useReadingProgress } from "@/hooks/useReadingProgress";
 
 interface TimeReadingFormProps {
@@ -13,6 +14,7 @@ interface TimeReadingFormProps {
     progress: number;
     message: string;
   }) => void;
+  abortControllerRef?: React.MutableRefObject<AbortController | null>;
 }
 
 function pad2(n: number): string {
@@ -24,14 +26,23 @@ export default function TimeReadingForm({
   userName,
   onResult,
   onProgress,
+  abortControllerRef,
 }: TimeReadingFormProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "fa";
-  const now = new Date();
 
-  const [hour, setHour] = useState(now.getHours());
-  const [minute, setMinute] = useState(now.getMinutes());
-  const [second, setSecond] = useState(0);
+  const [hour, setHour, clearHour] = useSessionForm<number>(
+    "nps:time-form:hour",
+    new Date().getHours(),
+  );
+  const [minute, setMinute, clearMinute] = useSessionForm<number>(
+    "nps:time-form:minute",
+    new Date().getMinutes(),
+  );
+  const [second, setSecond, clearSecond] = useSessionForm<number>(
+    "nps:time-form:second",
+    0,
+  );
   const [error, setError] = useState<string | null>(null);
 
   const mutation = useSubmitTimeReading();
@@ -66,6 +77,13 @@ export default function TimeReadingForm({
       e.preventDefault();
       setError(null);
       const signValue = `${pad2(hour)}:${pad2(minute)}:${pad2(second)}`;
+
+      // Create AbortController for this request
+      const controller = new AbortController();
+      if (abortControllerRef) {
+        abortControllerRef.current = controller;
+      }
+
       mutation.mutate(
         {
           user_id: userId,
@@ -73,12 +91,19 @@ export default function TimeReadingForm({
           sign_value: signValue,
           locale: i18n.language === "fa" ? "fa" : "en",
           numerology_system: "auto",
+          signal: controller.signal,
         },
         {
           onSuccess: (data) => {
+            clearHour();
+            clearMinute();
+            clearSecond();
             onResult(data);
           },
           onError: (err) => {
+            // Silently ignore abort errors
+            if (err instanceof DOMException && err.name === "AbortError")
+              return;
             const msg =
               err instanceof Error ? err.message : t("oracle.error_submit");
             setError(msg);
@@ -86,7 +111,20 @@ export default function TimeReadingForm({
         },
       );
     },
-    [hour, minute, second, userId, i18n.language, mutation, onResult, t],
+    [
+      hour,
+      minute,
+      second,
+      userId,
+      i18n.language,
+      mutation,
+      onResult,
+      clearHour,
+      clearMinute,
+      clearSecond,
+      abortControllerRef,
+      t,
+    ],
   );
 
   const hourOptions = Array.from({ length: 24 }, (_, i) => i);

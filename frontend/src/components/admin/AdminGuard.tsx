@@ -1,12 +1,40 @@
+import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { adminHealth } from "@/services/api";
 import { FadeIn } from "@/components/common/FadeIn";
 
 export function AdminGuard() {
   const { t } = useTranslation();
-  const role = localStorage.getItem("nps_user_role");
+  const [status, setStatus] = useState<"loading" | "allowed" | "denied">(() => {
+    // Optimistic: if localStorage says admin, show content while verifying
+    const role = localStorage.getItem("nps_user_role");
+    return role === "admin" ? "loading" : "denied";
+  });
 
-  if (role !== "admin") {
+  useEffect(() => {
+    // Verify admin access by calling an admin-scoped endpoint
+    adminHealth
+      .detailed()
+      .then(() => {
+        setStatus("allowed");
+        localStorage.setItem("nps_user_role", "admin");
+      })
+      .catch(() => {
+        setStatus("denied");
+        localStorage.removeItem("nps_user_role");
+      });
+  }, []);
+
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="h-8 w-8 border-2 border-[var(--nps-accent)] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (status === "denied") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
         <FadeIn delay={0}>

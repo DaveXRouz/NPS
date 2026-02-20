@@ -17,6 +17,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
+from app.orm import PlatformJSONB
 
 
 class OracleReading(Base):
@@ -30,12 +31,18 @@ class OracleReading(Base):
     question_persian: Mapped[str | None] = mapped_column(Text)
     sign_type: Mapped[str] = mapped_column(String(20), nullable=False)
     sign_value: Mapped[str] = mapped_column(String(100), nullable=False)
-    reading_result: Mapped[str | None] = mapped_column(Text)  # JSONB as text
+    reading_result: Mapped[dict | None] = mapped_column(PlatformJSONB)
     ai_interpretation: Mapped[str | None] = mapped_column(Text)
     ai_interpretation_persian: Mapped[str | None] = mapped_column(Text)
-    individual_results: Mapped[str | None] = mapped_column(Text)  # JSONB
-    compatibility_matrix: Mapped[str | None] = mapped_column(Text)  # JSONB
-    combined_energy: Mapped[str | None] = mapped_column(Text)  # JSONB
+    individual_results: Mapped[dict | None] = mapped_column(PlatformJSONB)
+    compatibility_matrix: Mapped[dict | None] = mapped_column(PlatformJSONB)
+    combined_energy: Mapped[dict | None] = mapped_column(PlatformJSONB)
+
+    # Framework alignment columns (Issue #101)
+    framework_version: Mapped[str | None] = mapped_column(String(20))
+    reading_mode: Mapped[str | None] = mapped_column(String(20), server_default="full")
+    numerology_system: Mapped[str | None] = mapped_column(String(20), server_default="pythagorean")
+
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
     is_favorite: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

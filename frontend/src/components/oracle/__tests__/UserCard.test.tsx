@@ -108,7 +108,7 @@ describe("UserCard", () => {
       <UserCard user={fullUser} onEdit={vi.fn()} onDelete={vi.fn()} />,
     );
     const card = container.querySelector("[role='article']")!;
-    expect(card.className).toContain("border-nps-border");
+    expect(card.className).toContain("border-[var(--nps-glass-border)]");
 
     rerender(
       <UserCard
@@ -119,6 +119,6 @@ describe("UserCard", () => {
       />,
     );
     const selectedCard = container.querySelector("[role='article']")!;
-    expect(selectedCard.className).toContain("border-nps-oracle-accent");
+    expect(selectedCard.className).toContain("border-[var(--nps-accent)]");
   });
 });

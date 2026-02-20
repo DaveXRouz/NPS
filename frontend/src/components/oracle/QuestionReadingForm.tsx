@@ -1,7 +1,8 @@
-import { useState, lazy, Suspense, useCallback } from "react";
+import React, { useState, lazy, Suspense, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type { QuestionReadingResult, QuestionCategory } from "@/types";
 import { useSubmitQuestion } from "@/hooks/useOracleReadings";
+import { useSessionForm } from "@/hooks/useSessionForm";
 import { NumerologySystemSelector } from "./NumerologySystemSelector";
 import type { NumerologySystem } from "@/utils/scriptDetector";
 
@@ -40,28 +41,34 @@ interface QuestionReadingFormProps {
   userId?: number;
   onResult: (result: QuestionReadingResult) => void;
   onError?: (error: string) => void;
+  abortControllerRef?: React.MutableRefObject<AbortController | null>;
 }
 
 export function QuestionReadingForm({
   userId,
   onResult,
   onError,
+  abortControllerRef,
 }: QuestionReadingFormProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "fa";
 
-  const [question, setQuestion] = useState("");
-  const [category, setCategory] = useState<QuestionCategory>("general");
+  const [question, setQuestion, clearQuestion] = useSessionForm<string>(
+    "nps:question-form:question",
+    "",
+  );
+  const [category, setCategory, clearCategory] =
+    useSessionForm<QuestionCategory>("nps:question-form:category", "general");
   const [showKeyboard, setShowKeyboard] = useState(false);
   const [numerologySystem, setNumerologySystem] =
     useState<NumerologySystem>("auto");
   const [error, setError] = useState<string | null>(null);
 
-  // Time of question
-  const now = new Date();
-  const [hour, setHour] = useState(now.getHours());
-  const [minute, setMinute] = useState(now.getMinutes());
+  // Time of question — initialized to current time but captured fresh at submit
+  const [hour, setHour] = useState(() => new Date().getHours());
+  const [minute, setMinute] = useState(() => new Date().getMinutes());
   const [second, setSecond] = useState(0);
+  const [timeManuallySet, setTimeManuallySet] = useState(false);
 
   const mutation = useSubmitQuestion();
 
@@ -75,6 +82,7 @@ export function QuestionReadingForm({
     setHour(d.getHours());
     setMinute(d.getMinutes());
     setSecond(d.getSeconds());
+    setTimeManuallySet(false);
   }
 
   function handleKeyboardChar(char: string) {
@@ -106,6 +114,20 @@ export function QuestionReadingForm({
 
       setError(null);
 
+      // Capture fresh time at submit if user hasn't manually adjusted
+      if (!timeManuallySet) {
+        const submitTime = new Date();
+        setHour(submitTime.getHours());
+        setMinute(submitTime.getMinutes());
+        setSecond(submitTime.getSeconds());
+      }
+
+      // Create AbortController for this request
+      const controller = new AbortController();
+      if (abortControllerRef) {
+        abortControllerRef.current = controller;
+      }
+
       // NOTE: category and time are frontend-only for now.
       // Backend doesn't support these fields yet.
       mutation.mutate(
@@ -113,12 +135,18 @@ export function QuestionReadingForm({
           question: trimmed,
           userId,
           system: numerologySystem === "auto" ? "auto" : numerologySystem,
+          signal: controller.signal,
         },
         {
           onSuccess: (data) => {
+            clearQuestion();
+            clearCategory();
             onResult(data);
           },
           onError: (err) => {
+            // Silently ignore abort errors
+            if (err instanceof DOMException && err.name === "AbortError")
+              return;
             const msg =
               err instanceof Error ? err.message : t("oracle.error_submit");
             setError(msg);
@@ -127,7 +155,19 @@ export function QuestionReadingForm({
         },
       );
     },
-    [question, userId, numerologySystem, mutation, onResult, onError, t],
+    [
+      question,
+      userId,
+      numerologySystem,
+      timeManuallySet,
+      mutation,
+      onResult,
+      onError,
+      clearQuestion,
+      clearCategory,
+      abortControllerRef,
+      t,
+    ],
   );
 
   const scriptLabel =
@@ -144,7 +184,7 @@ export function QuestionReadingForm({
     "bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg px-4 py-3 text-sm text-[var(--nps-text)] nps-input-focus transition-all duration-200 min-w-[72px] min-h-[44px]";
 
   const pillClasses = (selected: boolean) =>
-    `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-200 text-xs cursor-pointer ${
+    `inline-flex items-center gap-1.5 px-3 py-2.5 rounded-full border transition-all duration-200 text-xs cursor-pointer min-h-[44px] ${
       selected
         ? "bg-[var(--nps-accent)] text-[var(--nps-bg)] border-[var(--nps-accent)] shadow-[0_0_8px_var(--nps-glass-glow)]"
         : "bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border-[var(--nps-accent)]/20 hover:bg-[var(--nps-accent)]/20"
@@ -228,7 +268,10 @@ export function QuestionReadingForm({
                 id="q-hour-select"
                 aria-label={t("oracle.hour_label")}
                 value={hour}
-                onChange={(e) => setHour(Number(e.target.value))}
+                onChange={(e) => {
+                  setHour(Number(e.target.value));
+                  setTimeManuallySet(true);
+                }}
                 className={selectClasses}
                 disabled={mutation.isPending}
               >
@@ -253,7 +296,10 @@ export function QuestionReadingForm({
                 id="q-minute-select"
                 aria-label={t("oracle.minute_label")}
                 value={minute}
-                onChange={(e) => setMinute(Number(e.target.value))}
+                onChange={(e) => {
+                  setMinute(Number(e.target.value));
+                  setTimeManuallySet(true);
+                }}
                 className={selectClasses}
                 disabled={mutation.isPending}
               >
@@ -278,7 +324,10 @@ export function QuestionReadingForm({
                 id="q-second-select"
                 aria-label={t("oracle.second_label")}
                 value={second}
-                onChange={(e) => setSecond(Number(e.target.value))}
+                onChange={(e) => {
+                  setSecond(Number(e.target.value));
+                  setTimeManuallySet(true);
+                }}
                 className={selectClasses}
                 disabled={mutation.isPending}
               >
@@ -293,7 +342,7 @@ export function QuestionReadingForm({
           <button
             type="button"
             onClick={handleUseCurrentTime}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 mt-3 rounded-full bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border border-[var(--nps-accent)]/20 hover:bg-[var(--nps-accent)]/20 transition-colors text-xs"
+            className="inline-flex items-center gap-1.5 px-3 py-2.5 mt-3 rounded-full bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border border-[var(--nps-accent)]/20 hover:bg-[var(--nps-accent)]/20 transition-colors text-xs min-h-[44px]"
             disabled={mutation.isPending}
           >
             <svg
@@ -362,7 +411,7 @@ export function QuestionReadingForm({
             <button
               type="button"
               onClick={() => setShowKeyboard(!showKeyboard)}
-              className="absolute top-3 end-3 w-6 h-6 flex items-center justify-center text-[var(--nps-text-dim)] hover:text-[var(--nps-accent)] transition-colors rounded"
+              className="absolute top-1 end-1 w-10 h-10 flex items-center justify-center text-[var(--nps-text-dim)] hover:text-[var(--nps-accent)] transition-colors rounded"
               aria-label={t("oracle.keyboard_toggle")}
               title={t("oracle.keyboard_persian")}
               data-testid="keyboard-toggle"
