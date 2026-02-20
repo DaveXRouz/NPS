@@ -20,5 +20,7 @@ export function useDashboardDailyReading(date?: string) {
   return useQuery({
     queryKey: ["dailyReading", date],
     queryFn: () => oracle.daily(date),
+    retry: 1,
+    retryDelay: 2000,
   });
 }

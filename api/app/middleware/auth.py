@@ -301,12 +301,21 @@ async def get_current_user(
 
     # Fallback: check against legacy api_secret_key for backward compat
     # Uses constant-time comparison to prevent timing attacks (Issue #92)
+    # Legacy key holder is the project owner — grant full admin access
     if hmac.compare_digest(token, settings.api_secret_key):
         return {
-            "user_id": None,
+            "user_id": "legacy-admin",
             "username": "legacy",
-            "role": "user",
-            "scopes": ["oracle:write", "oracle:read"],
+            "role": "admin",
+            "scopes": [
+                "oracle:admin",
+                "oracle:write",
+                "oracle:read",
+                "vault:admin",
+                "vault:write",
+                "vault:read",
+                "admin",
+            ],
             "auth_type": "legacy",
             "api_key_hash": None,
             "rate_limit": None,

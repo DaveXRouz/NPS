@@ -60,12 +60,16 @@ describe("WebSocketClient", () => {
     expect(MockWebSocket.instances[0].url).toContain("?token=my-jwt-token");
   });
 
-  it("sets error status when no token in localStorage", () => {
+  it("sets error status when no token available", () => {
+    // Clear both JWT and API key fallback
+    const origEnv = import.meta.env.VITE_API_KEY;
+    import.meta.env.VITE_API_KEY = "";
     const statuses: string[] = [];
     wsClient.onStatus((s) => statuses.push(s));
     wsClient.connect();
     expect(statuses).toContain("error");
     expect(MockWebSocket.instances.length).toBe(0);
+    import.meta.env.VITE_API_KEY = origEnv;
   });
 
   it("does not reconnect on auth failure (code 4001)", async () => {

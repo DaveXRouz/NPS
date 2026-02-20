@@ -29,10 +29,14 @@ logger = logging.getLogger(__name__)
 # 1. Parent of oracle_service/ so `import oracle_service` works (for logic/__init__.py)
 # 2. Inside oracle_service/ so `from engines.xxx` works (legacy-style imports)
 
+_PROJECT_ROOT = str(Path(__file__).resolve().parents[3])
 _ORACLE_PARENT_DIR = str(Path(__file__).resolve().parents[3] / "services" / "oracle")
 _ORACLE_SERVICE_DIR = str(
     Path(__file__).resolve().parents[3] / "services" / "oracle" / "oracle_service"
 )
+# Project root needed so `numerology_ai_framework` is importable when not pip-installed
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
 if _ORACLE_PARENT_DIR not in sys.path:
     sys.path.insert(0, _ORACLE_PARENT_DIR)
 if _ORACLE_SERVICE_DIR not in sys.path:

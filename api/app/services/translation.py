@@ -33,37 +33,92 @@ try:
 except ImportError as _err:
     logger.warning("Translation engines not available (%s) — passthrough mode", _err)
 
-    class _PassthroughResult:
-        """Stub result when translation engines are unavailable."""
+    class _FallbackResult:
+        """Result using Anthropic API fallback when oracle translation engines unavailable."""
 
         def __init__(self, text: str, source_lang: str, target_lang: str):
-            self._text = text
+            self._source_text = text
             self._source = source_lang
             self._target = target_lang
+            self._translated = text
+            self._ai_generated = False
+
+            # Attempt Anthropic API translation
+            try:
+                self._translated, self._ai_generated = _anthropic_translate(
+                    text, source_lang, target_lang
+                )
+            except Exception:
+                logger.debug("Anthropic translation fallback unavailable, using passthrough")
 
         def to_dict(self) -> dict:
             return {
-                "source_text": self._text,
-                "translated_text": self._text,
+                "source_text": self._source_text,
+                "translated_text": self._translated,
                 "source_lang": self._source,
                 "target_lang": self._target,
                 "preserved_terms": [],
-                "ai_generated": False,
+                "ai_generated": self._ai_generated,
             }
 
+    def _anthropic_translate(text: str, source_lang: str, target_lang: str) -> tuple[str, bool]:
+        """Use Anthropic API for EN↔FA translation as fallback."""
+        import os
+
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if not api_key or not text.strip():
+            return text, False
+
+        import httpx
+
+        lang_names = {"en": "English", "fa": "Persian (Farsi)"}
+        src_name = lang_names.get(source_lang, source_lang)
+        tgt_name = lang_names.get(target_lang, target_lang)
+
+        resp = httpx.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-haiku-4-5-20251001",
+                "max_tokens": 1024,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Translate the following text from {src_name} to {tgt_name}. "
+                            f"Return ONLY the translation, nothing else.\n\n{text}"
+                        ),
+                    }
+                ],
+            },
+            timeout=10.0,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        translated = data["content"][0]["text"].strip()
+        return translated, True
+
     def _translate(text: str, source_lang: str = "en", target_lang: str = "fa"):  # type: ignore[misc]
-        return _PassthroughResult(text, source_lang, target_lang)
+        return _FallbackResult(text, source_lang, target_lang)
 
     def _translate_reading(
         text: str, reading_type: str, source_lang: str = "en", target_lang: str = "fa"
     ):  # type: ignore[misc]
-        return _PassthroughResult(text, source_lang, target_lang)
+        return _FallbackResult(text, source_lang, target_lang)
 
     def _batch_translate(texts: list, source_lang: str = "en", target_lang: str = "fa"):  # type: ignore[misc]
-        return [_PassthroughResult(t, source_lang, target_lang) for t in texts]
+        return [_FallbackResult(t, source_lang, target_lang) for t in texts]
 
     def _detect(text: str) -> str:  # type: ignore[misc]
-        return "en"
+        # Simple heuristic: check for Persian/Arabic Unicode range
+        persian_count = sum(
+            1 for c in text if "\u0600" <= c <= "\u06ff" or "\ufb50" <= c <= "\ufdff"
+        )
+        return "fa" if persian_count > len(text) * 0.3 else "en"
 
 
 # ─── Module-level cache ─────────────────────────────────────────────────────

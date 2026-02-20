@@ -50,19 +50,31 @@ class ReadingOrchestrator:
         """Full pipeline for time reading.
 
         Returns dict matching FrameworkReadingResponse fields.
+        Blocking calls are offloaded to a thread pool to avoid stalling the
+        async event loop (the AI interpreter may use ``time.sleep`` in its
+        rate limiter).
         """
+        import asyncio
+
+        loop = asyncio.get_running_loop()
         total_steps = 4
         start = time.perf_counter()
 
-        # Step 1: Generate framework reading
+        # Step 1: Generate framework reading (blocking — offload)
         await self._send_progress(1, total_steps, "Generating reading...")
-        reading_result = self._call_framework_time(
-            user_profile, hour, minute, second, target_date, locale
+        reading_result = await loop.run_in_executor(
+            None,
+            lambda: self._call_framework_time(
+                user_profile, hour, minute, second, target_date, locale
+            ),
         )
 
-        # Step 2: AI interpretation
+        # Step 2: AI interpretation (blocking — offload)
         await self._send_progress(2, total_steps, "Interpreting patterns...")
-        ai_sections = self._call_ai_interpreter(reading_result.framework_output, locale)
+        ai_sections = await loop.run_in_executor(
+            None,
+            lambda: self._call_ai_interpreter(reading_result.framework_output, locale),
+        )
 
         # Step 3: Format response
         await self._send_progress(3, total_steps, "Formatting response...")
@@ -373,16 +385,24 @@ class ReadingOrchestrator:
         Uses noon (12:00:00) as the reading time — neutral midday energy.
         Returns dict matching FrameworkReadingResponse fields + daily_insights.
         """
+        import asyncio
+
+        loop = asyncio.get_running_loop()
         total_steps = 4
         start = time.perf_counter()
 
-        # Step 1: Generate framework reading via bridge
+        # Step 1: Generate framework reading via bridge (blocking — offload)
         await self._send_progress(1, total_steps, "Generating daily reading...", "daily")
-        reading_result = self._call_framework_daily(user_profile, target_date)
+        reading_result = await loop.run_in_executor(
+            None, lambda: self._call_framework_daily(user_profile, target_date)
+        )
 
-        # Step 2: AI interpretation
+        # Step 2: AI interpretation (blocking — offload)
         await self._send_progress(2, total_steps, "Interpreting today's energy...", "daily")
-        ai_sections = self._call_ai_interpreter(reading_result.framework_output, locale)
+        ai_sections = await loop.run_in_executor(
+            None,
+            lambda: self._call_ai_interpreter(reading_result.framework_output, locale),
+        )
 
         # Step 3: Format response
         await self._send_progress(3, total_steps, "Formatting response...", "daily")
@@ -437,25 +457,35 @@ class ReadingOrchestrator:
         for pairwise compatibility + group analysis. Optionally invokes AI
         for group interpretation.
         """
+        import asyncio
+
+        loop = asyncio.get_running_loop()
         total_steps = 5
         start = time.perf_counter()
         n_users = len(user_profiles)
 
-        # Step 1: Generate individual readings
+        # Step 1: Generate individual readings (blocking — offload)
         await self._send_progress(
             1, total_steps, f"Generating readings for {n_users} users...", "multi"
         )
-        individual_results = self._call_framework_multi(user_profiles, target_date)
+        individual_results = await loop.run_in_executor(
+            None, lambda: self._call_framework_multi(user_profiles, target_date)
+        )
 
-        # Step 2: Run compatibility analysis
+        # Step 2: Run compatibility analysis (blocking — offload)
         await self._send_progress(2, total_steps, "Analyzing compatibility...", "multi")
-        multi_result = self._call_multi_analyzer(individual_results)
+        multi_result = await loop.run_in_executor(
+            None, lambda: self._call_multi_analyzer(individual_results)
+        )
 
-        # Step 3: AI group interpretation (optional)
+        # Step 3: AI group interpretation (optional, blocking — offload)
         ai_sections = None
         if include_interpretation:
             await self._send_progress(3, total_steps, "Generating group interpretation...", "multi")
-            ai_sections = self._call_ai_group_interpreter(individual_results, multi_result, locale)
+            ai_sections = await loop.run_in_executor(
+                None,
+                lambda: self._call_ai_group_interpreter(individual_results, multi_result, locale),
+            )
         else:
             await self._send_progress(3, total_steps, "Skipping AI interpretation...", "multi")
 

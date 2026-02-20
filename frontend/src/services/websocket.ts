@@ -20,7 +20,8 @@ class WebSocketClient {
   private _explicitUrl: string | undefined;
 
   connect(url?: string) {
-    const token = localStorage.getItem("nps_token");
+    const token =
+      localStorage.getItem("nps_token") || import.meta.env.VITE_API_KEY;
     if (!token) {
       this.setStatus("error");
       return;

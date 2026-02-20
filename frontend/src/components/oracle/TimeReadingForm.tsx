@@ -101,7 +101,11 @@ export default function TimeReadingForm({
             clearHour();
             clearMinute();
             clearSecond();
-            onResult(data);
+            try {
+              onResult(data);
+            } finally {
+              onLoadingChange?.(false);
+            }
           },
           onError: (err) => {
             onLoadingChange?.(false);

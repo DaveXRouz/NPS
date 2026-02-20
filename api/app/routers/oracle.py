@@ -1,5 +1,6 @@
 """Oracle endpoints — reading computation, history, user management."""
 
+import asyncio
 import logging
 from datetime import datetime, timezone
 
@@ -472,16 +473,21 @@ async def create_framework_reading(
                 {"step": step_name, "progress": progress_pct, "message": message},
             )
 
+    _READING_TIMEOUT = 30.0  # seconds — prevent infinite hangs
+
     try:
         if reading_type == "daily":
             body = DailyReadingRequest(**body_raw)
-            result = await svc.create_daily_reading(
-                user_id=body.user_id,
-                date_str=body.date,
-                locale=body.locale,
-                numerology_system=body.numerology_system,
-                force_regenerate=body.force_regenerate,
-                progress_callback=progress_callback,
+            result = await asyncio.wait_for(
+                svc.create_daily_reading(
+                    user_id=body.user_id,
+                    date_str=body.date,
+                    locale=body.locale,
+                    numerology_system=body.numerology_system,
+                    force_regenerate=body.force_regenerate,
+                    progress_callback=progress_callback,
+                ),
+                timeout=_READING_TIMEOUT,
             )
             audit.log_reading_created(
                 result["id"],
@@ -494,14 +500,17 @@ async def create_framework_reading(
 
         elif reading_type == "multi":
             body = MultiUserFrameworkRequest(**body_raw)
-            result = await svc.create_multi_user_framework_reading(
-                user_ids=body.user_ids,
-                primary_user_index=body.primary_user_index,
-                date_str=body.date,
-                locale=body.locale,
-                numerology_system=body.numerology_system,
-                include_interpretation=body.include_interpretation,
-                progress_callback=progress_callback,
+            result = await asyncio.wait_for(
+                svc.create_multi_user_framework_reading(
+                    user_ids=body.user_ids,
+                    primary_user_index=body.primary_user_index,
+                    date_str=body.date,
+                    locale=body.locale,
+                    numerology_system=body.numerology_system,
+                    include_interpretation=body.include_interpretation,
+                    progress_callback=progress_callback,
+                ),
+                timeout=_READING_TIMEOUT,
             )
             audit.log_reading_created(
                 result.get("id"),
@@ -516,43 +525,17 @@ async def create_framework_reading(
             # Session 14 time reading (default)
             body = TimeReadingRequest(**body_raw)
 
-            async def time_progress(step: int, total: int, message: str, rt: str = "time"):
-                progress_pct = int((step / total) * 100) if total > 0 else 0
-                step_name = (
-                    "calculating"
-                    if progress_pct < 75
-                    else "ai_generating"
-                    if progress_pct < 90
-                    else "combining"
-                )
-                if progress_pct == 0:
-                    await ws_manager.broadcast(
-                        "reading_started",
-                        {"step": "started", "progress": 0, "message": message},
-                    )
-                elif progress_pct >= 100:
-                    await ws_manager.broadcast(
-                        "reading_complete",
-                        {"step": "complete", "progress": 100, "message": message},
-                    )
-                else:
-                    await ws_manager.broadcast(
-                        "reading_progress",
-                        {
-                            "step": step_name,
-                            "progress": progress_pct,
-                            "message": message,
-                        },
-                    )
-
-            result = await svc.create_framework_reading(
-                user_id=body.user_id,
-                reading_type=body.reading_type,
-                sign_value=body.sign_value,
-                date_str=body.date,
-                locale=body.locale,
-                numerology_system=body.numerology_system,
-                progress_callback=time_progress,
+            result = await asyncio.wait_for(
+                svc.create_framework_reading(
+                    user_id=body.user_id,
+                    reading_type=body.reading_type,
+                    sign_value=body.sign_value,
+                    date_str=body.date,
+                    locale=body.locale,
+                    numerology_system=body.numerology_system,
+                    progress_callback=progress_callback,
+                ),
+                timeout=_READING_TIMEOUT,
             )
             audit.log_reading_created(
                 result["id"],
@@ -563,6 +546,11 @@ async def create_framework_reading(
             svc.db.commit()
             return FrameworkReadingResponse(**result)
 
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="Reading timed out — computation took too long",
+        )
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
