@@ -99,6 +99,8 @@ export const oracle = {
     userId?: number,
     system?: string,
     signal?: AbortSignal,
+    category?: string,
+    questionTime?: string,
   ) =>
     request<import("@/types").QuestionReadingResult>("/oracle/question", {
       method: "POST",
@@ -107,6 +109,8 @@ export const oracle = {
         user_id: userId,
         numerology_system: system || "auto",
         include_ai: true,
+        ...(category ? { category } : {}),
+        ...(questionTime ? { question_time: questionTime } : {}),
       }),
       signal,
     }),

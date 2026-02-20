@@ -130,8 +130,6 @@ export function QuestionReadingForm({
         abortControllerRef.current = controller;
       }
 
-      // NOTE: category and time are frontend-only for now.
-      // Backend doesn't support these fields yet.
       onLoadingChange?.(true);
       mutation.mutate(
         {
@@ -139,12 +137,18 @@ export function QuestionReadingForm({
           userId,
           system: numerologySystem === "auto" ? "auto" : numerologySystem,
           signal: controller.signal,
+          category,
+          questionTime: `${pad2(hour)}:${pad2(minute)}:${pad2(second)}`,
         },
         {
           onSuccess: (data) => {
             clearQuestion();
             clearCategory();
-            onResult(data);
+            try {
+              onResult(data);
+            } finally {
+              onLoadingChange?.(false);
+            }
           },
           onError: (err) => {
             onLoadingChange?.(false);
@@ -164,9 +168,14 @@ export function QuestionReadingForm({
       userId,
       numerologySystem,
       timeManuallySet,
+      category,
+      hour,
+      minute,
+      second,
       mutation,
       onResult,
       onError,
+      onLoadingChange,
       clearQuestion,
       clearCategory,
       abortControllerRef,

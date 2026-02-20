@@ -35,13 +35,38 @@ class WebSocketManager:
         self._pong_timeout: int = 10  # seconds
 
     def authenticate(self, websocket: WebSocket) -> dict | None:
-        """Extract JWT from query params and verify."""
+        """Extract JWT or legacy API key from query params and verify."""
+        import hmac
+
         token = websocket.query_params.get("token")
         if not token:
             return None
         from app.middleware.auth import _try_jwt_auth
 
-        return _try_jwt_auth(token)
+        user_ctx = _try_jwt_auth(token)
+        if user_ctx:
+            return user_ctx
+
+        # Fall back to legacy API key (constant-time comparison)
+        from app.config import settings
+
+        if hmac.compare_digest(token, settings.api_secret_key):
+            return {
+                "user_id": "legacy-admin",
+                "username": "legacy",
+                "role": "admin",
+                "scopes": [
+                    "oracle:admin",
+                    "oracle:write",
+                    "oracle:read",
+                    "vault:admin",
+                    "vault:write",
+                    "vault:read",
+                    "admin",
+                ],
+                "auth_type": "legacy",
+            }
+        return None
 
     async def connect(self, websocket: WebSocket) -> AuthenticatedConnection | None:
         """Authenticate and accept a WebSocket connection."""

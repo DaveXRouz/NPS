@@ -36,12 +36,16 @@ export function useSubmitQuestion() {
       userId?: number;
       system?: string;
       signal?: AbortSignal;
+      category?: string;
+      questionTime?: string;
     }) =>
       oracle.question(
         params.question,
         params.userId,
         params.system,
         params.signal,
+        params.category,
+        params.questionTime,
       ),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
     retry: 0,

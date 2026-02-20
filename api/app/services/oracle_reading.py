@@ -897,6 +897,8 @@ class OracleReadingService:
         user_id: int | None = None,
         numerology_system: str = "auto",
         include_ai: bool = True,
+        category: str | None = None,
+        question_time: str | None = None,
     ) -> dict:
         """Question reading using framework via ReadingOrchestrator."""
         from oracle_service.reading_orchestrator import ReadingOrchestrator
@@ -942,6 +944,8 @@ class OracleReadingService:
             gender=gender,
             numerology_system=numerology_system,
             include_ai=include_ai,
+            category=category,
+            question_time=question_time,
         )
 
     # ── DB storage methods ──

@@ -154,6 +154,7 @@ def interpret_reading(
     question: str = "",
     locale: str = "en",
     use_cache: bool = True,
+    category: str | None = None,
 ) -> ReadingInterpretation:
     """Generate AI interpretation from framework reading output.
 
@@ -186,7 +187,11 @@ def interpret_reading(
 
     # Build prompts
     user_prompt = build_reading_prompt(
-        reading, reading_type=reading_type, question=question, locale=locale
+        reading,
+        reading_type=reading_type,
+        question=question,
+        locale=locale,
+        category=category or "",
     )
     system_prompt = get_system_prompt(locale)
 

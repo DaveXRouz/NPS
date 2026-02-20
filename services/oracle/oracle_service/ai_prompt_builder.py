@@ -233,6 +233,7 @@ def build_reading_prompt(
     reading_type: str = "daily",
     question: str = "",
     locale: str = "en",
+    category: str = "",
 ) -> str:
     """Build user prompt from MasterOrchestrator.generate_reading() output.
 
@@ -255,6 +256,8 @@ def build_reading_prompt(
     parts = [f"READING TYPE: {reading_type}"]
     if reading_type == "question" and question:
         parts.append(f"QUESTION: {question}")
+        if category:
+            parts.append(f"CATEGORY: {category}")
     parts.append(f"LOCALE: {locale}")
     parts.append("")
 

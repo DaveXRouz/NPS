@@ -168,6 +168,8 @@ describe("QuestionReadingForm", () => {
         1,
         "auto",
         expect.any(AbortSignal),
+        "general",
+        expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
       );
     });
   });

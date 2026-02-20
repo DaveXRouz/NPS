@@ -290,7 +290,7 @@ export default function Oracle() {
             <h3 className="text-sm font-semibold text-[var(--nps-accent)] mb-4">
               {t(`oracle.type_${readingType}_title`)}
             </h3>
-            {isLoading ? (
+            {isLoading && (
               <CalculationAnimation
                 readingType={readingType}
                 step={readingProgress.step}
@@ -300,21 +300,24 @@ export default function Oracle() {
                 }
                 onCancel={handleCancel}
               />
-            ) : primaryUser || readingType === "daily" ? (
-              <OracleConsultationForm
-                readingType={readingType}
-                userId={primaryUser?.id ?? 0}
-                userName={primaryUser?.name ?? ""}
-                selectedUsers={selectedUsers}
-                onResult={handleResult}
-                onLoadingChange={handleLoadingChange}
-                abortControllerRef={abortControllerRef}
-              />
-            ) : (
+            )}
+            {primaryUser || readingType === "daily" ? (
+              <div className={isLoading ? "hidden" : undefined}>
+                <OracleConsultationForm
+                  readingType={readingType}
+                  userId={primaryUser?.id ?? 0}
+                  userName={primaryUser?.name ?? ""}
+                  selectedUsers={selectedUsers}
+                  onResult={handleResult}
+                  onLoadingChange={handleLoadingChange}
+                  abortControllerRef={abortControllerRef}
+                />
+              </div>
+            ) : !isLoading ? (
               <p className="text-[var(--nps-text-dim)] text-sm">
                 {t("oracle.select_to_begin")}
               </p>
-            )}
+            ) : null}
           </section>
         </FadeIn>
 

@@ -212,6 +212,8 @@ async def create_question_sign(
                     user_id=body.user_id,
                     numerology_system=body.numerology_system,
                     include_ai=body.include_ai,
+                    category=body.category,
+                    question_time=body.question_time,
                 ),
             ),
             timeout=15.0,

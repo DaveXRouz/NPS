@@ -260,6 +260,17 @@ function ReadingSummary({
   );
 }
 
+const CATEGORY_COLORS: Record<string, string> = {
+  love: "bg-pink-500/20 text-pink-400 border-pink-500/30",
+  career: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  health: "bg-green-500/20 text-green-400 border-green-500/30",
+  finance: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+  family: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  spiritual: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  general:
+    "bg-[var(--nps-accent)]/20 text-[var(--nps-accent)] border-[var(--nps-accent)]/30",
+};
+
 function QuestionSummary({
   result,
 }: {
@@ -268,14 +279,48 @@ function QuestionSummary({
   const { t } = useTranslation();
   const { data } = result;
 
+  const fc60Stamp =
+    data.fc60_stamp && typeof data.fc60_stamp === "object"
+      ? (data.fc60_stamp as Record<string, string>)
+      : null;
+
+  const moonData =
+    data.moon && typeof data.moon === "object"
+      ? (data.moon as Record<string, unknown>)
+      : null;
+
+  const ganzhiData =
+    data.ganzhi && typeof data.ganzhi === "object"
+      ? (data.ganzhi as Record<string, unknown>)
+      : null;
+
+  const patternsData =
+    data.patterns && typeof data.patterns === "object"
+      ? (data.patterns as {
+          detected?: { type: string; strength: string; message?: string }[];
+          count?: number;
+        })
+      : null;
+
   return (
-    <div className="space-y-4">
+    <StaggerChildren staggerMs={60}>
       <ReadingHeader
         userName={data.question}
         readingDate={new Date().toISOString()}
         readingType="question"
         confidence={data.confidence ? data.confidence.score / 100 : undefined}
       />
+
+      {/* Category badge */}
+      {data.category && (
+        <div className="flex items-center gap-2">
+          <span
+            className={`inline-flex items-center px-3 py-1 rounded-full border text-xs font-medium ${CATEGORY_COLORS[data.category] || CATEGORY_COLORS.general}`}
+          >
+            {t(`oracle.category_${data.category}`, data.category)}
+          </span>
+        </div>
+      )}
 
       <ReadingSection
         title={t("oracle.section_core_identity")}
@@ -301,21 +346,104 @@ function QuestionSummary({
         </div>
       </ReadingSection>
 
+      {/* FC60 Stamp */}
+      {fc60Stamp && fc60Stamp.fc60 && (
+        <ReadingSection
+          title={t("oracle.section_universal_address")}
+          icon={<Globe size={16} />}
+        >
+          <div className="space-y-2 pt-2">
+            <p className="font-mono text-sm text-nps-text-bright">
+              {fc60Stamp.fc60}
+            </p>
+            {fc60Stamp.j60 && (
+              <p className="text-xs text-nps-text-dim">J60: {fc60Stamp.j60}</p>
+            )}
+          </div>
+        </ReadingSection>
+      )}
+
+      {/* Moon + Ganzhi */}
+      {(moonData || ganzhiData) && (
+        <ReadingSection
+          title={t("oracle.section_right_now")}
+          icon={<Clock size={16} />}
+        >
+          <div className="grid grid-cols-2 gap-3 pt-2 text-sm">
+            {moonData && moonData.phase_name && (
+              <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3">
+                <span className="text-xs text-[var(--nps-text-dim)]">
+                  {t("oracle.details_moon_phase")}
+                </span>
+                <p className="text-[var(--nps-text)] flex items-center gap-1.5">
+                  <MoonPhaseIcon
+                    phaseName={String(moonData.phase_name)}
+                    size={16}
+                  />
+                  {String(moonData.phase_name)}{" "}
+                  {moonData.illumination != null &&
+                    `(${moonData.illumination}%)`}
+                </p>
+              </div>
+            )}
+            {ganzhiData && (
+              <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3">
+                <span className="text-xs text-[var(--nps-text-dim)]">
+                  {t("oracle.details_chinese_cosmology")}
+                </span>
+                <p className="text-[var(--nps-text)]">
+                  {ganzhiData.year
+                    ? `${(ganzhiData.year as Record<string, string>).animal_name || ""} \u00b7 ${(ganzhiData.year as Record<string, string>).element || ""}`
+                    : `${ganzhiData.year_animal || ""} \u00b7 ${ganzhiData.stem_element || ""}`}
+                </p>
+              </div>
+            )}
+          </div>
+        </ReadingSection>
+      )}
+
+      {/* Patterns */}
+      {patternsData &&
+        patternsData.detected &&
+        patternsData.detected.length > 0 && (
+          <ReadingSection
+            title={t("oracle.section_patterns")}
+            icon={<Link2 size={16} />}
+          >
+            <div className="flex gap-2 flex-wrap pt-2">
+              {patternsData.detected.map((p, i) => (
+                <PatternBadge
+                  key={i}
+                  pattern={p.type}
+                  priority={
+                    p.strength === "high" || p.strength === "very_high"
+                      ? "high"
+                      : "medium"
+                  }
+                  description={p.message}
+                />
+              ))}
+            </div>
+          </ReadingSection>
+        )}
+
       {data.ai_interpretation && (
         <ReadingSection
           title={t("oracle.section_message")}
           icon={<Sparkles size={16} />}
         >
-          <div className="pt-2">
-            <TranslatedReading reading={data.ai_interpretation} />
-          </div>
+          <FadeIn delay={300}>
+            <div className="pt-2 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-4 border-s-2 border-s-[var(--nps-accent)]">
+              <TranslatedReading reading={data.ai_interpretation} />
+            </div>
+          </FadeIn>
         </ReadingSection>
       )}
 
       {data.confidence && (
         <ReadingFooter confidence={data.confidence.score / 100} />
       )}
-    </div>
+    </StaggerChildren>
   );
 }
 

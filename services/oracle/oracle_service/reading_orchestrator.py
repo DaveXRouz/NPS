@@ -101,12 +101,25 @@ class ReadingOrchestrator:
 
         return generate_time_reading(user, hour, minute, second, target_date, locale)
 
-    def _call_ai_interpreter(self, framework_output: Dict[str, Any], locale: str) -> Dict[str, Any]:
+    def _call_ai_interpreter(
+        self,
+        framework_output: Dict[str, Any],
+        locale: str,
+        reading_type: str = "time",
+        question: str = "",
+        category: str | None = None,
+    ) -> Dict[str, Any]:
         """Invoke AI interpreter from Session 13."""
         try:
             from oracle_service.engines.ai_interpreter import interpret_reading
 
-            result = interpret_reading(framework_output, reading_type="time", locale=locale)
+            result = interpret_reading(
+                framework_output,
+                reading_type=reading_type,
+                question=question,
+                locale=locale,
+                category=category,
+            )
             return result.to_dict() if hasattr(result, "to_dict") else result
         except Exception:
             logger.warning("AI interpretation unavailable", exc_info=True)
@@ -188,7 +201,7 @@ class ReadingOrchestrator:
         # AI interpretation
         ai_text = None
         if include_ai:
-            ai_sections = self._call_ai_interpreter(fw, locale)
+            ai_sections = self._call_ai_interpreter(fw, locale, reading_type="name")
             ai_text = ai_sections.get("full_text", "")
 
         # Extract numerology from framework output
@@ -271,6 +284,8 @@ class ReadingOrchestrator:
         numerology_system: str = "auto",
         include_ai: bool = True,
         locale: str = "en",
+        category: str | None = None,
+        question_time: str | None = None,
     ) -> Dict[str, Any]:
         """Generate a question-based reading with question hashing."""
         from oracle_service.question_analyzer import question_number
@@ -303,7 +318,13 @@ class ReadingOrchestrator:
         # AI interpretation with question context
         ai_text = None
         if include_ai:
-            ai_sections = self._call_ai_interpreter(fw, locale)
+            ai_sections = self._call_ai_interpreter(
+                fw,
+                locale,
+                reading_type="question",
+                question=question,
+                category=category,
+            )
             ai_text = ai_sections.get("full_text", "")
 
         # Extract confidence
@@ -321,6 +342,7 @@ class ReadingOrchestrator:
             "numerology_system": q_analysis["system_used"],
             "raw_letter_sum": q_analysis["raw_sum"],
             "is_master_number": q_analysis["is_master_number"],
+            "category": category,
             "fc60_stamp": fw.get("fc60_stamp"),
             "numerology": fw.get("numerology"),
             "moon": fw.get("moon"),
@@ -401,7 +423,9 @@ class ReadingOrchestrator:
         await self._send_progress(2, total_steps, "Interpreting today's energy...", "daily")
         ai_sections = await loop.run_in_executor(
             None,
-            lambda: self._call_ai_interpreter(reading_result.framework_output, locale),
+            lambda: self._call_ai_interpreter(
+                reading_result.framework_output, locale, reading_type="daily"
+            ),
         )
 
         # Step 3: Format response

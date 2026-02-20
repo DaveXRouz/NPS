@@ -123,7 +123,11 @@ export function NameReadingForm({
           onSuccess: (data) => {
             clearName();
             clearMotherName();
-            onResult(data);
+            try {
+              onResult(data);
+            } finally {
+              onLoadingChange?.(false);
+            }
           },
           onError: (err) => {
             onLoadingChange?.(false);

@@ -139,6 +139,7 @@ export interface QuestionReadingResult {
   numerology_system: string;
   raw_letter_sum: number;
   is_master_number: boolean;
+  category?: string | null;
   fc60_stamp: Record<string, unknown> | null;
   numerology: Record<string, unknown> | null;
   moon: Record<string, unknown> | null;

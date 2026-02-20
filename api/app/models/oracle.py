@@ -270,11 +270,18 @@ class QuestionResponse(BaseModel):
     confidence: float
 
 
+ALLOWED_QUESTION_CATEGORIES = frozenset(
+    ["love", "career", "health", "finance", "family", "spiritual", "general"]
+)
+
+
 class QuestionReadingRequest(BaseModel):
     question: str
     user_id: int | None = None
     numerology_system: str = "auto"
     include_ai: bool = True
+    category: str | None = None
+    question_time: str | None = None  # "HH:MM:SS"
 
     @field_validator("question")
     @classmethod
@@ -286,6 +293,35 @@ class QuestionReadingRequest(BaseModel):
             raise ValueError("Question must be 500 characters or less")
         return v
 
+    @field_validator("category")
+    @classmethod
+    def validate_category(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        v = v.lower().strip()
+        if v not in ALLOWED_QUESTION_CATEGORIES:
+            raise ValueError(
+                f"Invalid category: '{v}'. Allowed: {', '.join(sorted(ALLOWED_QUESTION_CATEGORIES))}"
+            )
+        return v
+
+    @field_validator("question_time")
+    @classmethod
+    def validate_question_time(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        match = re.match(r"^(\d{1,2}):(\d{2}):(\d{2})$", v)
+        if not match:
+            raise ValueError(f"Invalid time format: '{v}'. Expected HH:MM:SS")
+        h, m, s = int(match.group(1)), int(match.group(2)), int(match.group(3))
+        if not (0 <= h <= 23):
+            raise ValueError(f"Hour must be 0-23, got {h}")
+        if not (0 <= m <= 59):
+            raise ValueError(f"Minute must be 0-59, got {m}")
+        if not (0 <= s <= 59):
+            raise ValueError(f"Second must be 0-59, got {s}")
+        return v
+
 
 class QuestionReadingResponse(BaseModel):
     question: str
@@ -294,6 +330,7 @@ class QuestionReadingResponse(BaseModel):
     numerology_system: str = "pythagorean"
     raw_letter_sum: int = 0
     is_master_number: bool = False
+    category: str | None = None
     fc60_stamp: dict | None = None
     numerology: dict | None = None
     moon: dict | None = None
