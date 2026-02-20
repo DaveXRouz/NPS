@@ -321,7 +321,8 @@ class OracleReadingService:
                 answer = "no"
 
         interpretation = result.get("reading", "") or result.get("advice", "")
-        confidence = 0.7 if result.get("numerology", {}).get("meanings") else 0.5
+        # Confidence as 0-100 int (project convention — see types/index.ts)
+        confidence = 70 if result.get("numerology", {}).get("meanings") else 50
 
         return {
             "question": question,
@@ -380,15 +381,16 @@ class OracleReadingService:
         score = timing.get("score", 0.5)
 
         level = ai_level or 1
+        # Confidence as 0-100 int (project convention)
         if score >= 0.8:
             strategy = "cosmic"
-            confidence = 0.8
+            confidence = 80
         elif level >= 3:
             strategy = "gap_fill"
-            confidence = 0.7
+            confidence = 70
         else:
             strategy = "random"
-            confidence = 0.5
+            confidence = 50
 
         puzzle = puzzle_number or 66
         if 0 < puzzle <= 160:

@@ -465,6 +465,8 @@ export interface LocationElementData {
   lon_polarity: "Yang" | "Yin";
 }
 
+/** Confidence data from the framework pipeline.
+ * `score` is always 0–100 int. Frontend components that expect 0–1 should divide by 100. */
 export interface ConfidenceData {
   score: number;
   level: "low" | "medium" | "high" | "very_high";
@@ -489,6 +491,7 @@ export interface TimeReadingRequest {
   numerology_system?: string; // "pythagorean" | "chaldean" | "abjad" | "auto"
 }
 
+/** Framework confidence. `score` is always 0–100 int (not 0–1 float). */
 export interface FrameworkConfidence {
   score: number;
   level: string;

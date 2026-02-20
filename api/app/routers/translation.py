@@ -83,8 +83,16 @@ def batch_translate(body: BatchTranslationRequest):
 )
 def detect_language(text: str = Query(..., min_length=1)):
     """Detect whether text is primarily English or Persian."""
-    result = _svc.detect_language(text)
-    return DetectResponse(**result)
+    try:
+        result = _svc.detect_language(text)
+        return DetectResponse(**result)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        logger.exception("Language detection engine error")
+        raise HTTPException(
+            status_code=502, detail="Language detection service unavailable"
+        ) from exc
 
 
 @router.get(

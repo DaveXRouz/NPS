@@ -11,11 +11,13 @@ import { OfflineBanner } from "./common/OfflineBanner";
 import { ToastContainer } from "./common/Toast";
 import { ScrollToTop } from "./ScrollToTop";
 import { useWebSocketConnection } from "@/hooks/useWebSocket";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 export const Layout = React.memo(function Layout() {
   const { t } = useTranslation();
   useWebSocketConnection();
   const location = useLocation();
+  const { isAdmin } = useAuthUser();
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -59,10 +61,7 @@ export const Layout = React.memo(function Layout() {
           </div>
 
           {/* Navigation */}
-          <Navigation
-            collapsed={sidebarCollapsed}
-            isAdmin={localStorage.getItem("nps_user_role") === "admin"}
-          />
+          <Navigation collapsed={sidebarCollapsed} isAdmin={isAdmin} />
 
           {/* Collapse toggle */}
           <button

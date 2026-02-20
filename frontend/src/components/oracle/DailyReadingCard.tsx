@@ -66,7 +66,8 @@ export default function DailyReadingCard({
 
   return (
     <div
-      className={`rounded-xl border border-nps-border bg-nps-bg-card p-6 shadow-sm ${isRTL ? "rtl" : ""}`}
+      className="rounded-xl border border-nps-border bg-nps-bg-card p-6 shadow-sm"
+      dir={isRTL ? "rtl" : "ltr"}
       data-testid="daily-reading-card"
     >
       {/* Header */}

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDirection } from "@/hooks/useDirection";
+import { useAuthUser } from "@/hooks/useAuthUser";
 import { LanguageToggle } from "./LanguageToggle";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -9,6 +10,7 @@ interface NavItem {
   path: string;
   labelKey: string;
   disabled?: boolean;
+  adminOnly?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -16,6 +18,7 @@ const NAV_ITEMS: NavItem[] = [
   { path: "/oracle", labelKey: "nav.oracle" },
   { path: "/history", labelKey: "nav.history" },
   { path: "/settings", labelKey: "nav.settings" },
+  { path: "/admin", labelKey: "nav.admin", adminOnly: true },
 ];
 
 interface MobileNavProps {
@@ -26,6 +29,7 @@ interface MobileNavProps {
 export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   const { t } = useTranslation();
   const { isRTL } = useDirection();
+  const { isAdmin } = useAuthUser();
   const drawerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -101,6 +105,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         {/* Navigation items */}
         <nav className="flex-1 py-4 overflow-y-auto" role="navigation">
           {NAV_ITEMS.map((item) => {
+            if (item.adminOnly && !isAdmin) return null;
             if (item.disabled) {
               return (
                 <button

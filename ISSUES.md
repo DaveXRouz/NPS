@@ -239,6 +239,7 @@ The `CrystalBallIcon` SVG is too sparse at 48px — the interior sparkle details
 
 **Reported by:** Screenshot (web-production-a5179.up.railway.app/oracle?type=question) + text description
 **Priority:** P1 High
+**Status:** **FIXED 2026-02-21** (Improvement Session 2) — Improved `formatAiInterpretation.ts` fallback: long unstructured text (>500 chars) auto-splits at sentence boundaries (max 300 chars/paragraph) and groups into sections of 3 paragraphs. `TranslatedReading.tsx` renders paragraph breaks within sections and adds thin dividers between sections.
 
 > The AI reading — the most important output of the entire app — is completely unreadable. Users cannot absorb or enjoy the content.
 
@@ -913,6 +914,7 @@ With `AdminGuard` using `<Outlet />` for authorized users, this wrapping ensures
 
 **Reported by:** Codebase audit (security pattern)
 **Priority:** P1 High
+**Status:** **FIXED 2026-02-21** (Improvement Session 2) — Created `useAuthUser` hook that verifies admin role via server-side API call (admin-scoped `/health/detailed`), cached with React Query (5-min stale time). Layout.tsx and MobileNav use verified `isAdmin` from hook instead of localStorage. AdminGuard renders nothing until verification completes (no optimistic loading). localStorage kept only as stale cache hint.
 
 > Both the admin navigation visibility check and the AdminGuard authorization check read the user's role from `localStorage` — client-side storage that any user can edit in the browser's developer tools in seconds. This is security theater, not real authorization.
 
@@ -1226,6 +1228,7 @@ For fields specifically designed for Persian name input:
 
 **Reported by:** Codebase audit (RTL pattern, same family as Issue #7)
 **Priority:** P2 Medium
+**Status:** **FIXED 2026-02-21** (Improvement Session 2) — Replaced CSS class `${isRTL ? "rtl" : ""}` with HTML `dir` attribute `dir={isRTL ? "rtl" : "ltr"}` on the container div.
 
 > The oracle-context DailyReadingCard detects RTL by comparing `i18n.language === "fa"` directly, and applies RTL by adding a raw `"rtl"` CSS class rather than using the `dir` attribute. This is the same anti-pattern that causes the race condition in Issue #7, and is inconsistent with how RTL is handled everywhere else in the app.
 
@@ -1833,6 +1836,7 @@ This also enables displaying individual parsed sections (header, message, advice
 
 **Reported by:** Codebase audit (API data consistency)
 **Priority:** P1 High
+**Status:** **FIXED 2026-02-21** (Improvement Session 2) — Standardized all backend confidence to 0–100 int. Legacy v1 question reading (0.7→70, 0.5→50) and suggest-range (0.8→80, 0.7→70, 0.5→50) normalized. Framework pipeline already used 0–100. TypeScript types annotated with scale convention comments. Frontend `/100` divisions in SummaryTab confirmed correct (0–100 → 0–1 for display components).
 
 > Different Oracle reading endpoints return confidence scores on different numeric scales. Some return a float between 0.0 and 1.0, others return an integer between 0 and 100. The frontend has a band-aid conversion (`confidence > 1 ? confidence : confidence * 100`) that confirms the inconsistency but does not properly fix it for all edge cases.
 
@@ -5111,7 +5115,7 @@ except Exception as exc:
 
 **Reported by:** Codebase Audit (Round 4 — Backend)
 **Priority:** 🟡 P2 — Medium
-**Status:** **PARTIALLY FIXED 2026-02-20** — The main `/readings` endpoint now has comprehensive exception handling (ImportError→503, HTTPException re-raise, generic Exception→500 with detail). Other oracle endpoints may still need similar treatment.
+**Status:** **FIXED 2026-02-21** (Improvement Session 2) — Added try-except to `/detect` endpoint in `translation.py` matching the pattern of `/translate`, `/reading`, `/batch` endpoints (ValueError→422, RuntimeError→502). Previously partially fixed (2026-02-20): main `/readings` endpoint already had exception handling.
 
 > Question reading (lines 195-242) and name reading (lines 250-297) endpoints in `api/app/routers/oracle.py` catch `TimeoutError` and `ValueError` only. Any other unexpected exception propagates as an unformatted 500 with a stack trace exposed to the client.
 

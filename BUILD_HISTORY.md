@@ -199,6 +199,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - REST API reference (`docs/api/ENDPOINTS.md`)
 - MIT License
 
+### Open Issues Sweep (2026-02-21) — 6 Issues Resolved
+
+> Targeted sweep of remaining open issues from ISSUES.md.
+
+#### Added
+
+- `useAuthUser` hook — verifies admin role via server-side API call, cached with React Query (5-min stale time)
+- `formatAiInterpretation` long-text fallback: sentence-boundary splitting (max 300 chars/paragraph) + grouping into 3-paragraph sections
+- Visual dividers between AI interpretation sections in `TranslatedReading.tsx`
+- Admin link in MobileNav (was missing, now gated by `useAuthUser`)
+
+#### Changed
+
+- Translation `/detect` endpoint: added try-except error handling (ValueError→422, RuntimeError→502) (Issue #130)
+- DailyReadingCard RTL: CSS class `"rtl"` → HTML `dir` attribute (Issue #17)
+- Confidence scale standardized to 0–100 int across all backend endpoints (Issue #26)
+- Admin role verification: Layout.tsx + MobileNav use `useAuthUser` hook instead of localStorage (Issue #12)
+- AdminGuard: removed optimistic loading state, renders nothing until server verification completes (Issue #12)
+- Confidence types annotated with scale convention comments in `types/index.ts`
+
+#### Fixed
+
+- Issue #4: AI wall-of-text fallback improved (sentence splitting + section grouping + visual separators)
+- Issue #12: Admin menu/guard no longer bypassable via localStorage manipulation
+- Issue #17: DailyReadingCard uses `dir` attribute for RTL instead of CSS class
+- Issue #18: Marked as already fixed (useFormattedDate hook, Session 4)
+- Issue #26: Backend confidence normalized to 0–100 int (legacy endpoints were 0.0–1.0 float)
+- Issue #130: Translation `/detect` endpoint error handling added
+
+#### Deferred
+
+- Issue #25: AI interpretation shape inconsistency — requires architectural decision
+- Issue #129: Migration scripts — large standalone task, no user impact
+
 ## [4.0.0-alpha.0] - 2026-02-08
 
 ### Added

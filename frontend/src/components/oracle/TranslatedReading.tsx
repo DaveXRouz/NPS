@@ -13,15 +13,23 @@ function InterpretationBody({ text }: { text: string }) {
   if (sections.length === 0) return <p>{text}</p>;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {sections.map((section, i) => (
         <div key={i}>
+          {i > 0 && !section.heading && sections.length > 2 && (
+            <div className="border-t border-[var(--nps-border)]/30 mb-4" />
+          )}
           {section.heading && (
             <h4 className="text-xs font-semibold text-[var(--nps-accent)] mb-1">
               {section.heading}
             </h4>
           )}
-          {section.body && <p className="leading-relaxed">{section.body}</p>}
+          {section.body &&
+            section.body.split("\n\n").map((paragraph, j) => (
+              <p key={j} className="leading-relaxed mb-2 last:mb-0">
+                {paragraph}
+              </p>
+            ))}
         </div>
       ))}
     </div>
