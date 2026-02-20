@@ -14,9 +14,6 @@ build/
 node_modules/
 frontend/dist/
 
-# Rust
-services/scanner/target/
-
 # Docker
 backups/
 

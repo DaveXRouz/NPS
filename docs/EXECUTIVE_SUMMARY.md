@@ -12,8 +12,6 @@ NPS (Numerology Puzzle Solver) is a Bitcoin wallet analysis platform that combin
 
 - **Oracle:** An AI-powered analysis engine that examines Bitcoin wallet addresses using numerology systems (Pythagorean, Chaldean, Abjad), the FC60 time-cycle algorithm, and zodiac calculations. It generates readings, confidence scores, and strategic recommendations. The Oracle is fully built and functional.
 
-- **Scanner:** A high-performance Bitcoin key generator written in Rust that will generate wallet candidates, check balances, and feed data to the Oracle for analysis. The Scanner is planned but not yet implemented.
-
 The platform includes a web-based user interface with English and Persian language support (including right-to-left layout), a Telegram bot for mobile access, and an administrative dashboard for system management.
 
 ---
@@ -61,24 +59,23 @@ Performance has been measured under single-user conditions. Formal load testing 
 
 ## What Has Been Completed
 
-| Area                      | Status      |
-| ------------------------- | ----------- |
-| Oracle analysis engine    | Complete    |
-| FC60 time-cycle algorithm | Complete    |
-| Numerology systems (3)    | Complete    |
-| AI interpretation layer   | Complete    |
-| Web user interface        | Complete    |
-| Persian/RTL support       | Complete    |
-| Authentication system     | Complete    |
-| Encryption system         | Complete    |
-| Admin dashboard           | Complete    |
-| Telegram bot              | Complete    |
-| Database schema           | Complete    |
-| API (66 endpoints)        | Complete    |
-| Test suites               | Complete    |
-| Documentation             | Complete    |
-| Security hardening        | Complete    |
-| Scanner (Rust)            | Not started |
+| Area                      | Status   |
+| ------------------------- | -------- |
+| Oracle analysis engine    | Complete |
+| FC60 time-cycle algorithm | Complete |
+| Numerology systems (3)    | Complete |
+| AI interpretation layer   | Complete |
+| Web user interface        | Complete |
+| Persian/RTL support       | Complete |
+| Authentication system     | Complete |
+| Encryption system         | Complete |
+| Admin dashboard           | Complete |
+| Telegram bot              | Complete |
+| Database schema           | Complete |
+| API (66 endpoints)        | Complete |
+| Test suites               | Complete |
+| Documentation             | Complete |
+| Security hardening        | Complete |
 
 ---
 
@@ -86,9 +83,8 @@ Performance has been measured under single-user conditions. Formal load testing 
 
 1. **Staging deployment:** Deploy to Railway for real-world testing. Requires approval for infrastructure costs and secret generation.
 2. **Load testing:** Validate system performance under concurrent user access. Establish formal performance baselines.
-3. **Scanner implementation:** Build the Rust-based Bitcoin key scanner -- the revenue-generating component of the platform.
-4. **CI/CD pipeline:** Set up automated testing and deployment to catch regressions early.
-5. **Operational monitoring:** Deploy Prometheus and Grafana for system health visibility. Wire Telegram alerts for error notifications.
+3. **CI/CD pipeline:** Set up automated testing and deployment to catch regressions early.
+4. **Operational monitoring:** Deploy Prometheus and Grafana for system health visibility. Wire Telegram alerts for error notifications.
 
 ---
 

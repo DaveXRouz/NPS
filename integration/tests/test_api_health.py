@@ -27,8 +27,6 @@ class TestHealthEndpoints:
         checks = data["checks"]
         # Database should be healthy if Postgres is running
         assert checks.get("database") == "healthy"
-        # Scanner is not deployed
-        assert checks.get("scanner_service") == "not_deployed"
         # Oracle uses direct mode (legacy imports)
         assert checks.get("oracle_service") == "direct_mode"
 

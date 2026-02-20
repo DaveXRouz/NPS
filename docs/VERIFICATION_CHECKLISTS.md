@@ -193,57 +193,6 @@ mypy app/ --strict               # No type errors
 
 ## 📋 LAYER 3: BACKEND SERVICES VERIFICATION
 
-### Scanner Service (Rust) Checklist
-
-**Code Quality:**
-
-- [ ] Result<T, E> used for all fallible operations
-- [ ] No .unwrap() in production code
-- [ ] Error types defined (using thiserror/anyhow)
-- [ ] Logging present (using tracing/log)
-- [ ] No unsafe code (or justified with safety comments)
-
-**Functionality:**
-
-- [ ] Key generation works (random + BIP39)
-- [ ] Multi-chain balance checking works
-- [ ] Findings stored in PostgreSQL
-- [ ] gRPC server responds correctly
-- [ ] Oracle guidance applied when present
-
-**Performance:**
-
-- [ ] Generates ≥5000 keys/second (single thread)
-- [ ] Scales linearly with threads (tested with 4 threads)
-- [ ] Memory usage stable (no leaks)
-- [ ] No blocking operations on async runtime
-- [ ] Batch database inserts used
-
-**Testing:**
-
-- [ ] Unit tests pass
-- [ ] Coverage ≥80%
-- [ ] Integration tests pass (with test database)
-- [ ] Property-based tests for crypto (if applicable)
-- [ ] Benchmarks run and results documented
-
-**Security:**
-
-- [ ] Private keys encrypted before database storage
-- [ ] No keys logged (even in debug mode)
-- [ ] Random number generator cryptographically secure
-- [ ] Dependencies audited (cargo audit)
-
-**Verification Commands:**
-
-```bash
-cd backend/scanner-service
-cargo test                        # All tests pass
-cargo bench                       # ≥5000 keys/sec
-cargo clippy -- -D warnings       # No warnings
-cargo audit                       # No vulnerabilities
-```
-
 ---
 
 ### Oracle Service (Python) Checklist
@@ -519,14 +468,12 @@ grep ERROR volumes/logs/*.log         # Find errors
 **Health Checks:**
 
 - [ ] API health endpoint works
-- [ ] Scanner health check works
 - [ ] Oracle health check works
 - [ ] Database health check works
 - [ ] All health checks <5s response time
 
 **Metrics:**
 
-- [ ] Scanner speed tracked (keys/sec)
 - [ ] API response times tracked
 - [ ] Database query times tracked
 - [ ] Memory usage tracked
@@ -583,23 +530,18 @@ ab -n 10000 http://localhost:8000/api/health  # <50ms p95
 
 ---
 
-### Phase 2: Scanner + Oracle Services
+### Phase 2: Oracle Service
 
 **Before moving to Phase 3:**
 
-- [ ] Scanner generates ≥5000 keys/sec
-- [ ] Oracle returns valid suggestions
-- [ ] Scanner applies Oracle guidance
-- [ ] Findings stored in database (encrypted)
+- [ ] Oracle returns valid readings
 - [ ] gRPC communication works
-- [ ] Tests: 80%+ coverage (Rust), 95%+ (Python)
+- [ ] Tests: 95%+ coverage (Python)
 
 **Verification:**
 
 ```bash
-cargo bench                        # 5000+ keys/sec
-python oracle-service/app/main.py analyze-patterns  # Valid suggestion
-psql -c "SELECT COUNT(*) FROM findings WHERE balance_btc > 0;"  # Findings exist
+cd services/oracle && python -m pytest tests/ -v --cov  # 95%+ coverage
 ```
 
 ---
@@ -690,9 +632,7 @@ python devops/alerts/telegram_alerts.py --test  # Alert sent
 
 **Before declaring production-ready:**
 
-- [ ] Scanner finds wallets → stores in database
-- [ ] Oracle analyzes → suggests ranges
-- [ ] Scanner applies Oracle guidance
+- [ ] Oracle readings produce valid results
 - [ ] AI model learns over time
 - [ ] Web UI controls all functions
 - [ ] Telegram bot works (all commands)

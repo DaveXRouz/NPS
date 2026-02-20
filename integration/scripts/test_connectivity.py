@@ -451,7 +451,7 @@ def generate_report(summary: dict) -> str:
             "- **Oracle gRPC**: Skipped in local mode — API uses direct Python imports (legacy mode)",
             "- **Nginx proxy**: Skipped — requires Docker deployment",
             "- **Frontend**: Skipped if not running — tested separately via `npm run dev`",
-            "- **Scanner**: Not tested — CLAUDE.md says DO NOT TOUCH (Rust stub only)",
+            "- **Scanner**: Removed from project — Oracle is the only backend service",
             "",
         ]
     )

@@ -202,10 +202,10 @@ F12 → Network tab → Filter: XHR
 
    ```typescript
    // BAD: No Authorization header
-   fetch("/api/scanner/start");
+   fetch("/api/oracle/time");
 
    // GOOD:
-   fetch("/api/scanner/start", {
+   fetch("/api/oracle/time", {
      headers: { Authorization: `Bearer ${apiKey}` },
    });
    ```
@@ -273,13 +273,13 @@ tail -f volumes/logs/api.log | jq .
 
    ```python
    # BAD: No error handling
-   @app.get("/api/scanner/stats")
+   @app.get("/api/oracle/stats")
    async def get_stats():
        stats = db.query(...)  # Could fail
        return stats
 
    # GOOD:
-   @app.get("/api/scanner/stats")
+   @app.get("/api/oracle/stats")
    async def get_stats():
        try:
            stats = db.query(...)
@@ -364,7 +364,7 @@ psql -c "SELECT * FROM api_keys;"
    # Ensure auth middleware is in endpoint
    from app.security.auth import validate_api_key
 
-   @app.get("/api/scanner/start", dependencies=[Depends(validate_api_key)])
+   @app.get("/api/oracle/readings", dependencies=[Depends(validate_api_key)])
    ```
 
 **Fix:**
@@ -379,77 +379,6 @@ psql -c "SELECT * FROM api_keys;"
 ---
 
 ### LAYER 3: BACKEND SERVICE ERRORS
-
-#### Error: Scanner service crash
-
-**Symptoms:**
-
-- Scanner service exits unexpectedly
-- No keys generated
-
-**Diagnosis:**
-
-```bash
-# Check scanner logs
-docker logs nps-scanner
-
-# Check for:
-- Panic messages
-- Connection errors
-- Resource exhaustion
-```
-
-**Common Causes:**
-
-1. **Database connection pool exhausted**
-
-   ```rust
-   // Increase pool size
-   let pool = PgPoolOptions::new()
-       .max_connections(20)  // Increase from default 5
-       .connect(&database_url)
-       .await?;
-   ```
-
-2. **Unwrap on None/Err**
-
-   ```rust
-   // BAD: Panics if Oracle not available
-   let guidance = oracle_client.get_suggestion().unwrap();
-
-   // GOOD: Handle gracefully
-   let guidance = match oracle_client.get_suggestion().await {
-       Ok(g) => Some(g),
-       Err(e) => {
-           warn!("Oracle unavailable: {}", e);
-           None
-       }
-   };
-   ```
-
-3. **Memory leak**
-
-   ```bash
-   # Monitor memory usage
-   docker stats nps-scanner
-
-   # If memory grows unbounded:
-   # Check for:
-   # - Unclosed database connections
-   # - Growing vectors without bounds
-   # - Leaked file handles
-   ```
-
-**Fix:**
-
-```bash
-1. Add Result<T,E> error handling (no unwrap)
-2. Increase connection pool size
-3. Profile memory usage (valgrind, heaptrack)
-4. Add graceful degradation (Oracle unavailable → continue with random)
-```
-
----
 
 #### Error: Oracle service timeout
 
@@ -719,7 +648,7 @@ docker inspect nps-api
 
 **Symptoms:**
 
-- API can't reach Scanner/Oracle
+- API can't reach Oracle
 - "Connection refused" between services
 
 **Diagnosis:**
@@ -730,8 +659,8 @@ docker network ls
 docker network inspect nps-network
 
 # Test connectivity
-docker exec nps-api ping scanner
-docker exec nps-api curl http://scanner:50051/health
+docker exec nps-api ping oracle-service
+docker exec nps-api curl http://oracle-service:50052/health
 ```
 
 **Common Causes:**
@@ -744,7 +673,7 @@ docker exec nps-api curl http://scanner:50051/health
      api:
        networks:
          - nps-network
-     scanner:
+     oracle-service:
        networks:
          - nps-network
 
@@ -757,18 +686,18 @@ docker exec nps-api curl http://scanner:50051/health
 
    ```python
    # BAD: Using localhost
-   SCANNER_URL = "http://localhost:50051"
+   ORACLE_URL = "http://localhost:50052"
 
    # GOOD: Using service name
-   SCANNER_URL = "http://scanner:50051"
+   ORACLE_URL = "http://oracle-service:50052"
    ```
 
 3. **Port not exposed internally**
    ```yaml
    # Expose port to other services (no need to publish)
-   scanner:
+   oracle-service:
      expose:
-       - "50051"
+       - "50052"
    ```
 
 **Fix:**
@@ -853,8 +782,7 @@ python -c "from security.encryption import encrypt_dict, decrypt_dict; data = {'
 ```bash
 # Test health endpoints manually
 curl http://localhost:8000/api/health
-curl http://scanner:50051/health
-curl http://oracle:50052/health
+curl http://oracle-service:50052/health
 
 # Check health check timeout
 python -c "import time; import requests; start = time.time(); requests.get('http://localhost:8000/api/health'); print(f'{time.time() - start}s')"

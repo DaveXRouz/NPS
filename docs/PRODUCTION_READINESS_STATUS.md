@@ -26,7 +26,7 @@
 ### What Works
 
 - Docker Compose configuration defines all 7 containers with health checks and dependency ordering
-- Docker override file (`docker-compose.override.yml`) handles the scanner stub placeholder
+- Docker override file (`docker-compose.override.yml`) available for local dev customization
 - Individual Dockerfiles exist for API, frontend, Oracle service, and Telegram bot
 - Nginx configuration handles reverse proxying, static file serving, and SSL termination
 - Environment-driven configuration means no code changes needed between environments
@@ -175,19 +175,17 @@
 
 ### Critical Path Items (must resolve before production)
 
-1. **Scanner is a stub.** The Rust scanner service -- which is the core revenue-generating component -- does not exist yet. The Oracle can analyze data, but there is nothing generating data to analyze. This is by design (DO NOT TOUCH rule in CLAUDE.md) and is expected to be built separately.
+1. **Multi-user readings return 503.** The multi-user analysis engines (compatibility analyzer, group energy, group dynamics) were removed during the 45-session rebuild and have not been reimplemented. 38 tests are blocked on this.
 
-2. **Multi-user readings return 503.** The multi-user analysis engines (compatibility analyzer, group energy, group dynamics) were removed during the 45-session rebuild and have not been reimplemented. 38 tests are blocked on this.
-
-3. **No load testing data.** Performance under concurrent load is unknown. The system may hit bottlenecks in database connection pooling, Redis, or AI API rate limits.
+2. **No load testing data.** Performance under concurrent load is unknown. The system may hit bottlenecks in database connection pooling, Redis, or AI API rate limits.
 
 ### Non-Critical Items
 
-4. **Playwright E2E selectors outdated.** 43/60 E2E tests fail because the frontend UI evolved after the tests were written. Core functionality works (17/60 pass), but test maintenance is needed.
+3. **Playwright E2E selectors outdated.** 43/60 E2E tests fail because the frontend UI evolved after the tests were written. Core functionality works (17/60 pass), but test maintenance is needed.
 
-5. **No Docker Compose validation in CI.** The full stack has only been tested manually. A CI job that runs `docker compose up` and executes integration tests would catch regressions.
+4. **No Docker Compose validation in CI.** The full stack has only been tested manually. A CI job that runs `docker compose up` and executes integration tests would catch regressions.
 
-6. **Rate limiter too aggressive for tests.** Integration test bombardment triggers 429 responses. A test-mode bypass or higher limits in test environments would improve test reliability.
+5. **Rate limiter too aggressive for tests.** Integration test bombardment triggers 429 responses. A test-mode bypass or higher limits in test environments would improve test reliability.
 
 ---
 
@@ -210,7 +208,7 @@
 
 **CONDITIONAL GO for staging deployment.**
 
-The system is functionally complete (minus Scanner and multi-user), secure, and well-tested. It is suitable for a staging environment where:
+The system is functionally complete (minus multi-user readings), secure, and well-tested. It is suitable for a staging environment where:
 
 - Real users are not yet accessing the system
 - Performance can be monitored informally

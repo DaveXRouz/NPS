@@ -110,7 +110,6 @@ Access the web UI at `http://localhost` (or your configured domain).
 ### 7. Verify Functionality
 
 - [ ] Dashboard loads with session history
-- [ ] Scanner starts and connects to Rust service
 - [ ] Oracle readings match legacy output for same inputs
 - [ ] Vault shows migrated findings
 - [ ] Learning shows correct XP/level

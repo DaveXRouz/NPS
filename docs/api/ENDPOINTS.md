@@ -33,7 +33,6 @@ Readiness probe — checks database and service connectivity.
   "checks": {
     "database": "healthy",
     "redis": "healthy",
-    "scanner_service": "healthy",
     "oracle_service": "healthy"
   }
 }
@@ -113,83 +112,6 @@ List API keys for the current user.
 ### `DELETE /auth/api-keys/{key_id}`
 
 Revoke an API key.
-
----
-
-## Scanner
-
-### `POST /scanner/start`
-
-Start a new scan session.
-
-**Request:**
-
-```json
-{
-  "mode": "random_key",
-  "chains": ["btc", "eth"],
-  "batch_size": 1000,
-  "check_every_n": 100,
-  "threads": 4,
-  "checkpoint_interval": 10000,
-  "puzzle": {
-    "puzzle_number": 66,
-    "range_start": "20000000000000000",
-    "range_end": "3ffffffffffffffff"
-  }
-}
-```
-
-**Response:**
-
-```json
-{
-  "session_id": "uuid",
-  "status": "running",
-  "config": {...},
-  "started_at": "2026-02-08T00:00:00Z"
-}
-```
-
-### `POST /scanner/stop/{session_id}`
-
-Stop a running scan session with automatic checkpoint.
-
-### `POST /scanner/pause/{session_id}`
-
-Pause a running scan session.
-
-### `POST /scanner/resume/{session_id}`
-
-Resume a paused scan session.
-
-### `GET /scanner/stats/{session_id}`
-
-Get real-time stats for a scan session.
-
-**Response:**
-
-```json
-{
-  "session_id": "uuid",
-  "keys_tested": 1500000,
-  "seeds_tested": 0,
-  "hits": 0,
-  "keys_per_second": 12500.5,
-  "elapsed_seconds": 120.0,
-  "checkpoint_count": 15,
-  "current_mode": "random_key",
-  "highest_score": 0.82
-}
-```
-
-### `GET /scanner/terminals`
-
-List all active scan sessions.
-
-### `POST /scanner/checkpoint/{session_id}`
-
-Force a checkpoint save.
 
 ---
 
@@ -428,12 +350,9 @@ Real-time event stream. Authenticated via query parameter: `/ws?token=<jwt>`
 **Event types:**
 
 ```json
-{"type": "scan_progress", "data": {"session_id": "...", "keys_tested": 1500000, "kps": 12500}}
-{"type": "finding", "data": {"address": "1...", "chain": "btc", "balance": 0.001}}
-{"type": "high_score", "data": {"address": "1...", "score": 0.95}}
-{"type": "checkpoint", "data": {"session_id": "...", "keys_at": 1500000}}
+{"type": "reading_progress", "data": {"step": 3, "total": 5, "message": "Calculating..."}}
 {"type": "level_up", "data": {"level": 4, "name": "Expert"}}
-{"type": "health", "data": {"service": "scanner", "status": "healthy"}}
+{"type": "health", "data": {"service": "oracle", "status": "healthy"}}
 ```
 
 ---
@@ -445,7 +364,7 @@ All errors follow this format:
 ```json
 {
   "detail": "Human-readable error message",
-  "error_code": "SCANNER_NOT_CONNECTED",
+  "error_code": "SERVICE_UNAVAILABLE",
   "status_code": 503
 }
 ```

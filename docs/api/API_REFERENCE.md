@@ -28,10 +28,9 @@
 15. [Share](#share-apishare)
 16. [Settings](#settings-apisettings)
 17. [Learning](#learning-apilearning)
-18. [Scanner](#scanner-apiscanner)
-19. [Vault](#vault-apivault)
-20. [WebSocket](#websocket)
-21. [Status Codes](#status-codes)
+18. [Vault](#vault-apivault)
+19. [WebSocket](#websocket)
+20. [Status Codes](#status-codes)
 
 ---
 
@@ -164,7 +163,6 @@ Readiness probe checking database and service connectivity. **No auth required.*
   "checks": {
     "database": "healthy",
     "redis": "healthy",
-    "scanner_service": "not_deployed",
     "oracle_service": "direct_mode"
   }
 }
@@ -222,9 +220,6 @@ Full system health with component details. **Scope: `admin`**
     "oracle_service": {
       "status": "direct_mode",
       "mode": "legacy"
-    },
-    "scanner_service": {
-      "status": "not_deployed"
     },
     "api": {
       "status": "healthy",
@@ -2322,7 +2317,7 @@ Update user settings. **Scope: `user`**
 
 ## Learning (`/api/learning`)
 
-Machine learning and feedback endpoints. Scanner-related endpoints are stubs returning 501.
+Machine learning and feedback endpoints.
 
 ### `GET /api/learning/stats`
 
@@ -2449,51 +2444,9 @@ Trigger model recalculation based on feedback data. **Scope: `oracle:admin`**
 
 ---
 
-## Scanner (`/api/scanner`)
-
-Bitcoin scanner endpoints. All are stubs returning `501 Not Implemented` except where noted.
-
-### `POST /api/scanner/start`
-
-Start a new scanning session. **Stub -- returns 501.**
-
-### `POST /api/scanner/stop/{session_id}`
-
-Stop a scanning session. **Stub -- returns 501.**
-
-### `POST /api/scanner/pause/{session_id}`
-
-Pause a scanning session. **Stub -- returns 501.**
-
-### `POST /api/scanner/resume/{session_id}`
-
-Resume a paused session. **Stub -- returns 501.**
-
-### `GET /api/scanner/stats/{session_id}`
-
-Get scanning session statistics. **Stub -- returns 501.**
-
-### `GET /api/scanner/terminals`
-
-List scanner terminals. Returns empty list (not 501).
-
-**Response 200:**
-
-```json
-{
-  "terminals": []
-}
-```
-
-### `POST /api/scanner/checkpoint/{session_id}`
-
-Create a checkpoint. **Stub -- returns 501.**
-
----
-
 ## Vault (`/api/vault`)
 
-Secure storage for scanner findings. All endpoints are stubs returning empty/zero data.
+Secure storage for findings. All endpoints are stubs returning empty/zero data.
 
 ### `GET /api/vault/findings`
 

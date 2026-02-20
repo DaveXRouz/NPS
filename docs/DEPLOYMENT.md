@@ -37,13 +37,12 @@
 
 ### Optional Software
 
-| Software       | Purpose                                      |
-| -------------- | -------------------------------------------- |
-| Railway CLI    | Railway deployment (`npm i -g @railway/cli`) |
-| Rust toolchain | Scanner service (stub, not yet required)     |
-| Nginx          | Manual deployment reverse proxy              |
-| Certbot        | Let's Encrypt SSL certificates               |
-| Make           | Convenience targets via Makefile             |
+| Software    | Purpose                                      |
+| ----------- | -------------------------------------------- |
+| Railway CLI | Railway deployment (`npm i -g @railway/cli`) |
+| Nginx       | Manual deployment reverse proxy              |
+| Certbot     | Let's Encrypt SSL certificates               |
+| Make        | Convenience targets via Makefile             |
 
 ### System Requirements
 
@@ -223,7 +222,6 @@ The platform starts 10 containers:
 | `nps-frontend`       | React SPA       | 5173:80     | 0.5 CPU, 256M   |
 | `nps-api`            | FastAPI gateway | 8000:8000   | 1 CPU, 1G       |
 | `nps-oracle`         | Oracle gRPC     | 50052, 9090 | 1 CPU, 1G       |
-| `nps-scanner`        | Scanner gRPC    | 50051       | 2 CPU, 2G       |
 | `nps-postgres`       | PostgreSQL 15   | 5432        | 1 CPU, 1G       |
 | `nps-redis`          | Redis 7         | 6379        | 0.5 CPU, 512M   |
 | `nps-nginx`          | Reverse proxy   | 80, 443     | 0.25 CPU, 128M  |
@@ -688,7 +686,6 @@ When running services outside Docker, update `.env` hostnames from container nam
 POSTGRES_HOST=localhost
 REDIS_HOST=localhost
 ORACLE_GRPC_HOST=localhost
-SCANNER_GRPC_HOST=localhost
 TELEGRAM_BOT_API_URL=http://localhost:8000/api
 ```
 
@@ -728,12 +725,10 @@ All configuration is managed through environment variables defined in `.env`. Co
 
 ### gRPC Services
 
-| Variable            | Default           | Required | Description       |
-| ------------------- | ----------------- | -------- | ----------------- |
-| `SCANNER_GRPC_HOST` | `scanner-service` | No       | Scanner gRPC host |
-| `SCANNER_GRPC_PORT` | `50051`           | No       | Scanner gRPC port |
-| `ORACLE_GRPC_HOST`  | `oracle-service`  | No       | Oracle gRPC host  |
-| `ORACLE_GRPC_PORT`  | `50052`           | No       | Oracle gRPC port  |
+| Variable           | Default          | Required | Description      |
+| ------------------ | ---------------- | -------- | ---------------- |
+| `ORACLE_GRPC_HOST` | `oracle-service` | No       | Oracle gRPC host |
+| `ORACLE_GRPC_PORT` | `50052`          | No       | Oracle gRPC port |
 
 ### Telegram
 
@@ -750,21 +745,6 @@ All configuration is managed through environment variables defined in `.env`. Co
 | `TELEGRAM_BOT_SERVICE_KEY` | (empty)                 | No       | Service-to-service auth key for bot              |
 | `TELEGRAM_RATE_LIMIT`      | `20`                    | No       | Max requests per minute for bot                  |
 | `TELEGRAM_FRONTEND_URL`    | `http://localhost:5173` | No       | Frontend URL for links in Telegram messages      |
-
-### Blockchain / Scanner
-
-| Variable                      | Default                        | Required | Description                            |
-| ----------------------------- | ------------------------------ | -------- | -------------------------------------- |
-| `BTC_RPC_ENDPOINT`            | `https://blockstream.info/api` | No       | Bitcoin balance check endpoint         |
-| `ETH_RPC_ENDPOINTS`           | `https://eth.llamarpc.com,...` | No       | Comma-separated Ethereum RPC endpoints |
-| `BTC_DELAY`                   | `0.5`                          | No       | Delay between BTC API calls (seconds)  |
-| `ETH_DELAY`                   | `0.3`                          | No       | Delay between ETH API calls (seconds)  |
-| `SCANNER_CHAINS`              | `btc,eth`                      | No       | Active blockchain chains               |
-| `SCANNER_BATCH_SIZE`          | `1000`                         | No       | Keys per batch                         |
-| `SCANNER_CHECK_EVERY_N`       | `5000`                         | No       | Check balance every N keys             |
-| `SCANNER_MODE`                | `both`                         | No       | Scanner mode: `btc`, `eth`, or `both`  |
-| `SCANNER_THREADS`             | `4`                            | No       | Number of scanner threads              |
-| `SCANNER_CHECKPOINT_INTERVAL` | `100000`                       | No       | Save checkpoint every N keys           |
 
 ### Security / Encryption
 
@@ -1076,7 +1056,6 @@ Response:
   "checks": {
     "database": "healthy",
     "redis": "healthy",
-    "scanner_service": "not_deployed",
     "oracle_service": "direct_mode"
   }
 }
@@ -1095,13 +1074,12 @@ Returns full system information including:
 - Database connectivity and size
 - Redis memory usage
 - Oracle gRPC service status
-- Scanner service status
 - Telegram configuration status
 - System metrics: platform, Python version, CPU count, process memory, uptime
 
 ### 8.2 Docker Health Checks
 
-All 10 services define health checks in `docker-compose.yml` with the following configuration:
+Services define health checks in `docker-compose.yml` with the following configuration:
 
 | Service        | Check Method                        | Interval | Timeout | Start Period | Retries |
 | -------------- | ----------------------------------- | -------- | ------- | ------------ | ------- |
@@ -1110,7 +1088,6 @@ All 10 services define health checks in `docker-compose.yml` with the following 
 | API            | HTTP GET `/api/health`              | 30s      | 5s      | 15s          | 3       |
 | Frontend       | `wget --spider http://localhost:80` | 30s      | 5s      | 15s          | 3       |
 | Oracle         | gRPC channel ready check            | 30s      | 5s      | 30s          | 3       |
-| Scanner        | Binary `--health-check` flag        | 30s      | 5s      | 30s          | 3       |
 | Nginx          | HTTP GET `/api/health` via proxy    | 30s      | 5s      | 15s          | 3       |
 | Oracle Alerter | `pgrep -f oracle_alerts`            | 60s      | 5s      | 10s          | 3       |
 
@@ -1129,12 +1106,11 @@ docker compose ps
 #   [PASS] postgres
 #   [PASS] redis
 #   [PASS] oracle-service
-#   [----] scanner-service (not running)
 #   [PASS] api
 #   [PASS] frontend
 #   [PASS] nginx
 #
-# Total: 7 | Healthy: 6 | Unhealthy: 0 | Not running: 1
+# Total: 6 | Healthy: 6 | Unhealthy: 0
 ```
 
 ### 8.3 Prometheus Metrics
@@ -1458,7 +1434,6 @@ Current Docker Compose resource limits:
 | -------------- | --------- | ------------ |
 | Frontend       | 0.5       | 256M         |
 | API            | 1.0       | 1G           |
-| Scanner        | 2.0       | 2G           |
 | Oracle         | 1.0       | 1G           |
 | PostgreSQL     | 1.0       | 1G           |
 | Redis          | 0.5       | 512M         |
@@ -1690,7 +1665,6 @@ docker compose logs telegram-bot    # Telegram bot
 docker compose logs oracle-alerter  # Monitoring alerts
 docker compose logs backup          # Backup cron
 docker compose logs frontend        # Frontend (nginx serving SPA)
-docker compose logs scanner-service # Scanner (stub)
 
 # Follow logs in real-time
 docker compose logs -f api
@@ -1880,13 +1854,12 @@ make restore               # Database restore
 
 ### Service Ports
 
-| Service      | Dev Port | Prod Port | Protocol |
-| ------------ | -------- | --------- | -------- |
-| Frontend     | 5173     | 80        | HTTP     |
-| API          | 8000     | 8000      | HTTP     |
-| Nginx        | 80/443   | 80/443    | HTTP/S   |
-| PostgreSQL   | 5432     | 5432      | TCP      |
-| Redis        | 6379     | 6379      | TCP      |
-| Oracle gRPC  | 50052    | 50052     | gRPC     |
-| Scanner gRPC | 50051    | 50051     | gRPC     |
-| Prometheus   | 9090     | 9090      | HTTP     |
+| Service     | Dev Port | Prod Port | Protocol |
+| ----------- | -------- | --------- | -------- |
+| Frontend    | 5173     | 80        | HTTP     |
+| API         | 8000     | 8000      | HTTP     |
+| Nginx       | 80/443   | 80/443    | HTTP/S   |
+| PostgreSQL  | 5432     | 5432      | TCP      |
+| Redis       | 6379     | 6379      | TCP      |
+| Oracle gRPC | 50052    | 50052     | gRPC     |
+| Prometheus  | 9090     | 9090      | HTTP     |

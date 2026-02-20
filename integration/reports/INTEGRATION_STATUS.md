@@ -69,7 +69,7 @@
 | Encryption at rest (AES-256-GCM)      | Working | Transparent encrypt/decrypt               |
 | Redis connection                      | Working | Graceful fallback if unavailable          |
 | Frontend Oracle page <-> real API     | Working | Real API, not mocks                       |
-| Health check (real connection status) | Working | DB, Redis, scanner, oracle                |
+| Health check (real connection status) | Working | DB, Redis, oracle                         |
 | CORS (localhost:5173, localhost:3000) | Working | FastAPI middleware                        |
 | API Swagger UI (/docs)                | Working | Auto-generated                            |
 | Soft-delete (oracle_users)            | **NEW** | deleted_at column + partial index         |
@@ -78,17 +78,15 @@
 
 ## Known Gaps (for Future Sessions)
 
-| Feature                      | Status                     | Priority     |
-| ---------------------------- | -------------------------- | ------------ |
-| Scanner service (Rust)       | Not built (stub)           | P1 - Phase 4 |
-| Scanner API endpoints        | Return 501                 | P1           |
-| Vault API endpoints          | Stubs                      | P2           |
-| Learning API endpoints       | Stubs                      | P2           |
-| Frontend pages beyond Oracle | Stubs                      | P2           |
-| API <-> Oracle via gRPC      | Skipped (direct imports)   | P3           |
-| WebSocket events             | Not tested                 | P2           |
-| Redis caching                | Connected but unused       | P3           |
-| Legacy data migration        | Script exists but untested | P3           |
+| Feature                      | Status                     | Priority |
+| ---------------------------- | -------------------------- | -------- |
+| Vault API endpoints          | Stubs                      | P2       |
+| Learning API endpoints       | Stubs                      | P2       |
+| Frontend pages beyond Oracle | Stubs                      | P2       |
+| API <-> Oracle via gRPC      | Skipped (direct imports)   | P3       |
+| WebSocket events             | Not tested                 | P2       |
+| Redis caching                | Connected but unused       | P3       |
+| Legacy data migration        | Script exists but untested | P3       |
 
 ## Performance Baseline
 
@@ -126,7 +124,6 @@ FastAPI API (:8000)
   |-- Encryption service (AES-256-GCM, ENC4: prefix)
   |-- Audit logging (oracle_audit_log table)
   |
-  X-- Scanner gRPC (not deployed)
   X-- Oracle gRPC (using direct imports instead)
 ```
 

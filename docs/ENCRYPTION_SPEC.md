@@ -126,7 +126,7 @@ plaintext = bytes(a ^ b for a, b in zip(ciphertext, keystream))
 
 ## Sensitive Fields
 
-### Scanner Fields (private key data)
+### Vault Fields (private key data)
 
 ```python
 SENSITIVE_KEYS = ["private_key", "seed_phrase", "wif", "extended_private_key"]

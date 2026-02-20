@@ -21,18 +21,16 @@ NPS transforms the legacy Python/Tkinter monolith into a distributed microservic
 │     REST + WebSocket, JWT/API key auth, models      │
 │                    (port 8000)                       │
 │                                                     │
-├──────────────────────┬──────────────────────────────┤
-│                      │                              │
-│  Layer 4: Scanner    │   Layer 5: Oracle Service    │
-│     (Rust/gRPC)      │      (Python/gRPC)           │
-│    (port 50051)      │     (port 50052)             │
-│                      │                              │
-│  - Key generation    │  - FC60 numerology           │
-│  - Address derivation│  - Oracle readings           │
-│  - Balance checking  │  - AI learning               │
-│  - Checkpoints       │  - Timing/strategy           │
-│                      │  - Scoring                   │
-├──────────────────────┴──────────────────────────────┤
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│            Layer 4: Oracle Service (Python)          │
+│                  gRPC (port 50052)                   │
+│                                                     │
+│  - FC60 numerology    - Oracle readings              │
+│  - AI learning        - Timing/strategy              │
+│  - Scoring                                           │
+│                                                     │
+├─────────────────────────────────────────────────────┤
 │                                                     │
 │            Layer 6: Database (PostgreSQL)            │
 │          10 tables, encrypted findings,             │
@@ -57,13 +55,10 @@ User Browser
     ▼
 React Frontend ──HTTP/WS──▶ Nginx ──proxy──▶ FastAPI Gateway
                                                   │
-                                         ┌────────┴────────┐
-                                         │                 │
-                                    gRPC │            gRPC │
-                                         ▼                 ▼
-                                   Rust Scanner    Python Oracle
-                                         │                 │
-                                         └────────┬────────┘
+                                                  │
+                                             gRPC │
+                                                  ▼
+                                           Python Oracle
                                                   │
                                                   ▼
                                              PostgreSQL
@@ -74,14 +69,13 @@ React Frontend ──HTTP/WS──▶ Nginx ──proxy──▶ FastAPI Gateway
 1. **Frontend -> API only** — React never calls gRPC services directly
 2. **API -> Services via gRPC** — Protobuf contracts in `proto/` are the source of truth
 3. **Services -> Database** — Each service manages its own data through the API layer
-4. **No service-to-service calls** — Scanner and Oracle do not communicate directly
+4. **No direct DB access from frontend** — All data flows through the API layer
 
 ### Real-Time Updates
 
 The WebSocket connection (`/ws`) provides:
 
-- Scanner progress (keys/sec, keys tested, checkpoints)
-- Finding alerts (balance found, high scores)
+- Reading progress (step completion, AI interpretation)
 - Health status changes
 - AI learning events (level up, insights)
 
@@ -93,10 +87,10 @@ The WebSocket connection (`/ws`) provides:
 | `nps/engines/numerology.py`     | Oracle service engines                                       | Copied as-is     |
 | `nps/engines/oracle.py`         | Oracle service engines                                       | Copied as-is     |
 | `nps/engines/scoring.py`        | Oracle service engines                                       | Copied as-is     |
-| `nps/engines/crypto.py`         | Rust scanner (reference in `scanner/docs/`)                  | Rewrite to Rust  |
-| `nps/engines/bip39.py`          | Rust scanner (reference in `scanner/docs/`)                  | Rewrite to Rust  |
-| `nps/engines/balance.py`        | Rust scanner (reference in `scanner/docs/`)                  | Rewrite to Rust  |
-| `nps/solvers/unified_solver.py` | Rust scanner                                                 | Rewrite to Rust  |
+| `nps/engines/crypto.py`         | Removed (Scanner deleted)                                    | N/A              |
+| `nps/engines/bip39.py`          | Removed (Scanner deleted)                                    | N/A              |
+| `nps/engines/balance.py`        | Removed (Scanner deleted)                                    | N/A              |
+| `nps/solvers/unified_solver.py` | Removed (Scanner deleted)                                    | N/A              |
 | `nps/gui/*.py`                  | React frontend (reference in `frontend/desktop-gui/legacy/`) | Rewrite to React |
 | `nps/engines/vault.py`          | PostgreSQL `findings` table                                  | Adapt for SQL    |
 | `nps/engines/config.py`         | Environment variables                                        | Adapt for .env   |
@@ -118,7 +112,6 @@ The WebSocket connection (`/ws`) provides:
 | 1     | Foundation: DB + API skeleton + encryption | Phase 0      |
 | 2     | Python Oracle service (gRPC)               | Phase 1      |
 | 3     | API layer (all endpoints wired)            | Phase 1, 2   |
-| 4     | Rust scanner                               | Phase 1      |
-| 5     | React frontend                             | Phase 3      |
-| 6     | Infrastructure + DevOps                    | Phase 4, 5   |
-| 7     | Integration testing + polish               | Phase 6      |
+| 4     | React frontend                             | Phase 3      |
+| 5     | Infrastructure + DevOps                    | Phase 4      |
+| 6     | Integration testing + polish               | Phase 5      |

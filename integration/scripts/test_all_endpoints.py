@@ -62,10 +62,6 @@ class EndpointTester:
         # Accept 400/422 interchangeably (both are valid client error responses)
         if actual in (400, 422) and expected in (400, 422):
             status = "pass"
-        # Scanner endpoints: accept 501/503 as "not implemented/unavailable"
-        if "scanner" in path and actual in (501, 503):
-            status = "pass"
-            detail = f"{actual} expected (scanner not deployed). {detail}"
         # Accept 422 when we expected 200 for optional params (validation strictness)
         if actual == 422 and expected == 200:
             status = "pass"
@@ -375,12 +371,6 @@ class EndpointTester:
             json={"datetime": "2024-06-15T14:30:00+00:00"},
         )
 
-    def test_scanner_endpoints(self) -> None:
-        """Test /api/scanner/* — all should return 503/not implemented."""
-        print("\n--- Scanner Endpoints (expect 503) ---")
-        self._timed("POST", "/api/scanner/start", 503, json={})
-        self._timed("GET", "/api/scanner/terminals", 200)
-
     def test_vault_endpoints(self) -> None:
         """Test /api/vault/* (stub endpoints)."""
         print("\n--- Vault Endpoints ---")
@@ -599,7 +589,6 @@ class EndpointTester:
         self.test_auth_endpoints()
         self.test_users_endpoints()
         self.test_oracle_endpoints()
-        self.test_scanner_endpoints()
         self.test_vault_endpoints()
         self.test_learning_endpoints()
         self.test_translation_endpoints()
@@ -700,7 +689,6 @@ def generate_report(summary: dict) -> str:
             "",
             "## Notes",
             "",
-            "- Scanner endpoints return 503 (expected — scanner not deployed)",
             "- Multi-user endpoints may return 503 (expected — feature not fully implemented)",
             "- Auth enforcement verified: protected endpoints correctly return 401/403",
             "",

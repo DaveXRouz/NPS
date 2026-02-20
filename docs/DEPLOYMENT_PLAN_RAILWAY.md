@@ -47,7 +47,6 @@ Railway Project: nps-production
 - **Single API service:** Simplifies deployment. Frontend is built as static files and served by the FastAPI application via its existing static file middleware. This avoids the cost and complexity of a separate frontend container.
 - **Redis as addon:** Managed Redis with automatic persistence. Cheaper and more reliable than self-managed.
 - **No separate Oracle gRPC service:** In the initial deployment, Oracle engines run in-process within the API. The gRPC separation can be added later when scale requires it.
-- **No Scanner:** Scanner is a stub and will not be deployed.
 - **No Nginx:** Railway handles HTTPS termination and load balancing at the platform level.
 
 ---

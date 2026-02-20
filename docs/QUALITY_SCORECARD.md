@@ -75,7 +75,7 @@
 
 - **CLAUDE.md is comprehensive:** 400+ lines covering architecture, rules, boot sequence, forbidden patterns, environment variables, and performance targets. Serves as the single source of truth.
 - **SESSION_LOG.md tracks all 45 sessions:** Complete history of what was built, files changed, and decisions made.
-- **Logic documentation:** `FC60_ALGORITHM.md`, `NUMEROLOGY_SYSTEMS.md`, `ARCHITECTURE_DECISIONS.md`, and `SCANNER_ORACLE_LOOP.md` document the domain logic thoroughly.
+- **Logic documentation:** `FC60_ALGORITHM.md`, `NUMEROLOGY_SYSTEMS.md`, and `ARCHITECTURE_DECISIONS.md` document the domain logic thoroughly.
 - **API reference:** 2,584-line API reference covering all endpoints with request/response examples.
 - **SB reports:** Each Senior Builder phase produced a detailed report with verification checklists.
 - **Encryption specification:** `ENCRYPTION_SPEC.md` documents the full ENC4 format, key derivation, and security properties.
@@ -91,7 +91,7 @@
 ### Strengths
 
 - **Clean layer separation:** Frontend talks to API only. API talks to services only. Services talk to database only. No shortcuts or bypasses (one documented exception in learning.py).
-- **Proto contracts as source of truth:** `scanner.proto` and `oracle.proto` define the gRPC interfaces. Service implementations conform to these contracts.
+- **Proto contracts as source of truth:** `oracle.proto` defines the gRPC interface. Service implementation conforms to this contract.
 - **Encryption service:** AES-256-GCM with PBKDF2-HMAC-SHA256 key derivation (600K iterations). ENC4 prefix format. Legacy ENC migration path documented.
 - **Auth system:** Three-tier (admin/moderator/user) with JWT + API key + legacy auth support. Refresh tokens, account lockout, and audit logging.
 - **Environment-driven configuration:** All secrets and configuration via `.env`. No config files, no hardcoded values.
@@ -100,7 +100,7 @@
 
 ### Deductions (-1)
 
-- **Scanner is a stub:** The Rust scanner service exists only as a placeholder. The Scanner-Oracle collaboration loop (the core value proposition) is not yet functional. While this is by design (DO NOT TOUCH rule), it means the architecture has an untested critical path.
+- **Single service architecture:** Only the Oracle service is implemented. The system analyzes patterns but does not generate wallet candidates autonomously.
 
 ---
 
