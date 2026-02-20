@@ -203,7 +203,7 @@ export function MultiUserSelector({
 
       {/* Error message */}
       {error && (
-        <p role="alert" className="text-xs text-nps-bg-danger">
+        <p role="alert" className="text-xs text-nps-error">
           {error}
         </p>
       )}

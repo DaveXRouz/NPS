@@ -413,9 +413,7 @@ export function QuestionReadingForm({
             </span>
             <span
               className={
-                isNearLimit
-                  ? "text-nps-bg-danger"
-                  : "text-[var(--nps-text-dim)]"
+                isNearLimit ? "text-nps-error" : "text-[var(--nps-text-dim)]"
               }
               data-testid="char-counter"
             >
@@ -536,7 +534,7 @@ export function QuestionReadingForm({
       <div aria-live="polite">
         {error && (
           <p
-            className="text-xs text-nps-bg-danger"
+            className="text-xs text-nps-error"
             role="alert"
             data-testid="question-error"
           >

@@ -234,7 +234,7 @@ export default function TimeReadingForm({
       <div aria-live="polite">
         {error && (
           <p
-            className="text-xs text-nps-bg-danger"
+            className="text-xs text-nps-error"
             role="alert"
             data-testid="time-error"
           >

@@ -22,7 +22,9 @@ backups/
 
 # Environment
 .env
+frontend/.env
 !.env.example
+!frontend/.env.example
 
 # Runtime data (db files etc.) — keep static JSON
 api/data/*

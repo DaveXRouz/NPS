@@ -70,7 +70,7 @@ export function TranslatedReading({ reading }: TranslatedReadingProps) {
 
       {/* Error */}
       {error && (
-        <p role="alert" className="text-xs text-nps-bg-danger">
+        <p role="alert" className="text-xs text-nps-error">
           {error}
         </p>
       )}

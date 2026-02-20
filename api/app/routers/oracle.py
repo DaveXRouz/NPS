@@ -516,7 +516,7 @@ async def create_framework_reading(
             # Session 14 time reading (default)
             body = TimeReadingRequest(**body_raw)
 
-            async def time_progress(step: int, total: int, message: str):
+            async def time_progress(step: int, total: int, message: str, rt: str = "time"):
                 progress_pct = int((step / total) * 100) if total > 0 else 0
                 step_name = (
                     "calculating"
@@ -572,6 +572,20 @@ async def create_framework_reading(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(exc),
+        )
+    except ImportError as exc:
+        logger.error("Oracle engine import failed: %s", exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Oracle engines are not available. Check server logs.",
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Unexpected error in reading pipeline: %s", exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Reading failed: {type(exc).__name__}: {exc}",
         )
 
 

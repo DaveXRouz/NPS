@@ -1,9 +1,11 @@
 import { lazy, Suspense, useEffect } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Layout } from "./components/Layout";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { PageLoadingFallback } from "./components/common/PageLoadingFallback";
+import { AdminGuard } from "./components/admin/AdminGuard";
+import { FadeIn } from "./components/common/FadeIn";
 import "./styles/rtl.css";
 import "./styles/animations.css";
 
@@ -17,6 +19,28 @@ const AdminProfiles = lazy(() => import("./pages/AdminProfiles"));
 const SharedReading = lazy(() => import("./pages/SharedReading"));
 const AdminMonitoring = lazy(() => import("./pages/AdminMonitoring"));
 const BackupManager = lazy(() => import("./components/admin/BackupManager"));
+
+function NotFound() {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+      <FadeIn delay={0}>
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-8 max-w-md w-full shadow-[0_0_24px_var(--nps-glass-glow)]">
+          <div className="text-4xl mb-4 text-[var(--nps-text-dim)]">404</div>
+          <h2 className="text-xl font-bold text-[var(--nps-text-bright)] mb-2">
+            {t("errors.not_found")}
+          </h2>
+          <Link
+            to="/dashboard"
+            className="mt-4 inline-block px-4 py-2 text-sm bg-nps-bg-button text-white rounded hover:opacity-90 transition-opacity"
+          >
+            {t("common.go_home")}
+          </Link>
+        </div>
+      </FadeIn>
+    </div>
+  );
+}
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -74,20 +98,23 @@ export default function App() {
               </ErrorBoundary>
             }
           />
-          <Route
-            path="/admin"
-            element={
-              <ErrorBoundary>
-                <Admin />
-              </ErrorBoundary>
-            }
-          >
-            <Route index element={<Navigate to="/admin/users" replace />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="profiles" element={<AdminProfiles />} />
-            <Route path="monitoring" element={<AdminMonitoring />} />
-            <Route path="backups" element={<BackupManager />} />
+          <Route element={<AdminGuard />}>
+            <Route
+              path="/admin"
+              element={
+                <ErrorBoundary>
+                  <Admin />
+                </ErrorBoundary>
+              }
+            >
+              <Route index element={<Navigate to="/admin/users" replace />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="profiles" element={<AdminProfiles />} />
+              <Route path="monitoring" element={<AdminMonitoring />} />
+              <Route path="backups" element={<BackupManager />} />
+            </Route>
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </Suspense>

@@ -53,6 +53,11 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown logic."""
+    # Validate critical security settings
+    if not settings.api_secret_key:
+        logger.critical("API_SECRET_KEY is not set — JWT auth will not work. Set it in .env")
+        raise RuntimeError("API_SECRET_KEY must be configured")
+
     # Export ANTHROPIC_API_KEY to os.environ so ai_client.py can find it
     if settings.anthropic_api_key:
         os.environ["ANTHROPIC_API_KEY"] = settings.anthropic_api_key

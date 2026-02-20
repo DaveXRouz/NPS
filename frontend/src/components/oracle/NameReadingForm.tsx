@@ -358,7 +358,7 @@ export function NameReadingForm({
       <div aria-live="polite">
         {error && (
           <p
-            className="text-xs text-nps-bg-danger"
+            className="text-xs text-nps-error"
             role="alert"
             data-testid="name-error"
           >
