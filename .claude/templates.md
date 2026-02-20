@@ -316,100 +316,6 @@ describe('ComponentName', () => {
 
 ---
 
-## Rust Module Template
-
-```rust
-//! [Module name] — [One-line description]
-//!
-//! [Optional: More context about what this module does.]
-
-use std::error::Error;
-use log::{info, error, debug};
-
-// ════════════════════════════════════════════════════════════
-// Types
-// ════════════════════════════════════════════════════════════
-
-/// Brief description of the struct.
-///
-/// # Examples
-///
-/// ```
-/// let instance = StructName::new(config)?;
-/// ```
-pub struct StructName {
-    config: Config,
-}
-
-// ════════════════════════════════════════════════════════════
-// Implementation
-// ════════════════════════════════════════════════════════════
-
-impl StructName {
-    /// Create a new instance.
-    ///
-    /// # Errors
-    ///
-    /// Returns error if config is invalid.
-    pub fn new(config: Config) -> Result<Self, Box<dyn Error>> {
-        info!("StructName initialized");
-        Ok(Self { config })
-    }
-
-    /// What this method does.
-    ///
-    /// # Arguments
-    ///
-    /// * `param` - Description
-    ///
-    /// # Returns
-    ///
-    /// Description of return value.
-    pub fn method(&self, param: &str) -> Result<Data, Box<dyn Error>> {
-        debug!("method called: {}", param);
-        let result = self.helper(param)?;
-        Ok(result)
-    }
-
-    fn helper(&self, param: &str) -> Result<Data, Box<dyn Error>> {
-        // Implementation
-        todo!()
-    }
-}
-
-// ════════════════════════════════════════════════════════════
-// Tests
-// ════════════════════════════════════════════════════════════
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_new() {
-        let result = StructName::new(Config::default());
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_method() {
-        let instance = StructName::new(Config::default()).unwrap();
-        let result = instance.method("test");
-        assert!(result.is_ok());
-    }
-}
-```
-
-### Rust Rules:
-- `Result<T, E>` everywhere — no `.unwrap()` in production code (ok in tests)
-- `cargo clippy -- -D warnings` must pass
-- Doc comments with `///` on all public items
-- Include `# Examples` in doc comments for public API
-- Tests in same file under `#[cfg(test)]` module
-- Use `log` crate for logging (not println!)
-
----
-
 ## SQL Migration Template
 
 ```sql
@@ -495,5 +401,5 @@ expected output
 - [ ] Committed to git
 
 ## Commit Message
-`[layer] description (#session-N)`
+`[layer] description`
 ```

@@ -24,11 +24,11 @@ For workflow details → `.claude/workflows.md`
 ## PROJECT IDENTITY
 
 **Name:** NPS (Numerology Puzzle Solver)
-**Purpose:** Bitcoin wallet hunting via Scanner ↔ Oracle collaboration with AI learning
+**Purpose:** Bitcoin wallet discovery through numerological pattern analysis with AI learning
 **Repo:** https://github.com/DaveXRouz/NPS.git
 **Owner:** Dave (DaveXRouz)
 
-**Simple version:** Scanner generates Bitcoin keys fast. Oracle analyzes patterns using numerology + AI. They share a PostgreSQL database and make each other smarter over time.
+**Simple version:** Oracle analyzes Bitcoin wallet patterns using numerology (FC60, Pythagorean, Chaldean, Abjad) + AI interpretations. Web-accessible platform with bilingual support (EN + Persian RTL).
 
 **Design philosophy:** Swiss watch — simple surface, sophisticated internals.
 
@@ -101,8 +101,7 @@ NPS/
 ├── logic/                 ← Algorithm docs + recipes
 │   ├── FC60_ALGORITHM.md      FC60 math + formulas + test vectors
 │   ├── NUMEROLOGY_SYSTEMS.md  Pythagorean + Chaldean + Abjad
-│   ├── ARCHITECTURE_DECISIONS.md  10 key decisions with reasoning
-│   ├── SCANNER_ORACLE_LOOP.md     Collaboration pattern
+│   ├── ARCHITECTURE_DECISIONS.md  9 key decisions with reasoning
 │   └── RECIPES.md             Step-by-step common task recipes
 ├── api/                   ← FastAPI gateway
 ├── frontend/              ← React + TypeScript + Tailwind
@@ -160,8 +159,8 @@ Error encountered →
 
 ```
 Write code
-  → Auto-format (black/prettier/rustfmt)
-  → Auto-lint + fix (ruff/eslint/clippy)
+  → Auto-format (black/prettier)
+  → Auto-lint + fix (ruff/eslint)
   → Write tests
   → Run tests (must pass before "done")
   → Auto-generate docs (public APIs + complex logic only)
@@ -371,7 +370,6 @@ All config in `.env` (copy from `.env.example`):
 | FC60 math + formulas          | `logic/FC60_ALGORITHM.md`         |
 | Numerology systems            | `logic/NUMEROLOGY_SYSTEMS.md`     |
 | Architecture decisions        | `logic/ARCHITECTURE_DECISIONS.md` |
-| Scanner↔Oracle loop           | `logic/SCANNER_ORACLE_LOOP.md`    |
 | Common task step-by-step      | `logic/RECIPES.md`                |
 | Development history           | `BUILD_HISTORY.md`                |
 | Legacy source (reference)     | `.archive/v3/`                    |

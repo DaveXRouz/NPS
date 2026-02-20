@@ -1586,7 +1586,7 @@ useEffect(() => {
 }, [reading]);
 ```
 
-All other pages — Dashboard, Oracle, History, Settings, Admin, Scanner — never update `document.title`.
+All other pages — Dashboard, Oracle, History, Settings, Admin — never update `document.title`.
 
 ### Location in Codebase
 
@@ -2673,11 +2673,11 @@ Use `UserForm.tsx` line 546 as the reference implementation.
 **Reported by:** Codebase Audit (Round 2 — Accessibility / WCAG)
 **Priority:** 🔴 P1 — High
 
-> The disabled "Scanner" navigation item is rendered as a `<div>` with `cursor-not-allowed` styling instead of a proper `<button disabled>`. This means it's not in the keyboard tab order, not announced by screen readers as a button, and doesn't communicate its disabled state to assistive technology.
+> Disabled navigation items are rendered as a `<div>` with `cursor-not-allowed` styling instead of a proper `<button disabled>`. This means they're not in the keyboard tab order, not announced by screen readers as a button, and don't communicate their disabled state to assistive technology.
 
 ### What I See
 
-The Scanner item in the sidebar looks dimmed with a "not-allowed" cursor. Sighted users can tell it's disabled. But keyboard users tabbing through the nav skip it entirely — they don't know the item exists. Screen reader users traversing the nav list encounter a nameless `<div>` instead of a button with a state.
+Disabled items in the sidebar look dimmed with a "not-allowed" cursor. Sighted users can tell they're disabled. But keyboard users tabbing through the nav skip them entirely — they don't know the items exist. Screen reader users traversing the nav list encounter a nameless `<div>` instead of a button with a state.
 
 ### What's Actually Happening
 
@@ -2724,7 +2724,7 @@ Use a `<button>` element with `disabled` and `aria-disabled="true"`:
 This makes the item:
 
 - **Keyboard focusable** (appears in tab order)
-- **Screen reader accessible** (announced as "Scanner — Coming soon, button, disabled")
+- **Screen reader accessible** (announced as "[Item name] — Coming soon, button, disabled")
 - **Semantically correct** (a disabled interactive element, not a generic container)
 
 ### Fix Scope
@@ -3684,14 +3684,13 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🔴 P1 — High
 
-> Dashboard, Oracle, Admin, and ReadingHistory use the new glassmorphism style (`bg-[var(--nps-glass-bg)] backdrop-blur-md`). But Settings, Scanner, Vault, Learning, and LogPanel still use the old opaque `bg-nps-bg-card` style. Navigating between pages creates a jarring visual transition.
+> Dashboard, Oracle, Admin, and ReadingHistory use the new glassmorphism style (`bg-[var(--nps-glass-bg)] backdrop-blur-md`). But Settings, Vault, Learning, and LogPanel still use the old opaque `bg-nps-bg-card` style. Navigating between pages creates a jarring visual transition.
 
 ### Location in Codebase
 
 | File                                                   | Lines  | What's there now                           |
 | ------------------------------------------------------ | ------ | ------------------------------------------ |
 | `frontend/src/components/settings/SettingsSection.tsx` | 19     | `bg-nps-bg-card border border-nps-border`  |
-| `frontend/src/pages/Scanner.tsx`                       | 12     | `bg-nps-bg-card border border-nps-border`  |
 | `frontend/src/pages/Vault.tsx`                         | 13     | `bg-nps-bg-card border border-nps-border`  |
 | `frontend/src/pages/Learning.tsx`                      | 13, 31 | `bg-nps-ai-bg border border-nps-ai-border` |
 | `frontend/src/components/LogPanel.tsx`                 | 26     | `bg-nps-bg-card border border-nps-border`  |
@@ -4140,7 +4139,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
 
-> Settings, Admin, Scanner, Vault, Learning use `text-xl` for page headings while ReadingHistory uses `text-2xl`. Dashboard's WelcomeBanner uses `text-2xl lg:text-3xl`. Sibling pages at the same hierarchy level have different heading sizes.
+> Settings, Admin, Vault, Learning use `text-xl` for page headings while ReadingHistory uses `text-2xl`. Dashboard's WelcomeBanner uses `text-2xl lg:text-3xl`. Sibling pages at the same hierarchy level have different heading sizes.
 
 ### Location in Codebase
 
@@ -4239,7 +4238,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 **Reported by:** Codebase Audit (Round 3 — Backend Security)
 **Priority:** 🔴 P1 — High
 
-> All 4 vault endpoints (`/findings`, `/summary`, `/search`, `/export`) have no `Depends(get_current_user)`. Scanner findings data is publicly accessible without any authentication.
+> All 4 vault endpoints (`/findings`, `/summary`, `/search`, `/export`) have no `Depends(get_current_user)`. Vault data is publicly accessible without any authentication.
 
 ### Location in Codebase
 
@@ -4253,22 +4252,9 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ---
 
-## Issue #95 — Scanner Endpoints Have Zero Authentication
+## Issue #95 — ~~Scanner Endpoints Have Zero Authentication~~
 
-**Reported by:** Codebase Audit (Round 3 — Backend Security)
-**Priority:** 🔴 P1 — High
-
-> All 7 scanner endpoints lack authentication dependencies. Scanner control and data endpoints are publicly accessible.
-
-### Location in Codebase
-
-| File                         | Lines         | What's there now   |
-| ---------------------------- | ------------- | ------------------ |
-| `api/app/routers/scanner.py` | all endpoints | No auth dependency |
-
-### Fix Scope
-
-**Small — add `Depends(get_current_user)` to all 7 endpoints.**
+**Status:** ✅ Resolved — Scanner removed from project (2026-02-20). `api/app/routers/scanner.py` deleted.
 
 ---
 
@@ -4577,7 +4563,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ---
 
-## Issue #112 — Scanner Learning Stubs Are Unauthenticated
+## Issue #112 — Learning Endpoints Are Unauthenticated
 
 **Reported by:** Codebase Audit (Round 3 — Backend Security)
 **Priority:** 🟡 P2 — Medium
@@ -4922,32 +4908,15 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Medium — implement each endpoint against the database:**
 
-- Query `scanner_findings` table with appropriate filters, pagination, aggregation
+- Query vault/findings tables with appropriate filters, pagination, aggregation
 - Implement full-text search for address/metadata
 - Generate CSV/JSON export stream or file
 
 ---
 
-## Issue #128 — Scanner API Endpoints Are All Unimplemented TODO Stubs
+## Issue #128 — ~~Scanner API Endpoints Are All Unimplemented TODO Stubs~~
 
-**Reported by:** Codebase Audit (Round 4 — Backend)
-**Priority:** 🟡 P2 — Medium
-
-> All 7 Scanner management API endpoints are TODO stubs. No gRPC calls to the Rust scanner service are implemented. The frontend Scanner page cannot control or monitor the scanner service.
-
-### Location in Codebase
-
-| File                         | Lines                      | What's there now                                    |
-| ---------------------------- | -------------------------- | --------------------------------------------------- |
-| `api/app/routers/scanner.py` | 19, 29, 39, 49, 59, 69, 76 | 7 endpoints — all `# TODO: Call scanner gRPC` stubs |
-
-### Fix Scope
-
-**Large — requires gRPC client implementation:**
-
-- Implement `ScannerClient` using proto stubs from `proto/scanner.proto`
-- Wire each endpoint to the corresponding gRPC method
-- Per CLAUDE.md: Scanner Rust service is "stub only — DO NOT TOUCH" — the Python API client can be implemented but will return 503 until the Rust scanner is live
+**Status:** ✅ Resolved — Scanner removed from project (2026-02-20). `api/app/routers/scanner.py` and `proto/scanner.proto` deleted.
 
 ---
 
@@ -5061,7 +5030,7 @@ except (DatabaseError, OperationalError) as exc:
 **Reported by:** Codebase Audit (Round 4 — Backend)
 **Priority:** 🟡 P2 — Medium
 
-> `api/app/routers/health.py` detailed health endpoint checks Telegram, Scanner, Oracle, and database — but never checks `ANTHROPIC_API_KEY`. Since all AI-powered readings depend on this key, its absence is the most critical unmonitored failure mode.
+> `api/app/routers/health.py` detailed health endpoint checks Telegram, Oracle, and database — but never checks `ANTHROPIC_API_KEY`. Since all AI-powered readings depend on this key, its absence is the most critical unmonitored failure mode.
 
 ### Location in Codebase
 
@@ -5740,7 +5709,6 @@ The Toast component renders `aria-label={t("common.dismiss")}`. The test mock re
 
 **Trivial** — change `screen.getByLabelText("Dismiss")` to `screen.getByLabelText("common.dismiss")` in `Toast.test.tsx`.
 
-
 ---
 
 ## Operational Issues (from project handoff)
@@ -5806,7 +5774,6 @@ The Toast component renders `aria-label={t("common.dismiss")}`. The test mock re
 | #132 | Bare `except Exception: pass` in coordinate helpers           | `oracle.py:132-134, 149-151`                           | Small         |
 | #133 | Health check missing Anthropic AI check                       | `health.py:122-216`                                    | Small         |
 
-
 ## Quick Win List (Fix in Under 10 Minutes Each)
 
 These are one-liners or near one-liners — highest ROI for time spent:
@@ -5846,7 +5813,6 @@ These are one-liners or near one-liners — highest ROI for time spent:
 ### ~~Blocker 3 — Admin Panel Is Accessible to Anyone (Issue #11)~~ RESOLVED 2026-02-20
 
 **Fixed:** `AdminGuard` is now wired into `App.tsx` wrapping all `/admin` routes. Non-admin users see a 403 page. A 404 catch-all route was also added (Issue #21).
-
 
 ## Architecture Notes (Must-Know for Any Fix Session)
 
@@ -5893,4 +5859,3 @@ The `ai_interpretation` field is stored inconsistently:
 - Refresh: `POST /auth/refresh` with refresh token in body
 - API Keys: 3-tier scopes (`admin`/`moderator`/`user`), stored hashed in `oracle_api_keys`
 - Frontend: sends `Authorization: Bearer <token>` where token is from localStorage or `VITE_API_KEY` fallback
-

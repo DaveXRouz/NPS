@@ -191,7 +191,7 @@ react 18.3, react-router-dom 6.22, @tanstack/react-query 5.90, i18next 23.8, jal
 | `GetQuestionSign`    | Yes/no question with numerological sign                            |
 | `GetDailyInsight`    | Daily numerology + lucky numbers                                   |
 | `SuggestRange`       | Bitcoin key range suggestions (AI learning)                        |
-| `AnalyzeSession`     | Scanner session analysis                                           |
+| `AnalyzeSession`     | Reading session analysis                                           |
 | `GetTimingAlignment` | Cosmic timing quality + optimal hours                              |
 | `HealthCheck`        | Service health                                                     |
 
@@ -329,14 +329,14 @@ frontend, api, oracle-service, postgres, redis, nginx, telegram-bot, oracle-aler
 | File                              | Purpose                                                          |
 | --------------------------------- | ---------------------------------------------------------------- |
 | `CLAUDE.md`                       | Project brain (boot sequence, rules, architecture)               |
-| `BUILD_HISTORY.md`                | 45-session development tracker + changelog                       |
+| `BUILD_HISTORY.md`                | Development log + changelog                                      |
 | `CURRENT_STATE.md`                | This file — full project audit                                   |
 | `.claude/startup.md`              | Boot protocol                                                    |
-| `.claude/workflows.md`            | Single/multi-terminal modes                                      |
+| `.claude/workflows.md`            | Plan template + quality checklist                                |
 | `.claude/templates.md`            | File creation templates                                          |
 | `logic/FC60_ALGORITHM.md`         | FC60 math + test vectors                                         |
 | `logic/NUMEROLOGY_SYSTEMS.md`     | Pythagorean + Chaldean + Abjad                                   |
-| `logic/ARCHITECTURE_DECISIONS.md` | 10 key decisions                                                 |
+| `logic/ARCHITECTURE_DECISIONS.md` | 9 key decisions                                                  |
 | `docs/` (15+ files)               | Error recovery, deployment, encryption spec, API reference, etc. |
 
 ---

@@ -7,52 +7,47 @@ A distributed microservices system for Bitcoin wallet discovery through numerolo
 ## How It Works
 
 ```
-Scanner (Rust)              Oracle (Python)
-Generates keys              Analyzes patterns
-Checks balances             Suggests lucky ranges
-5000+ keys/sec              FC60 + Numerology + AI
-        \                   /
-         \                 /
-          v               v
-       +---------------------+
-       |     PostgreSQL       |
-       |  Shared learning DB  |
-       |  Self-improving loop |
-       +---------+-----------+
-                 |
-          +------v------+
-          |  FastAPI     |
-          |  REST + WS   |
-          +------+------+
-                 |
-          +------v------+
-          |  React UI    |
-          |  EN + FA     |
-          +-------------+
+       Oracle (Python)
+       Analyzes patterns
+       FC60 + Numerology + AI
+              |
+       +------v-----------+
+       |     PostgreSQL     |
+       |  Learning DB       |
+       +------+------------+
+              |
+       +------v------+
+       |  FastAPI     |
+       |  REST + WS   |
+       +------+------+
+              |
+       +------v------+
+       |  React UI    |
+       |  EN + FA     |
+       +-------------+
 ```
 
 ## Current Status
 
-| Component                    | Status                |
-| ---------------------------- | --------------------- |
-| Oracle API (20+ endpoints)   | Production-ready      |
-| Oracle Frontend (React)      | Production-ready      |
-| PostgreSQL + Schema          | Production-ready      |
-| Auth (JWT + API key)         | Production-ready      |
-| Encryption (AES-256-GCM)     | Production-ready      |
-| Bilingual (EN + Persian RTL) | Production-ready      |
-| AI Interpretation            | Production-ready      |
-| Admin Panel                  | Production-ready      |
-| Telegram Bot                 | Production-ready      |
-| Export (PDF/CSV)             | Production-ready      |
-| Monitoring & Backup          | Production-ready      |
-| Scanner (Rust)               | Stub — future project |
+| Component                    | Status           |
+| ---------------------------- | ---------------- |
+| Oracle API (20+ endpoints)   | Production-ready |
+| Oracle Frontend (React)      | Production-ready |
+| PostgreSQL + Schema          | Production-ready |
+| Auth (JWT + API key)         | Production-ready |
+| Encryption (AES-256-GCM)     | Production-ready |
+| Bilingual (EN + Persian RTL) | Production-ready |
+| AI Interpretation            | Production-ready |
+| Admin Panel                  | Production-ready |
+| Telegram Bot                 | Production-ready |
+| Export (PDF/CSV)             | Production-ready |
+| Monitoring & Backup          | Production-ready |
 
 ### Final Metrics
 
 ```
-Sessions: 45 | Layers: 7 | Endpoints: 20+ | Components: 30+
-Tables: 10+ | Tests: 800+ | Docker services: 10 | Locales: EN + FA (RTL)
+Layers: 7 | Endpoints: 20+ | Components: 30+
+Tables: 10+ | Tests: 800+ | Docker services: 9 | Locales: EN + FA (RTL)
 ```
 
 ---
@@ -153,11 +148,11 @@ make backup          # Backup database
 +------v------+    +-------v------------------+
 |  LAYER 4:   |    |  LAYER 3: BACKEND        |
 |  DATABASE   |    |  Oracle (Python :50052)   |
-|  PostgreSQL |<---|  Scanner (Rust :50051)    |
-|  Port: 5432 |    |  AI via Anthropic API     |
+|  PostgreSQL |<---|  AI via Anthropic API     |
+|  Port: 5432 |    |                          |
 +-------------+    +--------------------------+
 
-LAYER 5: Docker Compose (10 containers)
+LAYER 5: Docker Compose (9 containers)
 LAYER 6: AES-256-GCM + API keys (3-tier)
 LAYER 7: JSON logging + Prometheus + Telegram alerts
 ```
