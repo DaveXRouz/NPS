@@ -1,7 +1,7 @@
 # CLAUDE.md — NPS Project Brain
 
 > **Read this file FIRST. Every session. No exceptions.**
-> **Last updated:** 2026-02-09
+> **Last updated:** 2026-02-20
 
 ---
 
@@ -90,7 +90,7 @@ For detailed architecture → `logic/ARCHITECTURE_DECISIONS.md`
 NPS/
 ├── CLAUDE.md              ← YOU ARE HERE
 ├── README.md              ← Human overview
-├── BUILD_HISTORY.md       ← Session log + changelog (read at step 2)
+├── BUILD_HISTORY.md       ← Development log + changelog
 ├── CURRENT_STATE.md       ← Full project audit + architecture
 ├── ISSUES.md              ← All tracked issues (157+)
 ├── WISHLIST.md            ← Design vision + future features
@@ -136,7 +136,7 @@ Everything else: decide, do it, show results.
 
 **During planning (before work starts):**
 
-- Complex tasks (new features, multi-file changes, new sessions): show plan → wait for approval
+- Complex tasks (new features, multi-file changes): show plan → wait for approval
 - Simple tasks (bug fix, typo, single-file edit, direct instruction): execute directly, no plan needed
 
 **During execution (after plan is approved or task is simple):**
@@ -200,7 +200,7 @@ Write code
 1. **NEVER use Claude CLI** (`subprocess`, `os.system`, shell commands for AI). Only Anthropic HTTP API.
 2. **NEVER store secrets in code.** Always `.env` variables.
 3. **NEVER use bare `except:` in Python.** Catch specific exceptions.
-4. **NEVER use `.unwrap()` in Rust production code.** Use `Result<T,E>`.
+4. **NEVER silently swallow errors.** Always handle or propagate.
 5. **NEVER use `any` type in TypeScript.** Define proper interfaces.
 6. **NEVER hardcode file paths.** Use `Path(__file__).resolve().parents[N]`.
 7. **NEVER skip tests.** Every change gets tested before commit.
@@ -214,14 +214,14 @@ Write code
 
 1. **API is the gateway** — Frontend/Telegram only talk to FastAPI. Never directly to gRPC services.
 2. **AI uses API only** — Anthropic Python SDK, HTTP calls. Never CLI.
-3. **Proto contracts are source of truth** — `scanner.proto` and `oracle.proto` define interfaces.
-4. **Scoring consistency** — Rust and Python must produce identical outputs for same input.
-5. **Legacy engines are reference** — `.archive/v3/engines/` is the math baseline. New code must match outputs.
-6. **Environment over config files** — `.env` only. Not `config.json`.
-7. **AES-256-GCM encryption** — `ENC4:` prefix (current). `ENC:` fallback for legacy migration only.
-8. **Layer separation** — No shortcuts. Frontend→API→Service→Database.
-9. **Persian UTF-8** — All text supports Persian. RTL when locale is FA.
-10. **Graceful degradation** — Missing API key = fallback text, not crash. Missing Redis = in-memory.
+3. **Proto contracts are source of truth** — `oracle.proto` defines the Oracle service interface.
+4. **Legacy engines are reference** — `.archive/v3/engines/` is the math baseline. New code must match outputs.
+5. **Environment over config files** — `.env` only. Not `config.json`.
+6. **AES-256-GCM encryption** — `ENC4:` prefix (current). `ENC:` fallback for legacy migration only.
+7. **Layer separation** — No shortcuts. Frontend→API→Service→Database.
+8. **Persian UTF-8** — All text supports Persian. RTL when locale is FA.
+9. **Graceful degradation** — Missing API key = fallback text, not crash. Missing Redis = in-memory.
+10. **No Rust/Scanner assumptions** — Scanner was removed. Oracle is Python-only.
 
 ---
 
