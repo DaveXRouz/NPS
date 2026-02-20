@@ -216,7 +216,7 @@ async def create_question_sign(
                     question_time=body.question_time,
                 ),
             ),
-            timeout=15.0,
+            timeout=45.0,
         )
     except asyncio.TimeoutError:
         raise HTTPException(
@@ -271,7 +271,7 @@ async def create_name_reading(
                     include_ai=body.include_ai,
                 ),
             ),
-            timeout=15.0,
+            timeout=45.0,
         )
     except asyncio.TimeoutError:
         raise HTTPException(
