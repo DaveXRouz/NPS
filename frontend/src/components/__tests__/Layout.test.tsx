@@ -21,7 +21,6 @@ vi.mock("react-i18next", () => ({
         "nav.oracle": "Oracle",
         "nav.history": "Reading History",
         "nav.settings": "Settings",
-        "nav.scanner": "Scanner",
       };
       return map[key] ?? key;
     },

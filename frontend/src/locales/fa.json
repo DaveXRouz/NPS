@@ -1,7 +1,6 @@
 {
   "nav": {
     "dashboard": "داشبورد",
-    "scanner": "اسکنر",
     "oracle": "اوراکل",
     "vault": "گاوصندوق",
     "learning": "یادگیری",
@@ -58,23 +57,6 @@
     "type_multi_user": "چندکاربره",
     "moon_phase": "فاز ماه",
     "moon_illumination": "{{percent}}٪ روشنایی"
-  },
-  "scanner": {
-    "title": "اسکنر",
-    "start": "شروع اسکن",
-    "stop": "توقف",
-    "pause": "مکث",
-    "resume": "ادامه",
-    "mode": "حالت",
-    "chains": "زنجیره‌ها",
-    "batch_size": "اندازه دسته",
-    "threads": "رشته‌ها",
-    "config_title": "پیکربندی اسکن",
-    "config_desc": "کنترل‌های اسکنر از طریق API به سرویس اسکنر Rust متصل می‌شوند.",
-    "status": "وضعیت",
-    "active_terminals": "ترمینال‌های فعال",
-    "live_feed": "خوراک زنده",
-    "checkpoints": "نقاط بررسی"
   },
   "oracle": {
     "title": "اوراکل",

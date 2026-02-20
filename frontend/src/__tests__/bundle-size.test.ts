@@ -26,7 +26,6 @@ const LAZY_CHUNK_PREFIXES = [
   "Oracle-",
   "PersianKeyboard-",
   "ReadingHistory-",
-  "Scanner-",
   "Settings-",
   "SharedReading-",
   "useAdmin-",

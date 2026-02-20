@@ -13,31 +13,31 @@
 | Owner    | Dave (DaveXRouz)                                    |
 | Repo     | https://github.com/DaveXRouz/NPS.git                |
 | Live URL | https://web-production-a5179.up.railway.app         |
-| Purpose  | Bitcoin wallet hunting via Scanner ↔ Oracle AI loop |
+| Purpose  | Numerology readings and Oracle AI (Scanner removed) |
 | Frontend | React 18 + TypeScript + Tailwind + Vite             |
 | API      | FastAPI + Python 3.11+                              |
 | Database | PostgreSQL 15                                       |
-| Backend  | Python Oracle (Anthropic AI) + Rust Scanner (stub)  |
+| Backend  | Python Oracle (Anthropic AI)                        |
 | i18n     | English + Persian (RTL)                             |
 
 ---
 
 ## 2. Current State
 
-| Layer                 | What's Built                                            | Status       |
-| --------------------- | ------------------------------------------------------- | ------------ |
-| Frontend (React)      | 6 pages, 15 Oracle components, RTL/Persian, dark mode   | ✅ Complete  |
-| API (FastAPI)         | 14 routers, 46+ endpoints, JWT + API key auth           | ✅ Complete  |
-| Oracle (Python)       | FC60 engine, 5 reading types, AI via Anthropic SDK      | ✅ Complete  |
-| Database (PostgreSQL) | 15 tables, 37+ indexes, idempotent init.sql             | ✅ Complete  |
-| Scanner (Rust)        | Cargo project structure only — 0% logic implemented     | ❌ Stub only |
-| Infrastructure        | Docker Compose 7 containers, Nginx, Prometheus          | ✅ Complete  |
-| Deployment            | Railway: web service + managed PostgreSQL               | ✅ Live      |
-| Tests                 | 1,547 passing (581 API + 300 Oracle + 666 Frontend)     | ✅ Passing   |
-| Security              | AES-256-GCM, JWT, API keys, security headers middleware | ✅ Hardened  |
-| Redis                 | Not deployed — graceful in-memory fallback active       | ⚠️ Bypassed  |
-| Oracle gRPC           | Not deployed on Railway — direct mode (legacy imports)  | ⚠️ Bypassed  |
-| Telegram Bot          | Disabled — no bot token configured                      | ⚠️ Disabled  |
+| Layer                 | What's Built                                            | Status      |
+| --------------------- | ------------------------------------------------------- | ----------- |
+| Frontend (React)      | 6 pages, 15 Oracle components, RTL/Persian, dark mode   | ✅ Complete |
+| API (FastAPI)         | 14 routers, 46+ endpoints, JWT + API key auth           | ✅ Complete |
+| Oracle (Python)       | FC60 engine, 5 reading types, AI via Anthropic SDK      | ✅ Complete |
+| Database (PostgreSQL) | 15 tables, 37+ indexes, idempotent init.sql             | ✅ Complete |
+| Scanner (Rust)        | Fully removed — all artifacts deleted                   | ✅ Removed  |
+| Infrastructure        | Docker Compose 6 containers, Nginx, Prometheus          | ✅ Complete |
+| Deployment            | Railway: web service + managed PostgreSQL               | ✅ Live     |
+| Tests                 | 1,556 passing (581 API + 300 Oracle + 675 Frontend)     | ✅ Passing  |
+| Security              | AES-256-GCM, JWT, API keys, security headers middleware | ✅ Hardened |
+| Redis                 | Not deployed — graceful in-memory fallback active       | ⚠️ Bypassed |
+| Oracle gRPC           | Not deployed on Railway — direct mode (legacy imports)  | ⚠️ Bypassed |
+| Telegram Bot          | Disabled — no bot token configured                      | ⚠️ Disabled |
 
 ---
 
@@ -56,8 +56,6 @@
 
 ### Not Built (features)
 
-- **Scanner Rust implementation** — currently 0%. Needs secp256k1 key generation, balance checks, PostgreSQL writes, gRPC server on :50051.
-- **Scanner ↔ Oracle feedback loop** — Oracle can suggest ranges but Scanner never reads them. Requires Scanner to be real.
 - **Real translation engine** — passthrough only.
 
 ### Not Deployed (infrastructure)
@@ -124,33 +122,22 @@ make backup
 ┌──────▼──────┐    ┌───────▼──────────────────┐
 │  LAYER 4:   │    │  LAYER 3: BACKEND        │
 │  DATABASE   │    │  Oracle (Python :50052)   │
-│  PostgreSQL │◄───┤  Scanner (Rust :50051)    │
-│  Port: 5432 │    │  AI via Anthropic API     │
+│  PostgreSQL │◄───┤  AI via Anthropic API     │
+│  Port: 5432 │    │                          │
 └─────────────┘    └──────────────────────────┘
-LAYER 5: Docker Compose (7 containers)
+LAYER 5: Docker Compose (6 containers)
 LAYER 6: AES-256-GCM + API keys (3-tier)
 LAYER 7: JSON logging + Prometheus + Telegram alerts
 ```
 
-| Layer           | Technology                        | Port             |
-| --------------- | --------------------------------- | ---------------- |
-| Frontend        | React 18 + TypeScript + Tailwind  | 5173 / 80 (prod) |
-| API Gateway     | FastAPI + Python 3.11             | 8000             |
-| Oracle Service  | Python + gRPC                     | 50052            |
-| Scanner Service | Rust + gRPC (stub)                | 50051            |
-| Database        | PostgreSQL 15                     | 5432             |
-| Cache           | Redis (optional, graceful bypass) | 6379             |
-| Monitoring      | Prometheus                        | 9090             |
-
-**Scanner ↔ Oracle loop (designed, partially implemented):**
-
-```
-Scanner generates keys → checks balances → stores in PostgreSQL
-    ↓
-Oracle analyzes patterns → suggests lucky ranges → confidence scores
-    ↓
-Scanner prioritizes suggestions → finds more → AI learns → REPEAT
-```
+| Layer          | Technology                        | Port             |
+| -------------- | --------------------------------- | ---------------- |
+| Frontend       | React 18 + TypeScript + Tailwind  | 5173 / 80 (prod) |
+| API Gateway    | FastAPI + Python 3.11             | 8000             |
+| Oracle Service | Python + gRPC                     | 50052            |
+| Database       | PostgreSQL 15                     | 5432             |
+| Cache          | Redis (optional, graceful bypass) | 6379             |
+| Monitoring     | Prometheus                        | 9090             |
 
 ---
 
@@ -208,8 +195,8 @@ Scanner prioritizes suggestions → finds more → AI learns → REPEAT
 
 1. **API is the gateway** — Frontend/Telegram only talk to FastAPI. Never directly to gRPC services.
 2. **AI uses API only** — Anthropic Python SDK, HTTP calls. Never CLI.
-3. **Proto contracts are source of truth** — `scanner.proto` and `oracle.proto` define interfaces.
-4. **Scoring consistency** — Rust and Python must produce identical outputs for same input.
+3. **Proto contracts are source of truth** — `oracle.proto` defines the gRPC interface.
+4. **Scoring consistency** — Engine outputs must be deterministic for same input.
 5. **Legacy engines are reference** — `.archive/v3/engines/` is the math baseline. New code must match outputs.
 6. **Environment over config files** — `.env` only. Not `config.json`.
 7. **AES-256-GCM encryption** — `ENC4:` prefix (current). `ENC:` fallback for legacy migration only.

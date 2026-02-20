@@ -12,7 +12,7 @@ COMPOSE_DIR="$(dirname "$SCRIPT_DIR")"
 
 cd "$COMPOSE_DIR"
 
-SERVICES=(postgres redis oracle-service scanner-service api frontend nginx)
+SERVICES=(postgres redis oracle-service api frontend nginx)
 TOTAL=0
 HEALTHY=0
 UNHEALTHY=0

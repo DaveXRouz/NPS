@@ -16,7 +16,6 @@ const NAV_ITEMS: NavItem[] = [
   { path: "/oracle", labelKey: "nav.oracle" },
   { path: "/history", labelKey: "nav.history" },
   { path: "/settings", labelKey: "nav.settings" },
-  { path: "/scanner", labelKey: "nav.scanner", disabled: true },
 ];
 
 interface MobileNavProps {

@@ -72,16 +72,6 @@ function AdminIcon() {
   );
 }
 
-function ScannerIcon() {
-  return (
-    <svg {...ICON_PROPS}>
-      <circle cx="12" cy="12" r="2" />
-      <path d="M12 2a10 10 0 0 1 10 10" />
-      <path d="M12 6a6 6 0 0 1 6 6" />
-    </svg>
-  );
-}
-
 const NAV_ITEMS: NavItem[] = [
   { path: "/dashboard", labelKey: "nav.dashboard", icon: <DashboardIcon /> },
   { path: "/oracle", labelKey: "nav.oracle", icon: <OracleIcon /> },
@@ -92,12 +82,6 @@ const NAV_ITEMS: NavItem[] = [
     labelKey: "nav.admin",
     icon: <AdminIcon />,
     adminOnly: true,
-  },
-  {
-    path: "/scanner",
-    labelKey: "nav.scanner",
-    icon: <ScannerIcon />,
-    disabled: true,
   },
 ];
 

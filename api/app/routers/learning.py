@@ -1,4 +1,4 @@
-"""Learning system endpoints — scanner stubs + oracle feedback."""
+"""Learning system endpoints — oracle feedback and adaptive learning."""
 
 import json
 import logging
@@ -26,9 +26,6 @@ from app.orm.oracle_reading import OracleReading
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
-
-# ─── Scanner stubs (existing, unchanged) ─────────────────────────────────────
 
 
 @router.get("/stats", response_model=LearningStatsResponse)

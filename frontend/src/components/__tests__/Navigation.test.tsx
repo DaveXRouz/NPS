@@ -12,7 +12,6 @@ vi.mock("react-i18next", () => ({
         "nav.history": "Reading History",
         "nav.settings": "Settings",
         "nav.admin": "Admin Panel",
-        "nav.scanner": "Scanner",
         "layout.coming_soon": "Coming Soon",
       };
       return map[key] ?? key;
@@ -42,7 +41,6 @@ describe("Navigation", () => {
     expect(screen.getByText("Oracle")).toBeInTheDocument();
     expect(screen.getByText("Reading History")).toBeInTheDocument();
     expect(screen.getByText("Settings")).toBeInTheDocument();
-    expect(screen.getByText("Scanner")).toBeInTheDocument();
   });
 
   it("hides admin item when not admin", () => {
@@ -53,12 +51,6 @@ describe("Navigation", () => {
   it("shows admin item when admin", () => {
     renderNav({ isAdmin: true });
     expect(screen.getByText("Admin Panel")).toBeInTheDocument();
-  });
-
-  it("scanner item has Coming Soon title", () => {
-    renderNav({});
-    const scannerItem = screen.getByText("Scanner").closest("div");
-    expect(scannerItem).toHaveAttribute("title", "Coming Soon");
   });
 
   it("active item has accent styling", () => {

@@ -76,9 +76,6 @@ def _set_admin():
             "oracle:admin",
             "oracle:write",
             "oracle:read",
-            "scanner:admin",
-            "scanner:write",
-            "scanner:read",
             "vault:admin",
             "vault:write",
             "vault:read",
@@ -95,8 +92,6 @@ def _set_user_a():
         [
             "oracle:write",
             "oracle:read",
-            "scanner:write",
-            "scanner:read",
             "vault:write",
             "vault:read",
         ],
@@ -111,8 +106,6 @@ def _set_user_b():
         [
             "oracle:write",
             "oracle:read",
-            "scanner:write",
-            "scanner:read",
             "vault:write",
             "vault:read",
         ],

@@ -46,7 +46,6 @@ vi.mock("react-i18next", async () => {
           "nav.oracle": "Oracle",
           "nav.history": "Reading History",
           "nav.settings": "Settings",
-          "nav.scanner": "Scanner",
           "nav.admin": "Admin Panel",
         };
         return map[key] ?? key;
@@ -75,10 +74,6 @@ vi.mock("../Settings", () => ({
 vi.mock("../AdminPanel", () => ({
   default: () => <div data-testid="admin-page">Admin Page</div>,
 }));
-vi.mock("../Scanner", () => ({
-  default: () => <div data-testid="scanner-page">Scanner Page</div>,
-}));
-
 function renderApp(initialRoute = "/") {
   return render(
     <MemoryRouter initialEntries={[initialRoute]}>

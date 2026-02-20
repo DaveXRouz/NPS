@@ -32,8 +32,6 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 1440
 
     # gRPC backends
-    scanner_grpc_host: str = "localhost"
-    scanner_grpc_port: int = 50051
     oracle_grpc_host: str = "localhost"
     oracle_grpc_port: int = 50052
 

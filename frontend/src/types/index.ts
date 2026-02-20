@@ -1,44 +1,5 @@
 // NPS TypeScript types — mirrors API Pydantic models
 
-// ─── Scanner ───
-
-export interface PuzzleConfig {
-  puzzle_number: number;
-  range_start: string;
-  range_end: string;
-}
-
-export interface ScanConfig {
-  mode: "random_key" | "seed_phrase" | "both";
-  chains: string[];
-  batch_size: number;
-  check_every_n: number;
-  threads: number;
-  checkpoint_interval: number;
-  addresses_per_seed: number;
-  score_threshold: number;
-  puzzle?: PuzzleConfig;
-}
-
-export interface ScanSession {
-  session_id: string;
-  status: "running" | "paused" | "stopped";
-  config: ScanConfig;
-  started_at: string;
-}
-
-export interface ScanStats {
-  session_id: string;
-  keys_tested: number;
-  seeds_tested: number;
-  hits: number;
-  keys_per_second: number;
-  elapsed_seconds: number;
-  checkpoint_count: number;
-  current_mode: string;
-  highest_score: number;
-}
-
 // ─── Oracle ───
 
 export interface FC60Data {

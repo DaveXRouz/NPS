@@ -49,7 +49,6 @@ describe("i18n completeness", () => {
     expect(sections).toContain("nav");
     expect(sections).toContain("dashboard");
     expect(sections).toContain("settings");
-    expect(sections).toContain("scanner");
     expect(sections).toContain("oracle");
     expect(sections).toContain("vault");
     expect(sections).toContain("learning");

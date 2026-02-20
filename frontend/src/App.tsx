@@ -14,7 +14,6 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 const AdminProfiles = lazy(() => import("./pages/AdminProfiles"));
-const Scanner = lazy(() => import("./pages/Scanner"));
 const SharedReading = lazy(() => import("./pages/SharedReading"));
 const AdminMonitoring = lazy(() => import("./pages/AdminMonitoring"));
 const BackupManager = lazy(() => import("./components/admin/BackupManager"));
@@ -89,14 +88,6 @@ export default function App() {
             <Route path="monitoring" element={<AdminMonitoring />} />
             <Route path="backups" element={<BackupManager />} />
           </Route>
-          <Route
-            path="/scanner"
-            element={
-              <ErrorBoundary>
-                <Scanner />
-              </ErrorBoundary>
-            }
-          />
         </Route>
       </Routes>
     </Suspense>

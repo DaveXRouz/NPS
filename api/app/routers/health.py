@@ -95,7 +95,6 @@ async def readiness_check(request: Request):
     else:
         checks["redis"] = "not_connected"
 
-    checks["scanner_service"] = "not_deployed"
     checks["oracle_service"] = "direct_mode"
 
     core_healthy = checks["database"] == "healthy"
@@ -181,10 +180,7 @@ async def detailed_health(
     else:
         checks["oracle_service"] = {"status": "direct_mode", "mode": "legacy"}
 
-    # 4. Scanner (stub)
-    checks["scanner_service"] = {"status": "not_deployed"}
-
-    # 5. API self-check
+    # 4. API self-check
     checks["api"] = {
         "status": "healthy",
         "version": "4.0.0",

@@ -46,7 +46,6 @@ const SERVICE_LABELS: Record<string, string> = {
   database: "Database",
   redis: "Redis",
   oracle_service: "Oracle",
-  scanner_service: "Scanner",
   telegram: "Telegram",
   nginx: "Nginx",
 };

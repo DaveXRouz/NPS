@@ -1,7 +1,6 @@
 {
   "nav": {
     "dashboard": "Dashboard",
-    "scanner": "Scanner",
     "oracle": "Oracle",
     "vault": "Vault",
     "learning": "Learning",
@@ -58,23 +57,6 @@
     "type_multi_user": "Multi-User",
     "moon_phase": "Moon Phase",
     "moon_illumination": "{{percent}}% illuminated"
-  },
-  "scanner": {
-    "title": "Scanner",
-    "start": "Start Scan",
-    "stop": "Stop",
-    "pause": "Pause",
-    "resume": "Resume",
-    "mode": "Mode",
-    "chains": "Chains",
-    "batch_size": "Batch Size",
-    "threads": "Threads",
-    "config_title": "Scan Configuration",
-    "config_desc": "Scanner controls will connect to the Rust scanner service via API.",
-    "status": "Status",
-    "active_terminals": "Active Terminals",
-    "live_feed": "Live Feed",
-    "checkpoints": "Checkpoints"
   },
   "oracle": {
     "title": "Oracle",

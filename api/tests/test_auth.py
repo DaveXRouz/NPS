@@ -195,7 +195,7 @@ def test_scope_hierarchy_read_only():
 def test_role_to_scopes_admin():
     scopes = _role_to_scopes("admin")
     assert "oracle:admin" in scopes
-    assert "scanner:admin" in scopes
+    assert "vault:admin" in scopes
     assert "admin" in scopes
 
 
@@ -225,12 +225,9 @@ def test_moderator_role_scopes():
     assert "oracle:admin" in scopes
     assert "oracle:write" in scopes
     assert "oracle:read" in scopes
-    assert "scanner:read" in scopes
     assert "vault:read" in scopes
     assert "admin" not in scopes
-    assert "scanner:admin" not in scopes
     assert "vault:admin" not in scopes
-    assert "scanner:write" not in scopes
     assert "vault:write" not in scopes
 
 
@@ -251,7 +248,6 @@ def test_moderator_scope_expansion():
     assert "oracle:admin" in expanded
     assert "oracle:write" in expanded
     assert "oracle:read" in expanded
-    assert "scanner:read" in expanded
     assert "vault:read" in expanded
 
 

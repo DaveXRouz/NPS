@@ -59,7 +59,7 @@ For all workflow paths → `.claude/master-workflow.md`
 | API (FastAPI)           | ~70% scaffolded | KEEP skeleton, REWRITE Oracle handlers |
 | Backend/Oracle          | ~60% scaffolded | REWRITE engines, reading logic, AI     |
 | Database (PostgreSQL)   | Done            | KEEP                                   |
-| Scanner (Rust)          | Stub only       | DO NOT TOUCH                           |
+| Scanner (Rust)          | Removed         | DELETED — not part of product          |
 | Infrastructure (Docker) | Partial         | KEEP                                   |
 | DevOps (Monitoring)     | Partial         | KEEP                                   |
 | Integration Tests       | 56+ tests       | KEEP, extend                           |
@@ -99,8 +99,8 @@ For all workflow paths → `.claude/master-workflow.md`
 ┌──────▼──────┐    ┌───────▼──────────────────┐
 │  LAYER 4:   │    │  LAYER 3: BACKEND        │
 │  DATABASE   │    │  Oracle (Python :50052)   │
-│  PostgreSQL │◄───┤  Scanner (Rust :50051)    │
-│  Port: 5432 │    │  AI via Anthropic API     │
+│  PostgreSQL │◄───┤  AI via Anthropic API     │
+│  Port: 5432 │    │                          │
 └─────────────┘    └──────────────────────────┘
 
 LAYER 5: Docker Compose (7 containers)
@@ -108,18 +108,7 @@ LAYER 6: AES-256-GCM + API keys (3-tier)
 LAYER 7: JSON logging + Prometheus + Telegram alerts
 ```
 
-### Scanner ↔ Oracle Loop:
-
-```
-Scanner generates keys → checks balances → stores in PostgreSQL
-    ↓
-Oracle analyzes patterns → suggests lucky ranges → confidence scores
-    ↓
-Scanner prioritizes suggestions → finds more → AI learns → REPEAT
-```
-
 For detailed architecture → `logic/ARCHITECTURE_DECISIONS.md`
-For loop details → `logic/SCANNER_ORACLE_LOOP.md`
 
 ---
 

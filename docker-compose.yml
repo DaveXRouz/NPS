@@ -76,37 +76,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # ─── Layer 3a: Rust Scanner ───
-  scanner-service:
-    build:
-      context: ./services/scanner
-      dockerfile: Dockerfile
-    container_name: nps-scanner
-    ports:
-      - "50051:50051"
-    env_file: .env
-    depends_on:
-      postgres:
-        condition: service_healthy
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: "2"
-          memory: 2G
-    healthcheck:
-      test: ["CMD", "/app/nps-scanner", "--health-check"]
-      interval: 30s
-      timeout: 5s
-      start_period: 30s
-      retries: 3
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  # ─── Layer 3b: Python Oracle ───
+  # ─── Layer 3: Python Oracle ───
   oracle-service:
     build:
       context: ./services/oracle

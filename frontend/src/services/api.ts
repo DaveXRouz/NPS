@@ -79,28 +79,6 @@ export const health = {
     ),
 };
 
-// ─── Scanner ───
-
-export const scanner = {
-  start: (config: import("@/types").ScanConfig) =>
-    request<import("@/types").ScanSession>("/scanner/start", {
-      method: "POST",
-      body: JSON.stringify(config),
-    }),
-  stop: (sessionId: string) =>
-    request(`/scanner/stop/${sessionId}`, { method: "POST" }),
-  pause: (sessionId: string) =>
-    request(`/scanner/pause/${sessionId}`, { method: "POST" }),
-  resume: (sessionId: string) =>
-    request(`/scanner/resume/${sessionId}`, { method: "POST" }),
-  stats: (sessionId: string) =>
-    request<import("@/types").ScanStats>(`/scanner/stats/${sessionId}`),
-  terminals: () =>
-    request<{ terminals: import("@/types").ScanSession[] }>(
-      "/scanner/terminals",
-    ),
-};
-
 // ─── Oracle ───
 
 export const oracle = {

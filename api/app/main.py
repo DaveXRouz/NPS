@@ -35,7 +35,6 @@ from app.routers import (
     learning,
     location,
     oracle,
-    scanner,
     share,
     telegram,
     translation,
@@ -166,7 +165,6 @@ app.add_middleware(RateLimitMiddleware)
 app.include_router(health.router, prefix="/api/health", tags=["health"])
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(users.router, prefix="/api/users", tags=["users"])
-app.include_router(scanner.router, prefix="/api/scanner", tags=["scanner"])
 app.include_router(oracle.router, prefix="/api/oracle", tags=["oracle"])
 app.include_router(vault.router, prefix="/api/vault", tags=["vault"])
 app.include_router(learning.router, prefix="/api/learning", tags=["learning"])

@@ -51,7 +51,6 @@ describe("MobileNav", () => {
     expect(screen.getByText("nav.oracle")).toBeDefined();
     expect(screen.getByText("nav.history")).toBeDefined();
     expect(screen.getByText("nav.settings")).toBeDefined();
-    expect(screen.getByText("nav.scanner")).toBeDefined();
   });
 
   it("closes on Escape key", () => {
