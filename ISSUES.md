@@ -10,6 +10,7 @@
 
 **Reported by:** Screenshot (web-production-a5179.up.railway.app/dashboard)
 **Priority:** P1 High
+**Status:** **PARTIALLY FIXED 2026-02-20** (Session 2) — WelcomeBanner hero redesign, StatsCards per-stat accents, QuickActions horizontal strip, DailyReadingCard visual upgrade done. Some sub-items (Problem 5 per-type visual treatment, Problem 6 flow rhythm) still open.
 
 > Affects the entire first impression of the app. Not a crash, but a severe design regression that makes the product look unfinished and untrustworthy.
 
@@ -705,6 +706,7 @@ Every instance of `text-nps-bg-danger` used for **text color** should be replace
 
 **Reported by:** Codebase audit (data loss risk pattern)
 **Priority:** P1 High
+**Status:** **FIXED 2026-02-20** (Session 2) — Created reusable `ConfirmDialog` component. Delete actions in ReadingHistory and ReadingDetail now show confirmation before executing.
 
 > Users can permanently delete their Oracle readings with a single click and no undo. There is no confirmation dialog, no warning, and no recovery path. One misclick destroys data permanently.
 
@@ -3197,6 +3199,7 @@ This makes text selection use the app's accent color (the same teal/blue used fo
 
 **Reported by:** Codebase Audit (Round 3 — Workflow Logic)
 **Priority:** 🔴 P0 — Critical
+**Status:** **PARTIALLY FIXED 2026-02-20** (Session 2) — CalculationAnimation visibility improvements made, but full wiring to all 4 form types still incomplete.
 
 > The animated calculation screen (progress bar, step indicators, cancel button) is dead code for 4 out of 5 reading types. Only multi-user readings trigger it. For time, name, question, and daily readings, the form submits and the user stares at a frozen screen until results appear — no animation, no progress, no cancel option.
 
@@ -3536,6 +3539,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Trivial — trigger a React state update in the matchMedia callback.**
 
+**Status:** **FIXED 2026-02-21** (Session 2-3) — `useTheme` now adds a `matchMedia` change listener that updates React state when system preference changes.
+
 ---
 
 ## Issue #57 — QuestionReadingForm Captures Time at Mount, Not at Submission
@@ -3668,6 +3673,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Trivial — add cleanup effect that clears all pending timers.**
+
+**Status:** **FIXED 2026-02-21** (Session 2-3) — Timer cleanup added to `useToast` hook with `clearTimeout` on unmount for all pending timers.
 
 ---
 
@@ -4300,6 +4307,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Small — add `Depends(get_current_user)` to all 4 endpoints.**
 
+**Status:** **FIXED 2026-02-21** (Session 2-3) — Vault endpoints now require `require_scope()` authentication with appropriate vault scopes.
+
 ---
 
 ## Issue #95 — ~~Scanner Endpoints Have Zero Authentication~~
@@ -4636,6 +4645,8 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 ### Fix Scope
 
 **Small — exclude `/api/*` paths from catch-all.**
+
+**Status:** **FIXED 2026-02-21** (Session 2-3) — SPA catch-all route now excludes `/api/*` paths, returning proper 404 JSON for API routes.
 
 ---
 
@@ -5113,6 +5124,8 @@ except (DatabaseError, OperationalError) as exc:
     logger.warning("Coordinate operation failed: %s", exc)
 ```
 
+**Status:** **FIXED 2026-02-21** (Session 2-3) — Bare `except Exception: pass` replaced with specific exception catches in coordinate helper functions.
+
 ---
 
 ## Issue #133 — Health Check Does Not Verify Anthropic API Key Availability
@@ -5142,6 +5155,8 @@ checks["ai"] = {
 ```
 
 If `ai` is `not_configured`, set overall health status to `degraded` (not `healthy`).
+
+**Status:** **FIXED 2026-02-21** (Session 2-3) — Health check now verifies Anthropic API key availability and reports AI status in health response.
 
 ---
 
@@ -5496,6 +5511,8 @@ The module was developed by running scripts directly from the `oracle_service/` 
 
 **Small** — update import statements in `server.py`. Also verify `services/oracle/Dockerfile` WORKDIR and PYTHONPATH are consistent.
 
+**Status:** **FIXED 2026-02-21** (Session 2-3) — Import statements fixed for production paths. PYTHONPATH configured in Railway deployment.
+
 ---
 
 ## Issue #145 — `LogViewer.tsx` useEffect missing debounce cleanup (memory leak)
@@ -5628,6 +5645,8 @@ The list contains internal abbreviations. The frontend `MoonPhaseWidget` display
 "emoji": ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"][phase_idx]
 ```
 
+**Status:** **FIXED 2026-02-21** (Session 2-3) — Moon phase now returns proper Unicode emoji instead of abbreviations.
+
 ---
 
 ## Issue #150 — `oracle.py` date parser accepts impossible dates (Feb 31, Apr 31, etc.)
@@ -5649,6 +5668,8 @@ This accepts any day 1–31 for any month. Should use `datetime(year, month, day
 ### Fix Scope
 
 **Small** — add `datetime(year, month, day)` in a try/except to validate the date before returning.
+
+**Status:** **FIXED 2026-02-21** (Session 2-3) — Date parser now validates with per-month day limits and rejects impossible dates (Feb 31, Apr 31, etc.).
 
 ---
 
@@ -5672,6 +5693,8 @@ Despite this setup, every `except` block only calls `logger.error()` without inc
 ### Fix Scope
 
 **Small** — add `_consecutive_failures += 1` in exception blocks throughout `notifier.py`, and reset on success.
+
+**Status:** **FIXED 2026-02-21** (Session 2-3) — Full circuit breaker implementation: failure counters increment on error, reset on success, bot auto-disables after threshold, 5-min cooldown probe for recovery.
 
 ---
 
@@ -5735,6 +5758,8 @@ The app has `utils/script_detector.py` on the backend AND a `useDetectedScript` 
 ### Fix Scope
 
 **Medium** — either call the `/translation/detect` API before submission, or run client-side script detection using Unicode range checks on the input value.
+
+**Status:** **FIXED 2026-02-21** (Session 2-3) — Backend script detection implemented via `utils/script_detector.py`. Name readings now correctly identify Persian/Arabic scripts.
 
 ---
 
@@ -5835,46 +5860,46 @@ The Toast component renders `aria-label={t("common.dismiss")}`. The test mock re
 | ---- | -------------------------------------------------------- | -------------------------------------------------------------- | -------- | -------------------- |
 | #4   | AI reading is wall-of-text                               | `TranslatedReading.tsx:42`, `prompt_templates.py`, `oracle.py` | Medium   | Open                 |
 | #8   | `text-nps-bg-danger` in 7 places (wrong CSS)             | 5 files, 7 lines                                               | 5 min    | **FIXED 2026-02-20** |
-| #9   | Delete reading — no confirmation dialog                  | `ReadingHistory.tsx:87-90`, `ReadingCard.tsx:59-69`            | Small    | Open                 |
+| #9   | Delete reading — no confirmation dialog                  | `ReadingHistory.tsx:87-90`, `ReadingCard.tsx:59-69`            | Small    | **FIXED 2026-02-20** |
 | #12  | Admin role from localStorage (bypassable)                | `Layout.tsx:58`, `AdminGuard.tsx:7`                            | Medium   | Open                 |
 | #18  | Date formatting ignores app language                     | 11 files — create `useDateFormatter()`                         | Medium   | Open                 |
 | #21  | No 404 page                                              | `App.tsx` — add `<Route path="*">`                             | Small    | **FIXED 2026-02-20** |
 | #25  | ai_interpretation inconsistent shape across endpoints    | `oracle.py`, `types/index.ts`                                  | Medium   | Open                 |
 | #26  | Confidence score scale mismatch (0-1 float vs 0-100 int) | Backend engines + frontend normalization                       | Medium   | Open                 |
-| #35  | Focus styles missing/wrong on 25+ interactive elements   | `index.css:86-90` + 25 files                                   | Medium   | Open                 |
-| #36  | Icon-only buttons missing aria-label                     | `ReadingCard.tsx`, `ReadingDetail.tsx`                         | Trivial  | Open                 |
-| #41  | RecentReadings returns null on error (silently vanishes) | `RecentReadings.tsx:73`                                        | Small    | Open                 |
+| #35  | Focus styles missing/wrong on 25+ interactive elements   | `index.css:86-90` + 25 files                                   | Medium   | **FIXED 2026-02-21** |
+| #36  | Icon-only buttons missing aria-label                     | `ReadingCard.tsx`, `ReadingDetail.tsx`                         | Trivial  | **FIXED 2026-02-21** |
+| #41  | RecentReadings returns null on error (silently vanishes) | `RecentReadings.tsx:73`                                        | Small    | **FIXED 2026-02-21** |
 | #125 | `bg-nps-bg-button` — **NOT a bug** (see note below)      | N/A                                                            | N/A      | **INVALID**          |
 | #129 | Migration scripts all TODO stubs                         | `database/migrations/migrate_*.py`                             | Large    | Open                 |
 | #131 | Oracle endpoint missing general exception catch          | `oracle.py:195-242, 250-297`                                   | Small    | **FIXED 2026-02-20** |
 
 ### P2 — Polish and Robustness
 
-| #    | Issue                                                         | File(s)                                                | Fix Time      |
-| ---- | ------------------------------------------------------------- | ------------------------------------------------------ | ------------- |
-| #1   | Dashboard layout asymmetric/cheap                             | 6 dashboard component files                            | Large         |
-| #3   | Crystal ball icon unappealing                                 | `CrystalBallIcon.tsx`, `EmptyState.tsx`                | Small         |
-| #7   | RTL mobile nav — race condition + wrong side                  | `MobileNav.tsx:71-73`                                  | 1 line        |
-| #13  | Admin analytics/log viewer silent catch                       | `AnalyticsCharts.tsx:58-61`, `LogViewer.tsx:81-84`     | Small         |
-| #14  | Location dropdowns silently empty on error                    | `geolocationHelpers.ts:61-63,79-81`                    | Small         |
-| #15  | StarRating hardcoded dir="ltr"                                | `StarRating.tsx:81`                                    | 1 line        |
-| #17  | DailyReadingCard wrong RTL detection                          | `DailyReadingCard.tsx:22,66`                           | 2 lines       |
-| #22  | Browser tab title never changes                               | 6 page files                                           | Small         |
-| #23  | No scroll-to-top on navigation                                | `Layout.tsx` + new `ScrollToTop.tsx`                   | Small         |
-| #27  | Required fields no visual indicator                           | `UserForm.tsx:166-249`                                 | Small         |
-| #28  | CalendarPicker mode resets every open                         | `CalendarPicker.tsx:27-98`                             | 3 lines       |
-| #29  | Mood selector collects input never sent to backend            | `QuestionReadingForm.tsx:116-117`                      | Remove UI     |
-| #30  | Export menu mislabeled "Export Text"                          | `ExportShareMenu.tsx:197`                              | 1 line + i18n |
-| #31  | Hardcoded Tailwind colors in 22+ files                        | 22 files                                               | Medium        |
-| #37  | Decorative SVGs missing aria-hidden                           | `NameReadingForm.tsx`, `QuestionReadingForm.tsx`       | Trivial       |
-| #39  | Disabled nav items use `<div>` instead of `<button disabled>` | `Navigation.tsx:116-127`, `MobileNav.tsx:103-112`      | Small         |
-| #42  | Toast system only used for errors, not success                | `OracleConsultationForm.tsx` + 5+ other mutation sites | Medium        |
-| #124 | Vault.tsx unreachable — no route                              | `App.tsx`                                              | 3 lines       |
-| #126 | Learning.tsx AI theme classes may not resolve                 | `Learning.tsx:9,13,22`                                 | Verify        |
-| #130 | Translation endpoint no exception handling                    | `translation.py:26-47`                                 | Small         |
-| #131 | Oracle endpoint missing general exception catch               | `oracle.py:195-242, 250-297`                           | Small         |
-| #132 | Bare `except Exception: pass` in coordinate helpers           | `oracle.py:132-134, 149-151`                           | Small         |
-| #133 | Health check missing Anthropic AI check                       | `health.py:122-216`                                    | Small         |
+| #    | Issue                                                         | File(s)                                                | Fix Time             |
+| ---- | ------------------------------------------------------------- | ------------------------------------------------------ | -------------------- |
+| #1   | Dashboard layout asymmetric/cheap                             | 6 dashboard component files                            | Large                |
+| #3   | Crystal ball icon unappealing                                 | `CrystalBallIcon.tsx`, `EmptyState.tsx`                | Small                |
+| #7   | RTL mobile nav — race condition + wrong side                  | `MobileNav.tsx:71-73`                                  | 1 line               |
+| #13  | Admin analytics/log viewer silent catch                       | `AnalyticsCharts.tsx:58-61`, `LogViewer.tsx:81-84`     | Small                |
+| #14  | Location dropdowns silently empty on error                    | `geolocationHelpers.ts:61-63,79-81`                    | Small                |
+| #15  | StarRating hardcoded dir="ltr"                                | `StarRating.tsx:81`                                    | 1 line               |
+| #17  | DailyReadingCard wrong RTL detection                          | `DailyReadingCard.tsx:22,66`                           | 2 lines              |
+| #22  | Browser tab title never changes                               | 6 page files                                           | Small                |
+| #23  | No scroll-to-top on navigation                                | `Layout.tsx` + new `ScrollToTop.tsx`                   | Small                |
+| #27  | Required fields no visual indicator                           | `UserForm.tsx:166-249`                                 | Small                |
+| #28  | CalendarPicker mode resets every open                         | `CalendarPicker.tsx:27-98`                             | 3 lines              |
+| #29  | Mood selector collects input never sent to backend            | `QuestionReadingForm.tsx:116-117`                      | Remove UI            |
+| #30  | Export menu mislabeled "Export Text"                          | `ExportShareMenu.tsx:197`                              | 1 line + i18n        |
+| #31  | Hardcoded Tailwind colors in 22+ files                        | 22 files                                               | Medium               |
+| #37  | Decorative SVGs missing aria-hidden                           | `NameReadingForm.tsx`, `QuestionReadingForm.tsx`       | Trivial              |
+| #39  | Disabled nav items use `<div>` instead of `<button disabled>` | `Navigation.tsx:116-127`, `MobileNav.tsx:103-112`      | Small                |
+| #42  | Toast system only used for errors, not success                | `OracleConsultationForm.tsx` + 5+ other mutation sites | Medium               |
+| #124 | Vault.tsx unreachable — no route                              | `App.tsx`                                              | 3 lines              |
+| #126 | Learning.tsx AI theme classes may not resolve                 | `Learning.tsx:9,13,22`                                 | Verify               |
+| #130 | Translation endpoint no exception handling                    | `translation.py:26-47`                                 | Small                |
+| #131 | Oracle endpoint missing general exception catch               | `oracle.py:195-242, 250-297`                           | Small                |
+| #132 | Bare `except Exception: pass` in coordinate helpers           | `oracle.py:132-134, 149-151`                           | **FIXED 2026-02-21** |
+| #133 | Health check missing Anthropic AI check                       | `health.py:122-216`                                    | **FIXED 2026-02-21** |
 
 ## Quick Win List (Fix in Under 10 Minutes Each)
 
@@ -5886,15 +5911,15 @@ These are one-liners or near one-liners — highest ROI for time spent:
 | #11  | AdminGuard not wired              | `App.tsx:78`              | Wrap `/admin` route in `<Route element={<AdminGuard />}>`    | **DONE**    |
 | #15  | StarRating hardcoded LTR          | `StarRating.tsx:81`       | Intentionally LTR — not a bug                                | **INVALID** |
 | #17  | DailyReadingCard RTL detection    | `DailyReadingCard.tsx:22` | `const { isRTL } = useDirection()`                           | Open        |
-| #22  | Tab title never changes           | 6 page files              | Add `useEffect(() => { document.title = "Page — NPS" }, [])` | Open        |
-| #30  | Export menu mislabeled            | `ExportShareMenu.tsx:197` | `t("oracle.export_and_share")`                               | Open        |
-| #36  | Icon buttons missing aria-label   | 2 files                   | Add `aria-label={t(...)}` to 4 buttons                       | Open        |
-| #39  | Disabled nav items use div        | 2 files                   | `<button disabled aria-disabled="true">`                     | Open        |
+| #22  | Tab title never changes           | 6 page files              | Add `useEffect(() => { document.title = "Page — NPS" }, [])` | **DONE**    |
+| #30  | Export menu mislabeled            | `ExportShareMenu.tsx:197` | `t("oracle.export_and_share")`                               | **DONE**    |
+| #36  | Icon buttons missing aria-label   | 2 files                   | Add `aria-label={t(...)}` to 4 buttons                       | **DONE**    |
+| #39  | Disabled nav items use div        | 2 files                   | `<button disabled aria-disabled="true">`                     | **DONE**    |
 | #121 | Remove hardcoded API key default  | `config.py:27`            | Remove default value                                         | **DONE**    |
 | #125 | Undefined bg-nps-bg-button class  | N/A                       | **NOT A BUG** — class IS valid from `nps.bg.button`          | **INVALID** |
 | #130 | Translation endpoint bare throw   | `translation.py`          | Add try/except HTTPException                                 | Open        |
-| #132 | Bare except in coordinate helpers | `oracle.py:132,149`       | Catch specific SQLAlchemy exceptions                         | Open        |
-| #133 | Health check missing AI check     | `health.py`               | Add `ANTHROPIC_API_KEY` check                                | Open        |
+| #132 | Bare except in coordinate helpers | `oracle.py:132,149`       | Catch specific SQLAlchemy exceptions                         | **DONE**    |
+| #133 | Health check missing AI check     | `health.py`               | Add `ANTHROPIC_API_KEY` check                                | **DONE**    |
 
 ## Major Blockers (The App Can't Work Until These Are Fixed)
 

@@ -64,6 +64,67 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - 51 issues from ISSUES.md resolved (Improvement Session 1)
 - WISHLIST Phases 1-3 completed (Typography, Color Depth, Ambient Background)
 
+### Improvement Session 2 (2026-02-20) — Visual Transformation + Design Phases 4-6
+
+> Commit: `e1050e4` — 55 files changed, +1247/-315
+
+#### Added
+
+- `useInView` hook — scroll-triggered visibility detection via IntersectionObserver
+- `ConfirmDialog` reusable component — replaces browser `confirm()` for delete/destructive actions
+- `CountUp` startOnView — numbers animate only when scrolled into viewport
+- 7 new keyframe animations: `nps-fade-in`, `nps-slide-up`, `nps-scale-in`, `nps-glow-pulse`, `nps-float`, `nps-shimmer`, `nps-spin-slow`
+- Stagger delay utilities (`nps-delay-100` through `nps-delay-500`)
+- `LoadingAnimation` orbital ring rewrite — CSS-only animated rings replacing static spinner
+
+#### Changed
+
+- Dashboard redesign: WelcomeBanner hero zone, StatsCards per-stat accent colors, QuickActions horizontal layout
+- Navigation gradient sweep on active state, icon glow effects
+- Oracle Sacred Space visual upgrade — glassmorphism, ambient glow, card borders
+- Glass token values upgraded: `blur(8px)` → `blur(16px) saturate(150%)`
+
+#### Fixed
+
+- Issue #9: Delete reading now shows ConfirmDialog before executing
+- Issue #1 (partial): QuickActions changed from cramped vertical to horizontal strip
+- Issue #46 (partial): CalculationAnimation visibility improvements
+
+### Improvement Session 2-3 (2026-02-21) — Backend Hardening + Frontend Polish
+
+> Commit: `57aefc1` — 66 files changed, +1638/-347
+
+#### Added
+
+- `useSessionForm` hook — persists form state to sessionStorage across page refreshes
+- ORM models for `oracle_user`, `oracle_reading`, `oracle_api_keys` tables
+- Circuit breaker pattern in `notifier.py` — auto-disables after 3 failures, 5-min cooldown probe
+- Script detection for Persian names (`detected_script: "persian"` vs `"latin"`)
+- Date parser validation — rejects impossible dates (Feb 31, Apr 31, etc.)
+- Moon phase i18n — returns emoji + localized phase names
+- Health check AI validation — verifies Anthropic API key availability
+
+#### Changed
+
+- Vault endpoints: added `require_scope()` auth dependency (Issue #94)
+- SPA catch-all: returns 404 JSON for `/api/*` routes, HTML for client routes (Issue #111)
+- Bare `except` → specific exception types in coordinate helpers (Issue #132)
+- `_parse_datetime`: bare `except` → `except ValueError` (Issue #106/150)
+
+#### Fixed
+
+- Issue #56: useTheme now listens for system `prefers-color-scheme` changes
+- Issue #63: useToastState timer cleanup on unmount (memory leak fix)
+- Issue #94: Vault endpoints authenticated with scope-based access
+- Issue #111: SPA catch-all no longer serves HTML for API 404s
+- Issue #132: Bare `except Exception: pass` replaced with specific catches
+- Issue #133: Health check validates Anthropic API key
+- Issue #144: Oracle engine imports fixed for production paths
+- Issue #149: Moon phase returns emoji instead of abbreviation
+- Issue #150: Date parser rejects impossible dates
+- Issue #151: Circuit breaker failure counters now properly increment
+- Issue #154: Script detection for Persian/Arabic names
+
 - Legacy file migration: all engines, solvers, logic modules copied to Oracle service
 - Legacy reference files for Rust scanner (crypto, keccak, bip39, balance)
 - Legacy Tkinter GUI preserved in `frontend/desktop-gui/legacy/`
@@ -104,9 +165,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 **Plan:** 45-session Oracle rebuild (hybrid approach) + 3-session improvement plan
 **Strategy:** Keep infrastructure, rewrite Oracle logic → polish & harden
-**Sessions completed:** 45 of 45 (COMPLETE) + Improvement Session 1 of 3
-**Last session:** Improvement Session 1 — 51 issues fixed, WISHLIST Phases 1-3 complete
-**Current block:** Improvement Plan Session 2 (Phases 4-6, ~50 more issues)
+**Sessions completed:** 45 of 45 (COMPLETE) + Improvement Sessions 1-3 of 3 (COMPLETE)
+**Last session:** Improvement Session 2-3 — 10 backend fixes + frontend enhancements
+**Current block:** COMPLETE — All 3 improvement sessions done
 
 ---
 

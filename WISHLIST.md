@@ -375,6 +375,8 @@ body {
 
 ### PHASE 4 — GLASSMORPHISM DEEP UPGRADE
 
+**Status: MOSTLY COMPLETE (2026-02-21)** — Glass tokens upgraded (blur tiers, saturate, glass-bg/border/shine variables), card borders with top-edge shine added to theme.css. ~5 components still use old `blur(8px)` pattern directly instead of token references.
+
 #### The Standard Glass Card Pattern
 
 Every card in NPS uses this pattern:
@@ -444,6 +446,8 @@ background: "var(--nps-gradient-oracle)";
 ---
 
 ### PHASE 5 — ANIMATION UPGRADE (Scroll-Triggered)
+
+**Status: MOSTLY COMPLETE (2026-02-21)** — `useInView` hook created, `CountUp` startOnView implemented, 7 new keyframe animations added, stagger delay utilities built. Some components not yet wired to scroll-triggered reveals.
 
 #### Current Problem
 
@@ -623,6 +627,8 @@ Add new duration/easing variables to `:root` in `animations.css`:
 ---
 
 ### PHASE 6 — COMPONENT SURGICAL TRANSFORMATIONS
+
+**Status: MOSTLY COMPLETE (2026-02-21)** — WelcomeBanner hero redesign, StatsCards per-stat accents, QuickActions horizontal layout, DailyReadingCard visual upgrade, RecentReadings type-based styling, Navigation gradient sweep, Oracle Sacred Space done. LoadingAnimation has orbital rings but not the full 5-act cinematic spec.
 
 #### 6.1 WelcomeBanner — From Greeting Card to Hero Sanctuary
 
@@ -929,6 +935,8 @@ const STAT_CONFIG = {
 
 ### PHASE 7 — INTERACTION POLISH
 
+**Status: COMPLETE (2026-02-21)** — `nps-card-hover`, `nps-btn-lift`, `nps-input-focus` utilities applied across components. Button glow hover, card lift effects, input focus glow all implemented.
+
 #### Button Hover States
 
 ```css
@@ -986,6 +994,8 @@ textarea:focus {
 
 ### PHASE 8 — TAILWIND CONFIG UPGRADES
 
+**Status: COMPLETE (2026-02-21)** — fontFamily (display/body/code/persian), stat accent colors, elevated/glass tokens, 7 keyframe animations, animation utilities, and duration tokens all added to Tailwind config.
+
 **FILE: `frontend/tailwind.config.ts`**
 
 ```typescript
@@ -1037,6 +1047,8 @@ keyframes: {
 ---
 
 ### PHASE 9 — RTL/PERSIAN SAFEGUARDS
+
+**Status: COMPLETE (2026-02-21)** — `border-s-*`/`border-e-*` logical properties used, `dir="auto"` on name inputs, Vazirmatn font override preserved for RTL, script detection (`detected_script`) added to backend, `space-x-` replaced with `gap-` for RTL safety.
 
 All design changes must preserve Persian (RTL) support:
 
