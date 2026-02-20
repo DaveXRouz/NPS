@@ -39,8 +39,6 @@ test -d services/oracle/oracle_service/
 # Node (check if node_modules exists)
 test -d frontend/node_modules/
 
-# Rust (check if Cargo.toml exists)
-test -f services/scanner/Cargo.toml
 ```
 **If node_modules missing:** Auto-run `cd frontend && npm install` silently.
 **If Python packages missing:** Auto-run `cd api && pip install -e ".[dev]"` silently.
@@ -94,7 +92,6 @@ After silent checks, determine session mode:
 - Everything in `api/pyproject.toml` [dependencies]
 - Everything in `frontend/package.json` [dependencies + devDependencies]
 - Everything in `services/oracle/pyproject.toml` [dependencies]
-- Everything in `services/scanner/Cargo.toml` [dependencies]
 - Standard development tools: pytest, ruff, black, mypy, eslint, prettier
 
 ### Ask First:
@@ -132,18 +129,11 @@ cd frontend && npx prettier --write <file>
 cd frontend && npx eslint --fix <file>
 ```
 
-**Rust:**
-```bash
-cd services/scanner && cargo fmt
-cargo clippy -- -D warnings
-```
-
 ### On Every Session End:
 ```bash
 # Full project format check
 cd api && black . --check --line-length 100
 cd frontend && npx prettier --check "src/**/*.{ts,tsx}"
-cd services/scanner && cargo fmt --check
 ```
 
 ---

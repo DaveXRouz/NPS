@@ -123,7 +123,7 @@ NPS/
 │   ├── startup.md             Boot protocol + silent checks
 │   ├── workflows.md           Single-terminal + multi-terminal modes
 │   ├── master-workflow.md     All paths through the 45-session build
-│   └── templates.md           File templates (Python, TS, Rust)
+│   └── templates.md           File templates (Python, TS)
 ├── logic/                 ← Algorithm docs + recipes
 │   ├── FC60_ALGORITHM.md      FC60 math + formulas + test vectors
 │   ├── NUMEROLOGY_SYSTEMS.md  Pythagorean + Chaldean + Abjad
@@ -133,7 +133,6 @@ NPS/
 ├── api/                   ← FastAPI gateway
 ├── frontend/              ← React + TypeScript + Tailwind
 ├── services/oracle/       ← Python Oracle service
-├── services/scanner/      ← Rust scanner [STUB]
 ├── database/              ← PostgreSQL schemas + migrations
 ├── integration/           ← 56+ integration tests
 ├── devops/                ← Monitoring + alerts
