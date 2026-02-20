@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import type { DashboardStats } from "@/types";
 import { StatsCard } from "@/components/StatsCard";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
+import { useInView } from "@/hooks/useInView";
 
 interface StatsCardsProps {
   stats?: DashboardStats;
@@ -25,6 +26,7 @@ function formatNumber(value: number, locale: string): string {
 export function StatsCards({ stats, isLoading }: StatsCardsProps) {
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
+  const { ref, inView } = useInView({ threshold: 0.1, triggerOnce: true });
 
   if (isLoading) {
     return (
@@ -36,7 +38,8 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
 
   return (
     <div
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      ref={ref}
+      className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${inView ? "nps-animate-rise-in" : "opacity-0"}`}
       data-testid="stats-cards"
     >
       <StatsCard

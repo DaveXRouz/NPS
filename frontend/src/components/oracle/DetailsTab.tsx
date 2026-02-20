@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import { NumerologyNumberDisplay } from "./NumerologyNumberDisplay";
 import { EmptyState } from "@/components/common/EmptyState";
 import { MoonPhaseIcon } from "@/components/common/icons";
+import { formatAiInterpretation } from "@/utils/formatAiInterpretation";
 import type { ConsultationResult } from "@/types";
 
 interface DetailsTabProps {
@@ -30,7 +31,7 @@ function DetailSection({
       >
         {title}
         <ChevronDown
-          size={14}
+          size={16}
           className={`text-[var(--nps-text-dim)] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>
@@ -287,7 +288,24 @@ function QuestionDetails({
         />
       )}
       {ai_interpretation && (
-        <div className="mt-2 text-xs text-nps-text">{ai_interpretation}</div>
+        <div className="mt-2 space-y-1.5">
+          {formatAiInterpretation(
+            typeof ai_interpretation === "string"
+              ? ai_interpretation
+              : JSON.stringify(ai_interpretation),
+          ).map((section, i) => (
+            <div key={i}>
+              {section.heading && (
+                <h5 className="text-xs font-medium text-nps-text-bright mb-0.5">
+                  {section.heading}
+                </h5>
+              )}
+              <p className="text-xs text-nps-text whitespace-pre-line">
+                {section.body}
+              </p>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -351,7 +369,24 @@ function NameDetails({
       </DetailSection>
 
       {ai_interpretation && (
-        <div className="text-xs text-nps-text">{ai_interpretation}</div>
+        <div className="space-y-1.5">
+          {formatAiInterpretation(
+            typeof ai_interpretation === "string"
+              ? ai_interpretation
+              : JSON.stringify(ai_interpretation),
+          ).map((section, i) => (
+            <div key={i}>
+              {section.heading && (
+                <h5 className="text-xs font-medium text-nps-text-bright mb-0.5">
+                  {section.heading}
+                </h5>
+              )}
+              <p className="text-xs text-nps-text whitespace-pre-line">
+                {section.body}
+              </p>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

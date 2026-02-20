@@ -42,7 +42,7 @@ const TOOLTIP_STYLE = {
   backgroundColor: "rgba(15, 23, 42, 0.9)",
   border: "1px solid rgba(255, 255, 255, 0.1)",
   borderRadius: "8px",
-  backdropFilter: "blur(8px)",
+  backdropFilter: "blur(16px) saturate(150%)",
 };
 
 export function AnalyticsCharts() {
@@ -83,7 +83,7 @@ export function AnalyticsCharts() {
 
   if (error && !analytics) {
     return (
-      <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-nps-error/30 rounded-xl p-8 text-center">
+      <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-nps-error/30 rounded-xl p-8 text-center">
         <p className="text-nps-error text-sm mb-3">{error}</p>
         <button
           onClick={fetchAnalytics}
@@ -118,7 +118,7 @@ export function AnalyticsCharts() {
           <select
             value={days}
             onChange={(e) => setDays(Number(e.target.value))}
-            className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
+            className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
           >
             {PERIODS.map((p) => (
               <option key={p.value} value={p.value}>
@@ -135,7 +135,7 @@ export function AnalyticsCharts() {
         baseDelay={80}
         className="grid grid-cols-2 md:grid-cols-5 gap-4"
       >
-        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-3 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-3 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
           <p className="text-xs text-[var(--nps-text-dim)]">
             {t("admin.monitoring_total_readings")}
           </p>
@@ -143,7 +143,7 @@ export function AnalyticsCharts() {
             {analytics.totals.total_readings}
           </p>
         </div>
-        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-3 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-3 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
           <p className="text-xs text-[var(--nps-text-dim)]">
             {t("admin.monitoring_avg_confidence")}
           </p>
@@ -151,7 +151,7 @@ export function AnalyticsCharts() {
             {analytics.totals.avg_confidence}%
           </p>
         </div>
-        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-3 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-3 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
           <p className="text-xs text-[var(--nps-text-dim)]">
             {t("admin.monitoring_top_type")}
           </p>
@@ -159,7 +159,7 @@ export function AnalyticsCharts() {
             {analytics.totals.most_popular_type || "—"}
           </p>
         </div>
-        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-3 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-3 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
           <p className="text-xs text-[var(--nps-text-dim)]">
             {t("admin.monitoring_peak_hour")}
           </p>
@@ -169,7 +169,7 @@ export function AnalyticsCharts() {
               : "—"}
           </p>
         </div>
-        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-3 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-3 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
           <p className="text-xs text-[var(--nps-text-dim)]">
             {t("admin.monitoring_errors")}
           </p>
@@ -181,7 +181,7 @@ export function AnalyticsCharts() {
 
       {!hasData ? (
         <FadeIn delay={240}>
-          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-8 text-center text-[var(--nps-text-dim)]">
+          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-8 text-center text-[var(--nps-text-dim)]">
             {t("admin.monitoring_no_data")}
           </div>
         </FadeIn>
@@ -189,7 +189,7 @@ export function AnalyticsCharts() {
         <FadeIn delay={240}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Chart 1: Readings Per Day */}
-            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
+            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
               <h3 className="text-sm font-medium text-[var(--nps-text-bright)] mb-3">
                 {t("admin.monitoring_readings_per_day")}
               </h3>
@@ -215,7 +215,7 @@ export function AnalyticsCharts() {
             </div>
 
             {/* Chart 2: Readings By Type */}
-            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
+            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
               <h3 className="text-sm font-medium text-[var(--nps-text-bright)] mb-3">
                 {t("admin.monitoring_readings_by_type")}
               </h3>
@@ -250,7 +250,7 @@ export function AnalyticsCharts() {
             </div>
 
             {/* Chart 3: Confidence Trend */}
-            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
+            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
               <h3 className="text-sm font-medium text-[var(--nps-text-bright)] mb-3">
                 {t("admin.monitoring_confidence_trend")}
               </h3>
@@ -294,7 +294,7 @@ export function AnalyticsCharts() {
             </div>
 
             {/* Chart 4: Popular Hours */}
-            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
+            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
               <h3 className="text-sm font-medium text-[var(--nps-text-bright)] mb-3">
                 {t("admin.monitoring_popular_hours")}
               </h3>

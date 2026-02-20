@@ -32,7 +32,7 @@ export default function GanzhiDisplay({
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold">{ganzhi.year.animal_name}</span>
             <span
-              className="inline-block px-2 py-0.5 rounded text-xs font-semibold text-white"
+              className="inline-block px-2 py-0.5 rounded-full text-xs font-semibold text-[var(--nps-text-bright)]"
               style={{
                 backgroundColor:
                   ELEMENT_COLORS[ganzhi.year.element] ||
@@ -43,9 +43,9 @@ export default function GanzhiDisplay({
             </span>
             <span className="text-sm text-nps-text-dim inline-flex items-center gap-1">
               {ganzhi.year.polarity === "Yang" ? (
-                <Sun size={14} />
+                <Sun size={16} />
               ) : (
-                <Moon size={14} />
+                <Moon size={16} />
               )}
               {ganzhi.year.polarity}
             </span>
@@ -74,7 +74,7 @@ export default function GanzhiDisplay({
             <div className="flex items-center gap-2">
               <span className="font-semibold">{ganzhi.day.animal_name}</span>
               <span
-                className="inline-block px-1.5 py-0.5 rounded text-xs font-semibold text-white"
+                className="inline-block px-1.5 py-0.5 rounded-full text-xs font-semibold text-[var(--nps-text-bright)]"
                 style={{
                   backgroundColor:
                     ELEMENT_COLORS[ganzhi.day.element] ||

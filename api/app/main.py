@@ -13,12 +13,14 @@ from fastapi.staticfiles import StaticFiles
 
 import app.orm.api_key  # noqa: F401
 import app.orm.audit_log  # noqa: F401
+import app.orm.finding  # noqa: F401
 import app.orm.oracle_feedback  # noqa: F401
 import app.orm.oracle_reading  # noqa: F401
 import app.orm.oracle_settings  # noqa: F401
 
 # Import ORM models so Base.metadata knows all tables
 import app.orm.oracle_user  # noqa: F401
+import app.orm.session  # noqa: F401
 import app.orm.share_link  # noqa: F401
 import app.orm.telegram_daily_preference  # noqa: F401
 import app.orm.telegram_link  # noqa: F401
@@ -97,6 +99,13 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("Redis unavailable (non-fatal): %s", exc)
         app.state.redis = None
+
+    # Wire Redis into JWT blacklist for cross-process persistence
+    if app.state.redis is not None:
+        from app.middleware.auth import init_blacklist_redis
+
+        init_blacklist_redis(app.state.redis)
+        logger.info("JWT blacklist connected to Redis")
 
     # Probe Oracle gRPC channel (graceful fallback)
     app.state.oracle_channel = None

@@ -44,7 +44,7 @@ export function OracleSettingsSection() {
         <select
           value={currentType}
           onChange={(e) => save("default_reading_type", e.target.value)}
-          className="nps-input-focus w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright"
+          className="nps-input-focus w-full px-3 py-2 text-sm bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text-bright)] transition-all duration-300"
         >
           {READING_TYPES.map((type) => (
             <option key={type} value={type}>

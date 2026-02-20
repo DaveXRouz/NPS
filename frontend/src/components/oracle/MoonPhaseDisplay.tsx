@@ -19,7 +19,7 @@ const ENERGY_COLORS: Record<string, { text: string; bg: string }> = {
   Culminate: { text: "#facc15", bg: "rgba(234,179,8,0.15)" },
   Share: { text: "#2dd4bf", bg: "rgba(20,184,166,0.15)" },
   Release: { text: "#fb923c", bg: "rgba(249,115,22,0.15)" },
-  Rest: { text: "#a1a1aa", bg: "rgba(161,161,170,0.15)" },
+  Rest: { text: "var(--nps-text-dim)", bg: "var(--nps-bg-input)" },
 };
 
 export default function MoonPhaseDisplay({
@@ -28,7 +28,7 @@ export default function MoonPhaseDisplay({
 }: MoonPhaseDisplayProps) {
   const { t } = useTranslation();
   const illumination = Math.max(0, Math.min(100, moon.illumination));
-  const energyColor = ENERGY_COLORS[moon.energy] || {
+  const energyColor = ENERGY_COLORS[moon.energy] ?? {
     text: "var(--nps-text-dim)",
     bg: "var(--nps-bg-input)",
   };

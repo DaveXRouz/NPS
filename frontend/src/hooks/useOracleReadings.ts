@@ -135,6 +135,7 @@ export function useDeleteReading() {
       qc.invalidateQueries({ queryKey: HISTORY_KEY });
       qc.invalidateQueries({ queryKey: STATS_KEY });
     },
+    retry: false,
   });
 }
 
@@ -146,6 +147,7 @@ export function useToggleFavorite() {
       qc.invalidateQueries({ queryKey: HISTORY_KEY });
       qc.invalidateQueries({ queryKey: STATS_KEY });
     },
+    retry: false,
   });
 }
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { admin as adminApi } from "@/services/api";
+import { useFormattedDate } from "@/hooks/useFormattedDate";
 import { FadeIn } from "@/components/common/FadeIn";
 import type {
   BackupInfo,
@@ -11,44 +12,19 @@ import type {
   BackupDeleteResponse,
 } from "@/types";
 
-const TYPE_BADGES: Record<string, { color: string; label: string }> = {
-  oracle_full: {
-    color: "var(--nps-accent)",
-    label: "Oracle Full",
-  },
-  oracle_data: {
-    color: "#06b6d4",
-    label: "Oracle Data",
-  },
-  full_database: {
-    color: "#a855f7",
-    label: "Full DB",
-  },
+const TYPE_BADGE_COLORS: Record<string, string> = {
+  oracle_full: "var(--nps-accent)",
+  oracle_data: "#06b6d4",
+  full_database: "#a855f7",
 };
 
 const DEFAULT_BADGE = {
   color: "var(--nps-status-unknown)",
 };
 
-function formatRelativeTime(
-  isoDate: string,
-  t: (key: string, opts?: Record<string, unknown>) => string,
-): string {
-  const date = new Date(isoDate);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return t("common.just_now");
-  if (diffMin < 60) return t("common.minutes_ago", { count: diffMin });
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return t("common.hours_ago", { count: diffHr });
-  const diffDays = Math.floor(diffHr / 24);
-  if (diffDays < 7) return t("common.days_ago", { count: diffDays });
-  return date.toLocaleDateString();
-}
-
 export function BackupManager() {
   const { t } = useTranslation();
+  const { formatRelativeTime, formatDateTime } = useFormattedDate();
   const queryClient = useQueryClient();
 
   const { data: backupList, isLoading } = useQuery<BackupListResponse>({
@@ -169,7 +145,7 @@ export function BackupManager() {
                 : t("admin.trigger_backup")}
             </button>
             {showCreateMenu && (
-              <div className="absolute end-0 mt-2 w-52 bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl shadow-lg z-10 overflow-hidden">
+              <div className="absolute end-0 mt-2 w-52 bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl shadow-lg z-20 overflow-hidden">
                 {[
                   {
                     type: "oracle_full",
@@ -203,7 +179,7 @@ export function BackupManager() {
         <FadeIn delay={0}>
           <div
             role="alert"
-            className="px-4 py-3 rounded-xl text-sm font-medium backdrop-blur-sm border"
+            className="px-4 py-3 rounded-xl text-sm font-medium backdrop-blur-[var(--nps-glass-blur-sm)] border"
             style={{
               color:
                 statusMessage.type === "success"
@@ -220,7 +196,7 @@ export function BackupManager() {
 
       {/* Schedule info */}
       <FadeIn delay={80}>
-        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4">
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4">
           <h3 className="text-sm font-medium text-[var(--nps-text-bright)] mb-2">
             {t("admin.backup_schedule")}
           </h3>
@@ -242,16 +218,16 @@ export function BackupManager() {
             {t("common.loading")}
           </div>
         ) : backups.length === 0 ? (
-          <div className="text-center py-8 text-[var(--nps-text-dim)] bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl">
+          <div className="text-center py-8 text-[var(--nps-text-dim)] bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl">
             {t("admin.no_backups")}
           </div>
         ) : (
-          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl overflow-hidden">
+          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--nps-glass-border)]">
                   <th className="text-start px-4 py-3 text-xs text-[var(--nps-text-dim)] font-medium">
-                    Filename
+                    {t("admin.backup_filename")}
                   </th>
                   <th className="text-start px-4 py-3 text-xs text-[var(--nps-text-dim)] font-medium">
                     {t("admin.backup_type")}
@@ -269,9 +245,12 @@ export function BackupManager() {
               </thead>
               <tbody>
                 {backups.map((backup: BackupInfo) => {
-                  const badge = TYPE_BADGES[backup.type];
-                  const badgeColor = badge?.color ?? DEFAULT_BADGE.color;
-                  const badgeLabel = badge?.label ?? backup.type;
+                  const badgeColor =
+                    TYPE_BADGE_COLORS[backup.type] ?? DEFAULT_BADGE.color;
+                  const badgeLabel = t(
+                    `admin.backup_type_${backup.type}`,
+                    backup.type,
+                  );
                   return (
                     <tr
                       key={backup.filename}
@@ -297,9 +276,9 @@ export function BackupManager() {
                       </td>
                       <td
                         className="px-4 py-3 text-[var(--nps-text-dim)]"
-                        title={new Date(backup.timestamp).toLocaleString()}
+                        title={formatDateTime(backup.timestamp)}
                       >
-                        {formatRelativeTime(backup.timestamp, t)}
+                        {formatRelativeTime(backup.timestamp)}
                       </td>
                       <td className="px-4 py-3 text-[var(--nps-text-dim)]">
                         {backup.size_human}
@@ -346,10 +325,10 @@ export function BackupManager() {
       {/* Restore confirmation modal */}
       {restoreTarget && (
         <div
-          className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 flex items-center justify-center bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)]"
           style={{ zIndex: "var(--nps-z-modal)" }}
         >
-          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-6 max-w-md w-full mx-4 shadow-[0_0_24px_var(--nps-glass-glow)]">
+          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-6 max-w-md w-full mx-4 shadow-[0_0_24px_var(--nps-glass-glow)]">
             <h3 className="text-lg font-semibold text-[var(--nps-text-bright)] mb-2">
               {t("admin.backup_confirm_restore_title")}
             </h3>
@@ -364,7 +343,7 @@ export function BackupManager() {
               value={restoreConfirmText}
               onChange={(e) => setRestoreConfirmText(e.target.value)}
               placeholder="RESTORE"
-              className="nps-input-focus w-full px-3 py-2 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-sm text-[var(--nps-text)] mb-4"
+              className="nps-input-focus w-full px-3 py-2 bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg text-sm text-[var(--nps-text)] mb-4"
             />
             <div className="flex justify-end gap-2">
               <button
@@ -372,7 +351,7 @@ export function BackupManager() {
                   setRestoreTarget(null);
                   setRestoreConfirmText("");
                 }}
-                className="px-4 py-2 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
+                className="px-4 py-2 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
               >
                 {t("common.cancel")}
               </button>
@@ -396,10 +375,10 @@ export function BackupManager() {
       {/* Delete confirmation modal */}
       {deleteTarget && (
         <div
-          className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 flex items-center justify-center bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)]"
           style={{ zIndex: "var(--nps-z-modal)" }}
         >
-          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-6 max-w-md w-full mx-4 shadow-[0_0_24px_var(--nps-glass-glow)]">
+          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-6 max-w-md w-full mx-4 shadow-[0_0_24px_var(--nps-glass-glow)]">
             <h3 className="text-lg font-semibold text-[var(--nps-text-bright)] mb-2">
               {t("admin.delete_backup")}
             </h3>
@@ -409,7 +388,7 @@ export function BackupManager() {
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setDeleteTarget(null)}
-                className="px-4 py-2 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
+                className="px-4 py-2 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
               >
                 {t("common.cancel")}
               </button>

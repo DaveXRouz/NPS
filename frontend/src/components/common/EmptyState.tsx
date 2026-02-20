@@ -47,10 +47,13 @@ export function EmptyState({
     >
       <span
         className="mb-3 text-[var(--nps-accent)]"
-        style={{ filter: "drop-shadow(0 0 8px var(--nps-accent))" }}
+        style={{
+          filter:
+            "drop-shadow(0 0 12px var(--nps-accent)) drop-shadow(0 0 24px color-mix(in srgb, var(--nps-accent) 40%, transparent))",
+        }}
         aria-hidden="true"
       >
-        <IconComponent size={56} />
+        <IconComponent size={64} />
       </span>
       <p className="text-sm font-medium text-nps-text mb-1">{title}</p>
       {description && (
@@ -60,7 +63,7 @@ export function EmptyState({
         <button
           type="button"
           onClick={action.onClick}
-          className="mt-3 px-4 py-2 text-sm bg-nps-bg-button text-white rounded hover:opacity-90 transition-opacity"
+          className="mt-3 px-4 py-2 text-sm bg-nps-bg-button text-white rounded-lg hover:opacity-90 transition-opacity duration-300"
         >
           {action.label}
         </button>

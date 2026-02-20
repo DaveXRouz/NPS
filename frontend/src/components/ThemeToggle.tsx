@@ -8,7 +8,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="flex items-center justify-center w-8 h-8 rounded border border-[var(--nps-border)] hover:border-[var(--nps-accent)] transition-colors"
+      className="flex items-center justify-center min-w-[44px] min-h-[44px] w-11 h-11 rounded-lg border border-[var(--nps-border)] hover:border-[var(--nps-accent)] transition-colors duration-300"
       aria-label={t("layout.theme_toggle")}
     >
       {resolvedTheme === "dark" ? (

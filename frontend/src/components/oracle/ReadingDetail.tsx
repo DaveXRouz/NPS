@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Star } from "lucide-react";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { useFormattedDate } from "@/hooks/useFormattedDate";
+import { formatAiInterpretation } from "@/utils/formatAiInterpretation";
 import type { StoredReading } from "@/types";
 
 interface ReadingDetailProps {
@@ -18,10 +20,11 @@ export function ReadingDetail({
   onDelete,
 }: ReadingDetailProps) {
   const { t } = useTranslation();
+  const { formatDateTime } = useFormattedDate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   return (
-    <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-6 space-y-4 shadow-lg">
+    <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-6 space-y-4 shadow-lg">
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         title={t("oracle.delete_reading")}
@@ -43,7 +46,7 @@ export function ReadingDetail({
             {reading.sign_type}
           </span>
           <span className="text-xs text-nps-text-dim">
-            {new Date(reading.created_at).toLocaleString()}
+            {formatDateTime(reading.created_at)}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -100,9 +103,24 @@ export function ReadingDetail({
           <h4 className="text-[10px] text-nps-text-dim uppercase tracking-wider mb-1">
             {t("oracle.ai_interpretation")}
           </h4>
-          <p className="text-xs text-nps-text whitespace-pre-line">
-            {reading.ai_interpretation}
-          </p>
+          <div className="space-y-2">
+            {formatAiInterpretation(
+              typeof reading.ai_interpretation === "string"
+                ? reading.ai_interpretation
+                : JSON.stringify(reading.ai_interpretation),
+            ).map((section, i) => (
+              <div key={i}>
+                {section.heading && (
+                  <h5 className="text-xs font-medium text-nps-text-bright mb-0.5">
+                    {section.heading}
+                  </h5>
+                )}
+                <p className="text-xs text-nps-text whitespace-pre-line">
+                  {section.body}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

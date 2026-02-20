@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useFormattedDate } from "@/hooks/useFormattedDate";
 
 interface ReadingHeaderProps {
   userName: string;
@@ -26,9 +27,10 @@ export function ReadingHeader({
   confidence,
 }: ReadingHeaderProps) {
   const { t } = useTranslation();
+  const { formatDateLocale } = useFormattedDate();
 
   const badgeConfig = TYPE_BADGES[readingType] ?? TYPE_BADGES.reading;
-  const formattedDate = new Date(readingDate).toLocaleDateString();
+  const formattedDate = formatDateLocale(readingDate);
   const typeLabel =
     readingType === "reading"
       ? t("oracle.type_reading")

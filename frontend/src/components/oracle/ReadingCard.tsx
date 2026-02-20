@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Star } from "lucide-react";
+import { useFormattedDate } from "@/hooks/useFormattedDate";
 import type { StoredReading } from "@/types";
 
 interface ReadingCardProps {
@@ -25,12 +26,13 @@ export function ReadingCard({
   onDelete,
 }: ReadingCardProps) {
   const { t } = useTranslation();
+  const { formatDateLocale } = useFormattedDate();
 
   const typeClass =
     TYPE_COLORS[reading.sign_type] ?? "bg-nps-bg-input text-nps-text-dim";
   const displayText =
     reading.question || reading.sign_value || reading.sign_type;
-  const dateStr = new Date(reading.created_at).toLocaleDateString();
+  const dateStr = formatDateLocale(reading.created_at);
 
   return (
     <div
@@ -89,8 +91,10 @@ export function ReadingCard({
       >
         <p className="text-xs text-nps-text truncate">{displayText}</p>
         {reading.ai_interpretation && (
-          <p className="mt-1 text-[10px] text-nps-text-dim line-clamp-2">
-            {reading.ai_interpretation}
+          <p className="mt-1 text-[10px] text-nps-text-dim line-clamp-2 whitespace-pre-line">
+            {typeof reading.ai_interpretation === "string"
+              ? reading.ai_interpretation
+              : ""}
           </p>
         )}
       </button>

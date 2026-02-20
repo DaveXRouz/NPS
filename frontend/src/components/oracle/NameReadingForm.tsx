@@ -18,6 +18,7 @@ interface NameReadingFormProps {
   userMotherNamePersian?: string;
   onResult: (result: NameReading) => void;
   onError?: (error: string) => void;
+  onLoadingChange?: (loading: boolean) => void;
   abortControllerRef?: React.MutableRefObject<AbortController | null>;
 }
 
@@ -29,6 +30,7 @@ export function NameReadingForm({
   userMotherNamePersian,
   onResult,
   onError,
+  onLoadingChange,
   abortControllerRef,
 }: NameReadingFormProps) {
   const { t, i18n } = useTranslation();
@@ -108,6 +110,7 @@ export function NameReadingForm({
         abortControllerRef.current = controller;
       }
 
+      onLoadingChange?.(true);
       mutation.mutate(
         {
           name: trimmedName,
@@ -123,6 +126,7 @@ export function NameReadingForm({
             onResult(data);
           },
           onError: (err) => {
+            onLoadingChange?.(false);
             // Silently ignore abort errors
             if (err instanceof DOMException && err.name === "AbortError")
               return;
@@ -204,6 +208,7 @@ export function NameReadingForm({
               placeholder={t("oracle.name_input_placeholder")}
               className={inputClasses}
               disabled={mutation.isPending}
+              aria-describedby={error ? "name-form-error" : undefined}
               data-testid="name-input"
             />
             <button
@@ -391,6 +396,7 @@ export function NameReadingForm({
       <div aria-live="polite">
         {error && (
           <p
+            id="name-form-error"
             className="text-xs text-nps-error"
             role="alert"
             data-testid="name-error"

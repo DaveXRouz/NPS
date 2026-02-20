@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useToast } from "@/hooks/useToast";
 import { FadeIn } from "@/components/common/FadeIn";
 import { SlideIn } from "@/components/common/SlideIn";
 import {
@@ -37,6 +38,7 @@ const VALID_TYPES: ReadingType[] = [
 
 export default function Oracle() {
   const { t } = useTranslation();
+  const { addToast } = useToast();
   usePageTitle("oracle.title");
   const [searchParams, setSearchParams] = useSearchParams();
   const rawType = searchParams.get("type");
@@ -73,15 +75,24 @@ export default function Oracle() {
     setIsLoading(false);
   }, []);
 
-  // Restore persisted primary user on load
+  // Restore persisted primary user on load, or clear if user was deleted
   useEffect(() => {
-    if (users.length === 0 || selectedUsers) return;
-    const stored = localStorage.getItem(SELECTED_USER_KEY);
-    if (stored) {
-      const user = users.find((u) => u.id === Number(stored));
-      if (user) {
-        setSelectedUsers({ primary: user, secondary: [] });
+    if (users.length === 0) return;
+    if (!selectedUsers) {
+      // Restore from localStorage
+      const stored = localStorage.getItem(SELECTED_USER_KEY);
+      if (stored) {
+        const user = users.find((u) => u.id === Number(stored));
+        if (user) {
+          setSelectedUsers({ primary: user, secondary: [] });
+        }
       }
+    } else if (
+      selectedUsers.primary &&
+      !users.find((u) => u.id === selectedUsers.primary.id)
+    ) {
+      // Clear selection if primary user no longer exists
+      setSelectedUsers(null);
     }
   }, [users, selectedUsers]);
 
@@ -94,17 +105,6 @@ export default function Oracle() {
     }
   }, [selectedUsers]);
 
-  // Clear selection if primary user no longer exists
-  useEffect(() => {
-    if (
-      selectedUsers?.primary &&
-      users.length > 0 &&
-      !users.find((u) => u.id === selectedUsers.primary.id)
-    ) {
-      setSelectedUsers(null);
-    }
-  }, [users, selectedUsers]);
-
   const primaryUser = selectedUsers?.primary ?? null;
 
   function handleCreate(data: OracleUserCreate) {
@@ -114,6 +114,11 @@ export default function Oracle() {
         setSelectedUsers({ primary: newUser, secondary: [] });
         setFormMode(null);
         setFormError(null);
+        addToast({
+          type: "success",
+          message: t("oracle.profile_created"),
+          duration: 3000,
+        });
       },
       onError: (err) => setFormError(err.message),
     });
@@ -128,6 +133,11 @@ export default function Oracle() {
         onSuccess: () => {
           setFormMode(null);
           setFormError(null);
+          addToast({
+            type: "success",
+            message: t("oracle.profile_updated"),
+            duration: 3000,
+          });
         },
         onError: (err) => setFormError(err.message),
       },
@@ -153,6 +163,11 @@ export default function Oracle() {
     setConsultationResult(result);
     setIsLoading(false);
     setResultKey((k) => k + 1);
+    addToast({
+      type: "success",
+      message: t("oracle.reading_complete"),
+      duration: 3000,
+    });
     requestAnimationFrame(() => {
       resultsRef.current?.scrollIntoView({
         behavior: "smooth",
@@ -174,7 +189,7 @@ export default function Oracle() {
       <aside className="w-full md:w-72 lg:w-80 md:flex-shrink-0 md:sticky md:top-6 md:self-start space-y-4">
         {/* User Profile Card */}
         <FadeIn delay={0}>
-          <section className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-lg p-4 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300">
+          <section className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300">
             <h3 className="text-sm font-semibold text-[var(--nps-accent)] mb-3">
               {t("oracle.user_profile")}
             </h3>
@@ -205,7 +220,7 @@ export default function Oracle() {
                           secondary: [],
                         });
                     }}
-                    className="bg-[var(--nps-bg-input)] border border-[var(--nps-border)] text-[var(--nps-text)] rounded px-3 py-2 text-sm w-full sm:w-auto sm:min-w-[160px] min-h-[44px] sm:min-h-0 focus:outline-none focus:border-[var(--nps-accent)]"
+                    className="bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] text-[var(--nps-text)] rounded-lg px-3 py-2 text-sm w-full sm:w-auto sm:min-w-[160px] min-h-[44px] sm:min-h-0 focus:outline-none focus:border-[var(--nps-accent)] transition-all duration-300"
                     aria-label={t("oracle.select_profile")}
                   >
                     <option value="">
@@ -250,7 +265,7 @@ export default function Oracle() {
 
         {/* Reading Type Card */}
         <FadeIn delay={100}>
-          <section className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-lg p-4 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300">
+          <section className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300">
             <h3 className="text-sm font-semibold text-[var(--nps-accent)] mb-3">
               {t("oracle.reading_type")}
             </h3>
@@ -270,7 +285,7 @@ export default function Oracle() {
           <section
             id="oracle-form-panel"
             role="tabpanel"
-            className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-lg p-4 lg:p-6 min-h-[200px] md:min-h-[300px] hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300"
+            className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-lg p-4 lg:p-6 min-h-[200px] md:min-h-[300px] hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300"
           >
             <h3 className="text-sm font-semibold text-[var(--nps-accent)] mb-4">
               {t(`oracle.type_${readingType}_title`)}
@@ -307,7 +322,7 @@ export default function Oracle() {
         <SlideIn key={resultKey} from="bottom">
           <section
             ref={resultsRef}
-            className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-lg p-4 lg:p-6 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300"
+            className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-lg p-4 lg:p-6 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300"
           >
             <h3 className="text-sm font-semibold text-[var(--nps-accent)] mb-3">
               {t("oracle.reading_results")}

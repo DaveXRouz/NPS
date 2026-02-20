@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { adminHealth } from "@/services/api";
+import { useFormattedDate } from "@/hooks/useFormattedDate";
 import { FadeIn } from "@/components/common/FadeIn";
 import type { AuditLogEntry } from "@/types";
 
@@ -34,27 +35,9 @@ function SeverityBadge({ severity }: { severity: string }) {
   );
 }
 
-function formatTimestamp(iso: string): string {
-  const d = new Date(iso);
-  const today = new Date();
-  const isToday =
-    d.getFullYear() === today.getFullYear() &&
-    d.getMonth() === today.getMonth() &&
-    d.getDate() === today.getDate();
-  if (isToday) {
-    return d.toLocaleTimeString(undefined, { hour12: false });
-  }
-  return d.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
-
 export function LogViewer() {
   const { t } = useTranslation();
+  const { formatDateTime } = useFormattedDate();
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
@@ -130,7 +113,7 @@ export function LogViewer() {
           <select
             value={severity}
             onChange={(e) => setSeverity(e.target.value)}
-            className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
+            className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
           >
             <option value="">{t("admin.monitoring_all_severities")}</option>
             <option value="info">{t("admin.log_severity_info")}</option>
@@ -144,13 +127,13 @@ export function LogViewer() {
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder={t("admin.monitoring_search_logs")}
-            className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--nps-text)] w-48 placeholder:text-[var(--nps-text-dim)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
+            className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--nps-text)] w-48 placeholder:text-[var(--nps-text-dim)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
           />
 
           <select
             value={hours}
             onChange={(e) => setHours(Number(e.target.value))}
-            className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
+            className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg px-3 py-1.5 text-sm text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
           >
             {TIME_WINDOWS.map((tw) => (
               <option key={tw.value} value={tw.value}>
@@ -161,7 +144,7 @@ export function LogViewer() {
 
           <button
             onClick={() => fetchLogs(offset, search)}
-            className="px-3 py-2 min-h-[44px] bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-sm text-[var(--nps-text-dim)] hover:text-[var(--nps-text-bright)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
+            className="px-3 py-2 min-h-[44px] bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg text-sm text-[var(--nps-text-dim)] hover:text-[var(--nps-text-bright)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
           >
             {t("common.refresh")}
           </button>
@@ -170,7 +153,7 @@ export function LogViewer() {
 
       {/* Log table */}
       <FadeIn delay={80}>
-        <div className="overflow-x-auto bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl">
+        <div className="overflow-x-auto bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl">
           <table className="w-full font-mono text-sm">
             <thead>
               <tr className="border-b border-[var(--nps-glass-border)] text-[var(--nps-text-dim)] text-xs">
@@ -236,7 +219,7 @@ export function LogViewer() {
                       className="border-b border-[var(--nps-glass-border)]/50 hover:bg-[var(--nps-glass-glow)] cursor-pointer text-[var(--nps-text)] transition-colors duration-150"
                     >
                       <td className="py-1.5 px-3 whitespace-nowrap">
-                        {log.timestamp ? formatTimestamp(log.timestamp) : "—"}
+                        {log.timestamp ? formatDateTime(log.timestamp) : "—"}
                       </td>
                       <td className="py-1.5 px-3">
                         <SeverityBadge severity={log.severity} />
@@ -266,7 +249,7 @@ export function LogViewer() {
                           colSpan={6}
                           className="py-2 px-4 bg-[var(--nps-glass-glow)]"
                         >
-                          <pre className="font-mono text-xs text-[var(--nps-text-dim)] overflow-x-auto p-3 bg-black/30 backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg">
+                          <pre className="font-mono text-xs text-[var(--nps-text-dim)] overflow-x-auto p-3 bg-black/30 backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg">
                             {JSON.stringify(log.details, null, 2)}
                           </pre>
                         </td>
@@ -290,14 +273,14 @@ export function LogViewer() {
             <button
               disabled={offset === 0}
               onClick={() => handlePageChange(Math.max(0, offset - PAGE_SIZE))}
-              className="px-3 py-2 min-h-[44px] bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-sm hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
+              className="px-3 py-2 min-h-[44px] bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg text-sm hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
             >
               {t("common.prev")}
             </button>
             <button
               disabled={offset + PAGE_SIZE >= total}
               onClick={() => handlePageChange(offset + PAGE_SIZE)}
-              className="px-3 py-2 min-h-[44px] bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-sm hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
+              className="px-3 py-2 min-h-[44px] bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg text-sm hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
             >
               {t("common.next")}
             </button>

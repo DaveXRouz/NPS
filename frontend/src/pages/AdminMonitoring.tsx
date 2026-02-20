@@ -22,7 +22,7 @@ export function AdminMonitoring() {
     <div className="space-y-6">
       <FadeIn delay={0}>
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-[var(--nps-text-bright)]">
+          <h2 className="text-2xl font-bold text-[var(--nps-text-bright)]">
             {t("admin.monitoring_system_monitoring")}
           </h2>
         </div>

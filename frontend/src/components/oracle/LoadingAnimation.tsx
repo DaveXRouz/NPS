@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
@@ -17,6 +18,23 @@ export function LoadingAnimation({
   const { t } = useTranslation();
   const reduced = useReducedMotion();
   const progressPct = total > 0 ? (step / total) * 100 : 0;
+
+  // Typewriter effect state
+  const [displayedChars, setDisplayedChars] = useState(0);
+  const prevMessageRef = useRef(message);
+
+  useEffect(() => {
+    if (message !== prevMessageRef.current) {
+      setDisplayedChars(0);
+      prevMessageRef.current = message;
+    }
+  }, [message]);
+
+  useEffect(() => {
+    if (reduced || displayedChars >= message.length) return;
+    const timer = setTimeout(() => setDisplayedChars((c) => c + 1), 30);
+    return () => clearTimeout(timer);
+  }, [displayedChars, message, reduced]);
 
   return (
     <div
@@ -97,7 +115,9 @@ export function LoadingAnimation({
 
       {/* Typewriter message */}
       <p className="text-sm text-[var(--nps-text)] flex items-center gap-0.5">
-        <span>{message}</span>
+        <span className="overflow-hidden whitespace-nowrap">
+          {reduced ? message : message.slice(0, displayedChars)}
+        </span>
         <span
           className="inline-block w-[2px] h-4 bg-[var(--nps-accent)] nps-animate-cursor-blink"
           aria-hidden="true"
@@ -126,12 +146,12 @@ export function LoadingAnimation({
             return (
               <span
                 key={i}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                className={`rounded-full transition-all duration-300 ${
                   isPast
-                    ? "bg-[var(--nps-accent)]"
+                    ? "w-2 h-2 bg-[var(--nps-accent)]"
                     : isCurrent
-                      ? "bg-[var(--nps-accent)] shadow-[0_0_6px_var(--nps-accent)]"
-                      : "bg-[var(--nps-border)]"
+                      ? "w-3 h-3 bg-[var(--nps-accent)] shadow-[0_0_6px_var(--nps-accent)]"
+                      : "w-2 h-2 bg-[var(--nps-border)]"
                 }`}
                 aria-hidden="true"
               />

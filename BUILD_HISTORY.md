@@ -90,6 +90,71 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Issue #1 (partial): QuickActions changed from cramped vertical to horizontal strip
 - Issue #46 (partial): CalculationAnimation visibility improvements
 
+### Session 4 (2026-02-21) — Final Polish: i18n, UX, Backend, Tests
+
+> 70+ files changed across frontend, API, and Oracle service
+
+#### Added
+
+- `useFormattedDate` hook — locale-aware date formatting via `Intl.DateTimeFormat` (Issue #18)
+- `useDateFormatter` — `formatDate()`, `formatDateTime()`, `formatRelativeTime()` for 11 components
+- Vault ORM models: `Finding` (findings table), `Session` (sessions table) with SQLite/PostgreSQL compatibility
+- `PlatformARRAY` TypeDecorator — uses ARRAY(Text) on PostgreSQL, JSON on SQLite
+- Vault endpoints implemented: GET /findings, GET /summary, GET /search, POST /export (Issue #127)
+- Learning page functional: level/XP display, insights, patterns, analyze button, glass styling (Issue #136)
+- Vault route added to App.tsx (Issue #124)
+- Scroll-triggered animations: RecentReadings, ReadingSection, SummaryTab using `useInView` + `nps-animate-rise-in`
+- SummaryTab number reveal on scroll entry
+- Success toasts on reading submission, save settings, create profile (Issue #42)
+- `aria-describedby` on TimeReadingForm, NameReadingForm, QuestionReadingForm error messages (Issue #38)
+- 56 new tests: 18 vault, 9 learning stubs, 20 AI prompt builder, 9 daily scheduler
+
+#### Changed
+
+- CrystalBallIcon redesigned with gradient fill + highlights (Issue #3)
+- Border-radius standardized: `rounded-xl` cards, `rounded-lg` inputs, `rounded-full` badges (Issue #33)
+- Icon sizes standardized: `w-4 h-4` inline, `w-5 h-5` nav, `w-6 h-6` feature icons (Issue #34)
+- Touch targets minimum 44px: ThemeToggle, ExportShareMenu, ReadingCard actions (Issue #91)
+- Page heading sizes consistent across sibling pages (Issue #89)
+- DailyReadingCard permanent `animate-pulse` → `nps-animate-glow-pulse` (Issue #90)
+- GanzhiDisplay: `text-white` → token, `bg-gray-400` → token (Issue #140)
+- MoonPhaseDisplay: gray → tokens (Issue #141)
+- BackupManager overlay: `bg-black/70` → glass overlay (Issue #142)
+- HealthDashboard: differentiated "not connected" status colors (Issue #143)
+- Transition durations standardized to `duration-300` (Issue #68)
+- Z-index scale: z-40 OfflineBanner, z-50 modals, z-60 MobileNav (Issue #69)
+- BackupManager dropdown z-10 → z-20 (Issue #70)
+- Settings pages: glass treatment + correct border-radius (Issues #66, #67)
+- ReadingHistory: server-side sort via `sort_by` API param (Issue #48)
+- HealthDashboard: pauses polling when tab hidden via `visibilitychange` (Issue #146)
+- LanguageToggle, PreferencesSection, ShareButton: hardcoded English → i18n keys (Issues #19, #135)
+- Share/Export: uses `t()` + `useDateFormatter()` for locale-aware output (Issue #20)
+- Translation button: graceful disabled state when backend unavailable (Issue #5)
+- i18n date sweep across 11 files using `useFormattedDate` hook
+- ORM `Finding.metadata` → `extra_metadata` (SQLAlchemy reserved attribute fix)
+
+#### Fixed
+
+- Issue #3: CrystalBallIcon redesigned with gradient + glow
+- Issue #5: Translation button shows graceful disabled state
+- Issue #18: Date formatting respects app locale (Persian/English)
+- Issue #19/#135: Hardcoded English strings replaced with i18n keys
+- Issue #20: Share/Export generates locale-aware text
+- Issue #33: Border-radius consistency across all card components
+- Issue #34: Icon sizes standardized
+- Issue #38: Form error messages linked via aria-describedby
+- Issue #42: Success toast notifications added
+- Issue #48: ReadingHistory uses server-side sorting
+- Issue #66/#67: Glass treatment applied to Settings/Vault/Learning
+- Issues #68-#83: Visual polish sweep (transitions, z-index, shadows, spacing, borders)
+- Issues #88-#90: ConfidenceMeter SVG, heading sizes, pulse animation
+- Issue #91: Touch targets ≥ 44px
+- Issue #124: Vault page route added
+- Issue #127: Vault API endpoints implemented with DB queries
+- Issue #136: Learning page functional with API integration
+- Issues #140-#143: Token compliance (GanzhiDisplay, MoonPhaseDisplay, BackupManager, HealthDashboard)
+- Issue #146: HealthDashboard pauses polling when tab hidden
+
 ### Improvement Session 2-3 (2026-02-21) — Backend Hardening + Frontend Polish
 
 > Commit: `57aefc1` — 66 files changed, +1638/-347
@@ -163,11 +228,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## Project State Summary
 
-**Plan:** 45-session Oracle rebuild (hybrid approach) + 3-session improvement plan
+**Plan:** 45-session Oracle rebuild (hybrid approach) + 3-session improvement plan + Session 4 final polish
 **Strategy:** Keep infrastructure, rewrite Oracle logic → polish & harden
-**Sessions completed:** 45 of 45 (COMPLETE) + Improvement Sessions 1-3 of 3 (COMPLETE)
-**Last session:** Improvement Session 2-3 — 10 backend fixes + frontend enhancements
-**Current block:** COMPLETE — All 3 improvement sessions done
+**Sessions completed:** 45 of 45 (COMPLETE) + Improvement Sessions 1-3 of 3 (COMPLETE) + Session 4 (COMPLETE)
+**Last session:** Session 4 — Final polish: i18n sweep, UX standardization, vault/learning backend, 56 new tests
+**Current block:** COMPLETE — WISHLIST Phases 1-6 done, 637+ API tests, 329+ Oracle tests
 
 ---
 

@@ -16,6 +16,8 @@ interface DailyInsight {
   date: string;
   summary: string;
   fc60_stamp?: string;
+  moon_phase?: string;
+  energy_level?: number;
   advice?: string[];
 }
 
@@ -24,8 +26,11 @@ function parseDailyInsight(raw: unknown): DailyInsight | null {
   const obj = raw as Record<string, unknown>;
   return {
     date: String(obj.date ?? ""),
-    summary: String(obj.summary ?? ""),
+    summary: String(obj.insight ?? obj.summary ?? ""),
     fc60_stamp: typeof obj.fc60_stamp === "string" ? obj.fc60_stamp : undefined,
+    moon_phase: typeof obj.moon_phase === "string" ? obj.moon_phase : undefined,
+    energy_level:
+      typeof obj.energy_level === "number" ? obj.energy_level : undefined,
     advice: Array.isArray(obj.advice) ? (obj.advice as string[]) : undefined,
   };
 }

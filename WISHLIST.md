@@ -375,7 +375,7 @@ body {
 
 ### PHASE 4 — GLASSMORPHISM DEEP UPGRADE
 
-**Status: MOSTLY COMPLETE (2026-02-21)** — Glass tokens upgraded (blur tiers, saturate, glass-bg/border/shine variables), card borders with top-edge shine added to theme.css. ~5 components still use old `blur(8px)` pattern directly instead of token references.
+**Status: COMPLETE (2026-02-21)** — Glass tokens upgraded (blur tiers, saturate, glass-bg/border/shine variables), card borders with top-edge shine added to theme.css. Session 4: remaining components migrated to glass tokens, Settings/Vault/Learning pages converted from opaque `bg-nps-bg-card` to glass treatment (#66/#67).
 
 #### The Standard Glass Card Pattern
 
@@ -447,7 +447,7 @@ background: "var(--nps-gradient-oracle)";
 
 ### PHASE 5 — ANIMATION UPGRADE (Scroll-Triggered)
 
-**Status: MOSTLY COMPLETE (2026-02-21)** — `useInView` hook created, `CountUp` startOnView implemented, 7 new keyframe animations added, stagger delay utilities built. Some components not yet wired to scroll-triggered reveals.
+**Status: COMPLETE (2026-02-21)** — `useInView` hook created, `CountUp` startOnView implemented, 7 new keyframe animations added, stagger delay utilities built. Session 4: RecentReadings, ReadingSection, and SummaryTab wired to scroll-triggered `nps-animate-rise-in` reveals.
 
 #### Current Problem
 
@@ -628,7 +628,7 @@ Add new duration/easing variables to `:root` in `animations.css`:
 
 ### PHASE 6 — COMPONENT SURGICAL TRANSFORMATIONS
 
-**Status: MOSTLY COMPLETE (2026-02-21)** — WelcomeBanner hero redesign, StatsCards per-stat accents, QuickActions horizontal layout, DailyReadingCard visual upgrade, RecentReadings type-based styling, Navigation gradient sweep, Oracle Sacred Space done. LoadingAnimation has orbital rings but not the full 5-act cinematic spec.
+**Status: COMPLETE (2026-02-21)** — WelcomeBanner hero redesign, StatsCards per-stat accents, QuickActions horizontal layout, DailyReadingCard visual upgrade, RecentReadings type-based styling, Navigation gradient sweep, Oracle Sacred Space done. Session 4: CrystalBallIcon redesigned with gradients, border-radius/icon-size standardized, touch targets ≥44px, page heading sizes consistent, DailyReadingCard pulse replaced with glow-pulse.
 
 #### 6.1 WelcomeBanner — From Greeting Card to Hero Sanctuary
 

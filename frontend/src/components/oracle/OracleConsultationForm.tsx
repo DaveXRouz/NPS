@@ -131,6 +131,7 @@ export function OracleConsultationForm({
             userId={userId}
             userName={userName}
             abortControllerRef={abortControllerRef}
+            onLoadingChange={onLoadingChange}
             onResult={(response) => {
               onResult(normalizeFrameworkResult(response, "reading"));
               onLoadingChange(false);
@@ -148,6 +149,7 @@ export function OracleConsultationForm({
             userMotherName={selectedUsers?.primary?.mother_name}
             userMotherNamePersian={selectedUsers?.primary?.mother_name_persian}
             abortControllerRef={abortControllerRef}
+            onLoadingChange={onLoadingChange}
             onResult={(data: NameReading) => {
               onResult({ type: "name", data });
               onLoadingChange(false);
@@ -161,6 +163,7 @@ export function OracleConsultationForm({
           <QuestionReadingForm
             userId={userId}
             abortControllerRef={abortControllerRef}
+            onLoadingChange={onLoadingChange}
             onResult={(data: QuestionReadingResult) => {
               onResult({ type: "question", data });
               onLoadingChange(false);

@@ -114,6 +114,15 @@ export function WelcomeBanner({
           strokeWidth="0.3"
           className="text-[var(--nps-stat-readings)]"
         />
+        <circle
+          cx="100"
+          cy="100"
+          r="40"
+          stroke="currentColor"
+          strokeWidth="0.3"
+          strokeDasharray="4 6"
+          className="text-[var(--nps-stat-streak)]"
+        />
       </svg>
 
       {/* Content */}

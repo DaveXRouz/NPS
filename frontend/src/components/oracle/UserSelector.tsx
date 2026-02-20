@@ -37,7 +37,7 @@ export function UserSelector({
           const val = e.target.value;
           onSelect(val ? Number(val) : null);
         }}
-        className="bg-nps-bg-input border border-nps-oracle-border text-nps-text rounded px-3 py-2 text-sm min-w-[200px] nps-input-focus"
+        className="bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] text-[var(--nps-text)] rounded-lg px-3 py-2 text-sm min-w-[200px] nps-input-focus transition-all duration-300"
         aria-label={t("oracle.select_profile")}
       >
         <option value="">
@@ -55,7 +55,7 @@ export function UserSelector({
       <button
         onClick={onAddNew}
         aria-label={t("oracle.add_new_profile")}
-        className="px-3 py-2 text-sm bg-nps-oracle-accent/20 text-nps-oracle-accent border border-nps-oracle-border rounded hover:bg-nps-oracle-accent/30 transition-colors"
+        className="px-3 py-2 text-sm bg-nps-oracle-accent/20 text-nps-oracle-accent border border-nps-oracle-border rounded-lg hover:bg-nps-oracle-accent/30 transition-colors duration-300"
       >
         + {t("oracle.add_new_profile")}
       </button>
@@ -64,7 +64,7 @@ export function UserSelector({
         <button
           onClick={onEdit}
           aria-label={t("oracle.edit_profile")}
-          className="px-3 py-2 text-sm text-nps-text-dim border border-nps-border rounded hover:text-nps-text hover:border-nps-oracle-border transition-colors"
+          className="px-3 py-2 text-sm text-nps-text-dim border border-nps-border rounded-lg hover:text-nps-text hover:border-nps-oracle-border transition-colors duration-300"
         >
           {t("oracle.edit_profile")}
         </button>

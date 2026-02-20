@@ -20,6 +20,8 @@
     "mobile_menu": "Open menu",
     "mobile_menu_close": "Close menu",
     "coming_soon": "Coming Soon",
+    "switch_to_english": "Switch to English",
+    "switch_to_persian": "Switch to Persian",
     "version": "v4.0.0",
     "footer_copyright": "NPS Project"
   },
@@ -534,6 +536,7 @@
     "second_label": "Second",
     "use_current_time": "Use current time",
     "generating_reading": "Generating reading...",
+    "reading_complete": "Reading complete",
     "time_reading_progress": "Step {{step}} of {{total}}",
 
     "reading_type": "Reading Type",
@@ -683,6 +686,8 @@
     "password_too_short": "Password must be at least 8 characters",
     "password_wrong": "Current password is incorrect",
     "language": "Language",
+    "lang_english": "English",
+    "lang_persian": "فارسی",
     "theme": "Theme",
     "theme_dark": "Dark",
     "theme_light": "Light",
@@ -843,6 +848,7 @@
     "backup_manager": "Backup Manager",
     "trigger_backup": "Create Backup",
     "backup_in_progress": "Creating...",
+    "backup_filename": "Filename",
     "backup_type": "Type",
     "backup_date": "Date",
     "backup_size": "Size",

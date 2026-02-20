@@ -84,7 +84,7 @@ export function ProfileSection() {
           placeholder={t("settings.current_password")}
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-          className="nps-input-focus w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim"
+          className="nps-input-focus w-full px-3 py-2 text-sm bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text-bright)] placeholder-[var(--nps-text-dim)] transition-all duration-300"
           required
         />
         <input
@@ -92,7 +92,7 @@ export function ProfileSection() {
           placeholder={t("settings.new_password")}
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          className="nps-input-focus w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim"
+          className="nps-input-focus w-full px-3 py-2 text-sm bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text-bright)] placeholder-[var(--nps-text-dim)] transition-all duration-300"
           required
           minLength={8}
         />
@@ -101,7 +101,7 @@ export function ProfileSection() {
           placeholder={t("settings.confirm_password")}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="nps-input-focus w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim"
+          className="nps-input-focus w-full px-3 py-2 text-sm bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text-bright)] placeholder-[var(--nps-text-dim)] transition-all duration-300"
           required
           minLength={8}
         />
@@ -121,7 +121,7 @@ export function ProfileSection() {
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 text-sm bg-nps-accent text-white rounded hover:bg-nps-accent/90 transition-colors disabled:opacity-50"
+          className="px-4 py-2 text-sm bg-[var(--nps-accent)] text-white rounded-lg hover:bg-[var(--nps-accent)]/90 transition-colors duration-300 disabled:opacity-50"
         >
           {loading ? t("common.loading") : t("settings.change_password")}
         </button>

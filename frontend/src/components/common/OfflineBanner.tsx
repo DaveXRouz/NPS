@@ -25,7 +25,7 @@ export function OfflineBanner() {
   return (
     <div
       role="alert"
-      className={`fixed top-0 inset-x-0 z-50 px-4 py-2 text-center text-sm border-b ${
+      className={`fixed top-0 inset-x-0 z-40 px-4 py-2 text-center text-sm border-b ${
         isOnline
           ? "bg-nps-success/10 border-nps-success text-nps-success"
           : "bg-nps-warning/10 border-nps-warning text-nps-warning"

@@ -41,6 +41,7 @@ interface QuestionReadingFormProps {
   userId?: number;
   onResult: (result: QuestionReadingResult) => void;
   onError?: (error: string) => void;
+  onLoadingChange?: (loading: boolean) => void;
   abortControllerRef?: React.MutableRefObject<AbortController | null>;
 }
 
@@ -48,6 +49,7 @@ export function QuestionReadingForm({
   userId,
   onResult,
   onError,
+  onLoadingChange,
   abortControllerRef,
 }: QuestionReadingFormProps) {
   const { t, i18n } = useTranslation();
@@ -130,6 +132,7 @@ export function QuestionReadingForm({
 
       // NOTE: category and time are frontend-only for now.
       // Backend doesn't support these fields yet.
+      onLoadingChange?.(true);
       mutation.mutate(
         {
           question: trimmed,
@@ -144,6 +147,7 @@ export function QuestionReadingForm({
             onResult(data);
           },
           onError: (err) => {
+            onLoadingChange?.(false);
             // Silently ignore abort errors
             if (err instanceof DOMException && err.name === "AbortError")
               return;
@@ -406,6 +410,7 @@ export function QuestionReadingForm({
               maxLength={MAX_QUESTION_LENGTH}
               className="w-full bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg px-4 py-3 text-sm text-[var(--nps-text)] nps-input-focus transition-all duration-200 resize-y pe-10"
               disabled={mutation.isPending}
+              aria-describedby={error ? "question-form-error" : undefined}
               data-testid="question-input"
             />
             <button
@@ -530,6 +535,7 @@ export function QuestionReadingForm({
       <div aria-live="polite">
         {error && (
           <p
+            id="question-form-error"
             className="text-xs text-nps-error"
             role="alert"
             data-testid="question-error"

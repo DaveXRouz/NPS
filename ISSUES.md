@@ -175,6 +175,7 @@ Secondary frontend fix:
 
 **Reported by:** Screenshot (web-production-a5179.up.railway.app/oracle) + text description
 **Priority:** P3 Low
+**Status:** **FIXED 2026-02-21** (Session 4) — CrystalBallIcon SVG redesigned with gradient fill, highlights, and glow effect. EmptyState icon bumped to 64px.
 
 > Visual only — doesn't break functionality but looks unpolished and unwelcoming.
 
@@ -328,6 +329,7 @@ Two complementary fixes required:
 
 **Reported by:** Screenshot (web-production-a5179.up.railway.app/oracle?type=question) + text description
 **Priority:** P1 High
+**Status:** **PARTIALLY FIXED 2026-02-21** (Session 4) — Frontend wired with graceful disabled state when backend translation service is unavailable. Full fix requires production translation endpoint configuration.
 
 > Core bilingual feature is broken. Persian-speaking users cannot read their readings in their native language.
 
@@ -1285,6 +1287,7 @@ This component was written without awareness of the app's RTL architecture. The 
 
 **Reported by:** Codebase audit (i18n gap)
 **Priority:** P1 High
+**Status:** **FIXED 2026-02-21** (Session 4) — Created `useFormattedDate` hook using `Intl.DateTimeFormat` with locale. Swept 11 files to use locale-aware formatting.
 
 > Every date displayed in the app — reading timestamps, backup dates, log entries, API key expiry — uses the browser's system locale instead of the app's selected language. Persian users who have selected FA mode will see dates formatted in English (e.g., "Feb 18, 2026") instead of Persian (e.g., "۱۸ بهمن ۱۴۰۴" in Jalali calendar or "۱۸/۲/۲۰۲۶" in Persian numerals).
 
@@ -1367,6 +1370,7 @@ For `fa-IR`, `toLocaleDateString` automatically:
 
 **Reported by:** Codebase audit (i18n gap)
 **Priority:** P1 High
+**Status:** **FIXED 2026-02-21** (Session 4) — LanguageToggle, PreferencesSection, LogViewer hardcoded strings replaced with i18n `t()` calls. Keys added to en.json and fa.json.
 
 > Multiple UI strings across admin components, the language toggle, and backup management are hardcoded in English and never passed through the `t()` translation function. Persian users see these strings in English regardless of their selected language.
 
@@ -1443,6 +1447,7 @@ Add any missing translation keys to `fa.json` if they don't exist.
 
 **Reported by:** Codebase audit (i18n gap)
 **Priority:** P1 High
+**Status:** **FIXED 2026-02-21** (Session 4) — ShareButton uses `t()` for all export text and `useFormattedDate()` for locale-aware dates.
 
 > When a Persian user shares or exports a reading, the generated share text — the title, labels, and footer — is always in English. The reading content itself may be in Persian, but the metadata wrapper is hardcoded English, creating a jarring mixed-language output.
 
@@ -2271,6 +2276,7 @@ Consider defining Tailwind utility classes like `.nps-heading-page`, `.nps-headi
 
 **Reported by:** Codebase Audit (Round 2 — Visual Polish)
 **Priority:** 🟡 P2 — Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Standardized to `rounded-xl` (cards), `rounded-lg` (inputs), `rounded-full` (badges).
 
 > Cards and containers throughout the app use three different border-radius values (`rounded-lg`, `rounded-xl`, `rounded-2xl`) with no apparent pattern. This creates a subtly inconsistent feel where some sections look more "rounded" than their neighbors.
 
@@ -2338,6 +2344,7 @@ Small elements:         rounded-md   (buttons, badges, inputs)
 
 **Reported by:** Codebase Audit (Round 2 — Visual Polish)
 **Priority:** 🟡 P2 — Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Standardized to `w-4 h-4` inline, `w-5 h-5` nav, `w-6 h-6` feature icons (16px baseline).
 
 > Icons across the app use at least 4 different size/stroke combinations with no documented scale. Navigation icons are `width="20" strokeWidth="1.5"`, action icons in QuickActions are `w-6` with `strokeWidth="2"`, stat icons are `w-4`, and EmptyState uses `size={48}`. This creates visual noise where icons feel heavier or lighter than their context demands.
 
@@ -2924,6 +2931,7 @@ if (isError) {
 
 **Reported by:** Codebase Audit (Round 2 — Loading States & Error Recovery)
 **Priority:** 🟡 P2 — Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Added success toasts on reading submission, save settings, create profile, and other success actions.
 
 > The app has a complete toast notification system (`useToast.ts`, `Toast.tsx`, `ToastProvider`) but it's only used in one place: `OracleConsultationForm.tsx` for error messages. No success feedback is shown via toast anywhere — reading submissions, profile saves, deletions, exports, and shares all complete silently with no positive confirmation to the user.
 
@@ -3280,6 +3288,7 @@ Remove `...retryConfig` from all `useMutation` calls. Keep it only on `useQuery`
 
 **Reported by:** Codebase Audit (Round 3 — Workflow Logic)
 **Priority:** 🔴 P1 — High
+**Status:** **FIXED 2026-02-21** (Session 4) — `sort_by` param forwarded to API; client-side `useMemo` sort removed. `useReadingHistory` accepts and forwards `sort_by` param.
 
 > When the user selects "Oldest first" or "By confidence" on the Reading History page, the app re-sorts only the current page of 12 results — not the full dataset. "Oldest first" shows the 12 most recent readings sorted by oldest, not the actual 12 oldest readings in the database.
 
@@ -3728,6 +3737,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🔴 P1 — High
+**Status:** **FIXED 2026-02-21** (Session 4) — Settings, Vault, Learning, LogPanel converted to glass treatment pattern.
 
 > Dashboard, Oracle, Admin, and ReadingHistory use the new glassmorphism style (`bg-[var(--nps-glass-bg)] backdrop-blur-md`). But Settings, Vault, Learning, and LogPanel still use the old opaque `bg-nps-bg-card` style. Navigating between pages creates a jarring visual transition.
 
@@ -3750,6 +3760,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🔴 P1 — High
+**Status:** **FIXED 2026-02-21** (Session 4) — ProfileSection, PreferencesSection, ApiKeySection inputs updated to glass treatment + `rounded-lg`.
 
 > Settings page inputs use `bg-nps-bg-input border border-nps-border rounded` (4px) while Oracle inputs use `bg-[var(--nps-glass-bg)] backdrop-blur-sm border-[var(--nps-glass-border)] rounded-lg` (8px) with glow focus effects. Two visual languages for the same element type.
 
@@ -3771,6 +3782,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Standardized to `duration-300` for consistent hover transitions.
 
 > Similar interactive hover effects use 5 different durations: `duration-150` (admin tables), `duration-200` (most hovers), `duration-300` (glass cards), `duration-500` (progress bars), `duration-700` (CompatibilityMeter). Same-level cards animate at different speeds.
 
@@ -3784,6 +3796,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Z-index scale: z-40 OfflineBanner, z-50 modals, z-60 MobileNav.
 
 > OfflineBanner (`z-50`), modals (`z-50`), MobileNav drawer (`z-50`), CalendarPicker (`z-50`), and ExportShareMenu (`z-50`) all compete at the same z-index level. The OfflineBanner can overlap modal content.
 
@@ -3806,6 +3819,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Changed z-10 → z-20.
 
 > The backup type dropdown uses `z-10` while all other dropdowns use `z-50`. It can appear behind sibling elements.
 
@@ -3825,6 +3839,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Standardized hover shadow glow sizes across same-level cards.
 
 > Glass card hover glow varies between `8px`, `12px`, and `16px` spread on visually equivalent cards. Admin stats glow at 8px, dashboard stats at 12px, QuickActions at 16px.
 
@@ -3844,6 +3859,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ## Issue #72 — ReadingCard Outer Div Has cursor-pointer But Click Handler Is Only on Inner Button
 
+**Status:** **FIXED 2026-02-21** (Session 4) — Click handler wired to outer div, cursor-pointer semantics corrected.
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
 
@@ -3864,6 +3880,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ## Issue #73 — Page-Level Spacing Inconsistent Between Pages
 
+**Status:** **FIXED 2026-02-21** (Session 4) — Standardized page-level spacing across all pages.
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
 
@@ -3886,6 +3903,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ## Issue #74 — SharedReading Page Uses Old Card Style With rounded (4px)
 
+**Status:** **FIXED 2026-02-21** (Session 4) — Updated to glass treatment with `rounded-xl`.
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
 
@@ -3905,6 +3923,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ## Issue #75 — ReadingSection Uses Deprecated Animation Instead of NPS Animation System
 
+**Status:** **FIXED 2026-02-21** (Session 4) — Replaced with `nps-animate-rise-in` + `useInView` scroll trigger.
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
 
@@ -3924,6 +3943,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ## Issue #76 — ReadingSection Uses bg-nps-bg-card Instead of Glass Treatment
 
+**Status:** **FIXED 2026-02-21** (Session 4) — Converted to glass treatment pattern.
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
 
@@ -3945,6 +3965,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Raw Tailwind colors replaced with semantic NPS tokens.
 
 > Beyond the 22+ files found in Issue #31, additional instances of raw `text-red-400`, `text-red-500`, `text-green-400` were found in pages and settings components. These are different hues from the design tokens: `red-400` (#f87171) vs `nps-error` (#f85149), `green-400` (#4ade80) vs `nps-success` (#3fb950).
 
@@ -3968,6 +3989,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ## Issue #78 — UserForm Modal Uses nps-oracle-border Instead of Glass Border
 
+**Status:** **FIXED 2026-02-21** (Session 4) — Updated to glass border token.
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
 
@@ -3987,6 +4009,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ## Issue #79 — Oracle Profile Area Button Text Sizes Don't Match Select
 
+**Status:** **FIXED 2026-02-21** (Session 4) — Standardized button and select text sizes.
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
 
@@ -4008,6 +4031,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Replaced hover:scale with shadow-only hover effect to prevent layout shift.
 
 > Cards scale up on hover (`hover:scale-[1.01]`), pushing against adjacent cards in a tight grid. QuickActions uses `hover:scale-105` (5% scale) which is even more aggressive.
 
@@ -4026,6 +4050,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ## Issue #81 — StatsCard Value Text Appears Muted Instead of Bright
 
+**Status:** **FIXED 2026-02-21** (Session 4) — Value text uses `text-nps-text-bright` for visual prominence.
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
 
@@ -4047,6 +4072,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Standardized modal backdrops across all modals.
 
 > UserForm (most frequently used modal) uses `bg-black/60` with no blur. All admin modals use `bg-black/70 backdrop-blur-sm`. UserForm backdrop appears lighter and less polished.
 
@@ -4065,6 +4091,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ## Issue #83 — Filter Chip / Badge Border-Radius Wildly Inconsistent
 
+**Status:** **FIXED 2026-02-21** (Session 4) — Badges standardized to `rounded-full`.
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
 
@@ -4170,6 +4197,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ## Issue #88 — ConfidenceMeter Uses Unicode Characters Instead of SVG Icons
 
+**Status:** **FIXED 2026-02-21** (Session 4) — Unicode characters replaced with SVG icons.
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
 
@@ -4189,6 +4217,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ## Issue #89 — Page Title Heading Sizes Inconsistent Across Sibling Pages
 
+**Status:** **FIXED 2026-02-21** (Session 4) — Heading sizes standardized across all pages.
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
 
@@ -4210,6 +4239,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ## Issue #90 — DailyReadingCard "Generate" Button Permanently Pulses
 
+**Status:** **FIXED 2026-02-21** (Session 4) — Permanent `animate-pulse` replaced with `nps-animate-glow-pulse`.
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🟡 P2 — Medium
 
@@ -4229,6 +4259,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 ## Issue #91 — Touch Targets Too Small on ThemeToggle, ExportShareMenu, and ReadingCard Actions
 
+**Status:** **FIXED 2026-02-21** (Session 4) — Touch targets increased to minimum 44px (ThemeToggle 32→44px, others standardized).
 **Reported by:** Codebase Audit (Round 3 — Visual / Pixel)
 **Priority:** 🔴 P1 — High
 
@@ -4916,6 +4947,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 4 — Frontend)
 **Priority:** 🟡 P2 — Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Vault route added to App.tsx with lazy loading and ErrorBoundary.
 
 > `frontend/src/pages/Vault.tsx` exists and implements the vault UI, but is never imported or registered in `App.tsx`. The page is completely unreachable from the running application.
 
@@ -4993,6 +5025,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 4 — Backend)
 **Priority:** 🟡 P2 — Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — All 4 vault endpoints implemented with real DB queries via Finding/Session ORM models. 18 new tests added.
 
 > All 4 Vault API endpoints are TODO stubs returning hardcoded empty/zero responses. The Vault feature (showing found Bitcoin addresses and balances) is completely non-functional on the backend.
 
@@ -5025,6 +5058,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 4 — Database)
 **Priority:** 🔴 P1 — High
+**Status:** **CLOSED 2026-02-21** (Session 4) — Assessed as N/A. No v3 production data exists; project started fresh on v4 schema. Migration scripts left as placeholders for potential future use.
 
 > Five Python migration scripts in `database/migrations/` for moving v3 legacy data to the v4 PostgreSQL schema all contain only `# TODO: Implement actual migration` placeholders. Users with historical v3 data cannot migrate.
 
@@ -5198,6 +5232,7 @@ Create NPS tokens for the five Chinese elements (or reuse existing semantic toke
 
 **Reported by:** Round 5 audit (2026-02-19)
 **Priority:** P1 High
+**Status:** **FIXED 2026-02-21** (Session 4) — All hardcoded strings replaced with `t()` calls. i18n keys added to en.json and fa.json.
 
 > The LogViewer component in the Admin panel contains button text and table column headers that are hardcoded English strings rather than using `t()` for translation. Persian admin users will see English-only text in the audit log table.
 
@@ -5238,6 +5273,7 @@ All text must use `t()`. Add 7 new keys to both `en.json` and `fa.json` translat
 
 **Reported by:** Round 5 audit (2026-02-19)
 **Priority:** P2 Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Learning page rebuilt as functional component with API integration (level/XP, insights, patterns, analyze), glass styling, and proper empty states.
 
 > The Learning page (/learning route) shows a hardcoded Level 1 progress bar at 0% and XP at 0/100, with no actual data fetched from the backend. It renders only an EmptyState component below the hardcoded progress bar. The page is functionally inert.
 
@@ -5377,6 +5413,7 @@ className={`inline-block h-4 w-4 transform rounded-full bg-white transition-tran
 
 **Reported by:** Round 5 audit (2026-02-19)
 **Priority:** P2 Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — `text-white` → token, `bg-gray-400` → NPS token.
 
 > `GanzhiDisplay.tsx` uses `text-white` for element badge text and `bg-gray-400` for the Metal element fallback. `text-white` may become invisible on some colored backgrounds in light mode. `bg-gray-400` is not a semantic NPS token.
 
@@ -5407,6 +5444,7 @@ className={`inline-block h-4 w-4 transform rounded-full bg-white transition-tran
 
 **Reported by:** Round 5 audit (2026-02-19)
 **Priority:** P3 Low
+**Status:** **FIXED 2026-02-21** (Session 4) — Raw gray replaced with `nps-text-dim` tokens.
 
 > `MoonPhaseDisplay.tsx` line 18 uses `bg-gray-500/15 text-gray-400` for the "Rest" moon phase type. All other phases appear to use semantic or meaningful colors. This one uses raw Tailwind gray which is inconsistent with the NPS token system.
 
@@ -5426,6 +5464,7 @@ className={`inline-block h-4 w-4 transform rounded-full bg-white transition-tran
 
 **Reported by:** Round 5 audit (2026-02-19)
 **Priority:** P2 Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Replaced with glass overlay using theme variable.
 
 > `BackupManager.tsx` uses `bg-black/70 backdrop-blur-sm` for two modal/confirmation dialog overlays (lines 333 and 379). In light mode, `bg-black/70` is an opaque black overlay over a light background — potentially usable, but it's inconsistent with the glassmorphism overlay approach used elsewhere (which uses `var(--nps-glass-bg)`).
 
@@ -5454,6 +5493,7 @@ className={`inline-block h-4 w-4 transform rounded-full bg-white transition-tran
 
 **Reported by:** Round 5 audit (2026-02-19)
 **Priority:** P3 Low
+**Status:** **FIXED 2026-02-21** (Session 4) — Differentiated status colors for not_connected, not_deployed, and not_configured states.
 
 > `HealthDashboard.tsx` maps three distinct status states (`not_connected`, `not_deployed`, `not_configured`) to the same `bg-gray-400` color. A service that is "not configured" (expected — optional feature) looks identical to one that is "not connected" (unexpected — production problem). The admin cannot distinguish at a glance which services have issues vs. which are intentionally disabled.
 
@@ -5546,6 +5586,7 @@ The `debounceRef.current` (a `setTimeout` ID set in `handleSearchChange`) is nev
 
 **Reported by:** Round 5 deep audit (2026-02-19)
 **Priority:** P2 Medium
+**Status:** **FIXED 2026-02-21** (Session 4) — Added `document.visibilitychange` listener; polling pauses when tab is hidden.
 
 > `HealthDashboard.tsx` starts a `setInterval` that calls the health API every 10 seconds continuously, even when the admin tab is not visible or focused. This wastes bandwidth, increases API load, and drains battery on mobile devices.
 

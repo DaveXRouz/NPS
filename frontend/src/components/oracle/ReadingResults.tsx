@@ -1,9 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
-import { Star } from "lucide-react";
 import { useArrowNavigation } from "@/hooks/useArrowNavigation";
-import { useReadingHistory } from "@/hooks/useOracleReadings";
 import { SummaryTab } from "./SummaryTab";
 import { DetailsTab } from "./DetailsTab";
 import { ExportShareMenu } from "./ExportShareMenu";
@@ -11,8 +8,6 @@ import { HeartbeatDisplay } from "./HeartbeatDisplay";
 import { LocationDisplay } from "./LocationDisplay";
 import { ConfidenceMeter } from "./ConfidenceMeter";
 import { ReadingFeedback } from "./ReadingFeedback";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
-import { EmptyState } from "@/components/common/EmptyState";
 import type {
   ConsultationResult,
   ResultsTab,
@@ -31,88 +26,7 @@ interface ReadingResultsProps {
   boosts?: ConfidenceBoost[];
 }
 
-const TABS: ResultsTab[] = ["summary", "details", "history"];
-
-const COMPACT_LIMIT = 10;
-
-const TYPE_BADGE_CLASSES: Record<string, string> = {
-  reading: "bg-[var(--nps-stat-readings)]/20 text-[var(--nps-stat-readings)]",
-  time: "bg-[var(--nps-stat-readings)]/20 text-[var(--nps-stat-readings)]",
-  question: "bg-[var(--nps-stat-type)]/20 text-[var(--nps-stat-type)]",
-  name: "bg-[var(--nps-accent)]/20 text-[var(--nps-accent)]",
-  daily: "bg-[var(--nps-stat-streak)]/20 text-[var(--nps-stat-streak)]",
-  multi_user: "bg-[var(--nps-stat-type)]/20 text-[var(--nps-stat-type)]",
-};
-
-/** Compact history list shown inside the ReadingResults history tab */
-function CompactHistoryList() {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { data, isLoading, isError } = useReadingHistory({
-    limit: COMPACT_LIMIT,
-    offset: 0,
-    sort_by: "created_at",
-    sort_order: "desc",
-  });
-
-  if (isLoading) {
-    return <LoadingSkeleton variant="list" count={5} />;
-  }
-
-  if (isError) {
-    return (
-      <p className="text-xs text-nps-error text-center py-4">
-        {t("dashboard.recent_error")}
-      </p>
-    );
-  }
-
-  if (!data || data.readings.length === 0) {
-    return <EmptyState icon="readings" title={t("oracle.history_empty")} />;
-  }
-
-  return (
-    <div className="space-y-1">
-      {data.readings.map((r) => {
-        const badge =
-          TYPE_BADGE_CLASSES[r.sign_type] ??
-          "bg-nps-bg-input text-nps-text-dim";
-        const label = r.question || r.sign_value || r.sign_type;
-        const dateStr = new Date(r.created_at).toLocaleDateString();
-        return (
-          <div
-            key={r.id}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--nps-glass-bg)] border border-[var(--nps-glass-border)] hover:border-[var(--nps-accent)]/30 transition-all duration-150"
-          >
-            <span
-              className={`shrink-0 px-1.5 py-0.5 text-[10px] rounded font-medium ${badge}`}
-            >
-              {r.sign_type}
-            </span>
-            <span className="flex-1 text-xs text-[var(--nps-text)] truncate">
-              {label}
-            </span>
-            {r.is_favorite && (
-              <Star className="w-3 h-3 shrink-0 fill-current text-amber-400" />
-            )}
-            <span className="shrink-0 text-[10px] text-[var(--nps-text-dim)]">
-              {dateStr}
-            </span>
-          </div>
-        );
-      })}
-      {data.total > COMPACT_LIMIT && (
-        <button
-          type="button"
-          onClick={() => navigate("/history")}
-          className="w-full text-center text-xs text-[var(--nps-accent)] hover:underline py-2"
-        >
-          {t("dashboard.recent_view_all")} ({data.total})
-        </button>
-      )}
-    </div>
-  );
-}
+const TABS: ResultsTab[] = ["summary", "details"];
 
 export const ReadingResults = React.memo(function ReadingResults({
   result,
@@ -130,7 +44,6 @@ export const ReadingResults = React.memo(function ReadingResults({
   const tabLabels: Record<ResultsTab, string> = {
     summary: t("oracle.tab_summary"),
     details: t("oracle.tab_details"),
-    history: t("oracle.tab_history"),
   };
 
   return (
@@ -217,15 +130,6 @@ export const ReadingResults = React.memo(function ReadingResults({
             </h4>
             <LocationDisplay location={location ?? null} />
           </div>
-        </div>
-        <div
-          id="tabpanel-history"
-          role="tabpanel"
-          aria-labelledby="tab-history"
-          aria-live={activeTab === "history" ? "polite" : undefined}
-          className={activeTab === "history" ? "nps-animate-fade-in" : "hidden"}
-        >
-          <CompactHistoryList />
         </div>
       </div>
     </div>

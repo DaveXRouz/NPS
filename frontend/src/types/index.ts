@@ -201,7 +201,7 @@ export interface ReadingStats {
   most_active_day: string | null;
 }
 
-export type ResultsTab = "summary" | "details" | "history";
+export type ResultsTab = "summary" | "details";
 
 // ─── Oracle Users ───
 

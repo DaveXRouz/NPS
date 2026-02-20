@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
+import { useInView } from "@/hooks/useInView";
 
 interface ReadingSectionProps {
   title: string;
@@ -25,6 +26,7 @@ export function ReadingSection({
   className = "",
 }: ReadingSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
+  const { ref, inView } = useInView({ threshold: 0.1, triggerOnce: true });
 
   const borderClass = priority
     ? PRIORITY_BORDER[priority]
@@ -32,8 +34,9 @@ export function ReadingSection({
 
   return (
     <div
+      ref={ref}
       data-reading-section
-      className={`border ${borderClass} rounded-lg bg-[var(--nps-glass-bg)] backdrop-blur-md overflow-hidden nps-animate-rise-in ${className}`}
+      className={`border ${borderClass} rounded-lg bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] overflow-hidden ${inView ? "nps-animate-rise-in" : "opacity-0"} ${className}`}
     >
       <button
         type="button"
@@ -50,7 +53,7 @@ export function ReadingSection({
           {title}
         </span>
         <ChevronDown
-          size={14}
+          size={16}
           className={`text-nps-text-dim transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>

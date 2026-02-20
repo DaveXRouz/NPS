@@ -20,6 +20,8 @@
     "mobile_menu": "باز کردن منو",
     "mobile_menu_close": "بستن منو",
     "coming_soon": "به‌زودی",
+    "switch_to_english": "تغییر به انگلیسی",
+    "switch_to_persian": "تغییر به فارسی",
     "version": "v4.0.0",
     "footer_copyright": "پروژه NPS"
   },
@@ -534,6 +536,7 @@
     "second_label": "ثانیه",
     "use_current_time": "استفاده از زمان فعلی",
     "generating_reading": "در حال تولید خوانش...",
+    "reading_complete": "خوانش کامل شد",
     "time_reading_progress": "مرحله {{step}} از {{total}}",
 
     "reading_type": "نوع خوانش",
@@ -683,6 +686,8 @@
     "password_too_short": "رمز عبور باید حداقل ۸ کاراکتر باشد",
     "password_wrong": "رمز عبور فعلی نادرست است",
     "language": "زبان",
+    "lang_english": "English",
+    "lang_persian": "فارسی",
     "theme": "پوسته",
     "theme_dark": "تاریک",
     "theme_light": "روشن",
@@ -843,6 +848,7 @@
     "backup_manager": "مدیریت پشتیبان",
     "trigger_backup": "ایجاد پشتیبان",
     "backup_in_progress": "در حال ایجاد...",
+    "backup_filename": "نام فایل",
     "backup_type": "نوع",
     "backup_date": "تاریخ",
     "backup_size": "حجم",

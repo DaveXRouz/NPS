@@ -54,8 +54,13 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
     setDetectError(null);
     try {
       const coords = await getCurrentPosition();
-      onChange({ ...coords, country: undefined, city: undefined });
+      // Preserve existing country/city when updating with auto-detected coordinates
+      onChange({
+        ...value,
+        ...coords,
+      });
     } catch {
+      // Don't clear existing values on auto-detect failure
       setDetectError(t("oracle.location_detect_error"));
     } finally {
       setIsDetecting(false);

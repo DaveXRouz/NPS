@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { adminHealth } from "@/services/api";
+import { useFormattedDate } from "@/hooks/useFormattedDate";
 import { StaggerChildren } from "@/components/common/StaggerChildren";
 import { FadeIn } from "@/components/common/FadeIn";
 import type { DetailedHealth, ServiceStatus } from "@/types";
@@ -9,9 +10,9 @@ const STATUS_CSS_VARS: Record<string, string> = {
   healthy: "var(--nps-status-healthy)",
   unhealthy: "var(--nps-status-unhealthy)",
   degraded: "var(--nps-status-degraded)",
-  not_connected: "var(--nps-status-unknown)",
+  not_connected: "var(--nps-confidence-low)",
   not_deployed: "var(--nps-status-unknown)",
-  not_configured: "var(--nps-status-unknown)",
+  not_configured: "var(--nps-confidence-medium)",
   direct_mode: "var(--nps-accent)",
   configured: "var(--nps-accent)",
   external: "var(--nps-accent)",
@@ -75,7 +76,7 @@ function ServiceCard({
     "";
 
   return (
-    <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
+    <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
       <div className="flex items-center gap-2 mb-2">
         <StatusIndicator status={service.status} />
         <span className="text-sm font-medium text-[var(--nps-text-bright)]">
@@ -103,6 +104,7 @@ function ServiceCard({
 
 export function HealthDashboard() {
   const { t } = useTranslation();
+  const { formatDateTime } = useFormattedDate();
   const [health, setHealth] = useState<DetailedHealth | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -125,8 +127,19 @@ export function HealthDashboard() {
 
   useEffect(() => {
     fetchHealth();
-    const interval = setInterval(fetchHealth, 10_000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchHealth();
+    }, 10_000);
+
+    const handleVisibility = () => {
+      if (!document.hidden) fetchHealth();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, [fetchHealth]);
 
   if (loading && !health) {
@@ -136,7 +149,7 @@ export function HealthDashboard() {
           {Array.from({ length: 7 }).map((_, i) => (
             <div
               key={i}
-              className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 animate-pulse"
+              className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 animate-pulse"
             >
               <div className="h-4 bg-[var(--nps-glass-glow)] rounded w-2/3 mb-2" />
               <div className="h-3 bg-[var(--nps-glass-glow)] rounded w-1/2" />
@@ -150,7 +163,7 @@ export function HealthDashboard() {
   if (error && !health) {
     return (
       <div
-        className="backdrop-blur-sm rounded-xl p-4"
+        className="backdrop-blur-[var(--nps-glass-blur-sm)] rounded-xl p-4"
         style={{
           backgroundColor:
             "color-mix(in srgb, var(--nps-status-unhealthy) 10%, transparent)",
@@ -179,7 +192,7 @@ export function HealthDashboard() {
     <div className="space-y-4">
       {/* System info bar */}
       <FadeIn delay={0}>
-        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4">
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4">
           <div className="flex flex-wrap items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
               <StatusIndicator status={health.status} />
@@ -219,11 +232,11 @@ export function HealthDashboard() {
         <div className="flex items-center justify-between text-xs text-[var(--nps-text-dim)]">
           <span>
             {t("admin.health_last_refresh")}:{" "}
-            {lastRefresh ? lastRefresh.toLocaleTimeString() : "—"}
+            {lastRefresh ? formatDateTime(lastRefresh.toISOString()) : "—"}
           </span>
           <button
             onClick={fetchHealth}
-            className="px-3 py-2 min-h-[44px] bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text-dim)] hover:text-[var(--nps-text-bright)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
+            className="px-3 py-2 min-h-[44px] bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text-dim)] hover:text-[var(--nps-text-bright)] hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_4px_var(--nps-glass-glow)] transition-all duration-200"
           >
             {t("admin.health_refresh_now")}
           </button>

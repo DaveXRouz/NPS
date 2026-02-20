@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useFormattedDate } from "@/hooks/useFormattedDate";
 
 interface ReadingFooterProps {
   confidence: number;
@@ -7,6 +8,7 @@ interface ReadingFooterProps {
 
 export function ReadingFooter({ confidence, generatedAt }: ReadingFooterProps) {
   const { t } = useTranslation();
+  const { formatDateTime } = useFormattedDate();
   const pct = Math.round(confidence * 100);
   const barColor =
     confidence > 0.7
@@ -41,7 +43,7 @@ export function ReadingFooter({ confidence, generatedAt }: ReadingFooterProps) {
         <p className="italic">{t("oracle.disclaimer")}</p>
         {generatedAt && (
           <p>
-            {t("oracle.generated_at")}: {new Date(generatedAt).toLocaleString()}
+            {t("oracle.generated_at")}: {formatDateTime(generatedAt)}
           </p>
         )}
       </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Search, ArrowLeft, Star } from "lucide-react";
@@ -51,9 +51,18 @@ export function ReadingHistory() {
     const timer = setTimeout(() => {
       setSearchQuery(searchInput);
       setPage(0);
+      setSelectedReading(null);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
+
+  const sortByParam =
+    sortBy === "oldest"
+      ? "created_at"
+      : sortBy === "confidence"
+        ? "confidence"
+        : "created_at";
+  const sortOrderParam = sortBy === "oldest" ? "asc" : "desc";
 
   const { data, isLoading, isError, refetch } = useReadingHistory({
     limit: PAGE_SIZE,
@@ -63,6 +72,8 @@ export function ReadingHistory() {
     date_from: dateFrom || undefined,
     date_to: dateTo || undefined,
     is_favorite: favoritesOnly ? true : undefined,
+    sort_by: sortByParam,
+    sort_order: sortOrderParam,
   });
 
   const { data: stats } = useReadingStats();
@@ -84,13 +95,28 @@ export function ReadingHistory() {
     setSelectedReading(null);
   }
 
+  function handleSortChange(sort: SortOption) {
+    setSortBy(sort);
+    setPage(0);
+    setSelectedReading(null);
+  }
+
   function handleDelete(id: number) {
     deleteMutation.mutate(id);
     if (selectedReading?.id === id) setSelectedReading(null);
   }
 
   function handleToggleFavorite(id: number) {
-    favoriteMutation.mutate(id);
+    favoriteMutation.mutate(id, {
+      onSuccess: () => {
+        // Update locally selected reading if it matches the toggled reading
+        if (selectedReading?.id === id) {
+          setSelectedReading((prev) =>
+            prev ? { ...prev, is_favorite: !prev.is_favorite } : null,
+          );
+        }
+      },
+    });
   }
 
   function handleSelectReading(id: number) {
@@ -98,28 +124,7 @@ export function ReadingHistory() {
     if (reading) setSelectedReading(reading);
   }
 
-  const readings = data?.readings;
-  const sortedReadings = useMemo(() => {
-    if (!readings) return [];
-    return readings.slice().sort((a, b) => {
-      if (sortBy === "oldest") {
-        return (
-          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-        );
-      }
-      if (sortBy === "confidence") {
-        const confA =
-          (a.reading_result as Record<string, unknown>)?.confidence ?? 0;
-        const confB =
-          (b.reading_result as Record<string, unknown>)?.confidence ?? 0;
-        return (confB as number) - (confA as number);
-      }
-      return (
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-    });
-  }, [readings, sortBy]);
-
+  const readings = data?.readings ?? [];
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
 
   if (selectedReading) {
@@ -211,7 +216,10 @@ export function ReadingHistory() {
             </div>
             <button
               type="button"
-              onClick={() => setFavoritesOnly(!favoritesOnly)}
+              onClick={() => {
+                setFavoritesOnly(!favoritesOnly);
+                setSelectedReading(null);
+              }}
               className={`px-3 py-2 text-sm rounded-lg border transition-all duration-200 ${
                 favoritesOnly
                   ? "border-amber-500/40 text-amber-400 bg-amber-500/10 shadow-[0_0_8px_rgba(245,158,11,0.1)]"
@@ -223,7 +231,7 @@ export function ReadingHistory() {
                 className={`w-4 h-4 ${favoritesOnly ? "fill-current text-amber-400" : "text-current"}`}
               />
             </button>
-            <SortSelector value={sortBy} onChange={setSortBy} />
+            <SortSelector value={sortBy} onChange={handleSortChange} />
           </div>
 
           {/* Date range */}
@@ -237,6 +245,7 @@ export function ReadingHistory() {
               onChange={(e) => {
                 setDateFrom(e.target.value);
                 setPage(0);
+                setSelectedReading(null);
               }}
               className="px-3 py-1.5 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-200"
             />
@@ -249,6 +258,7 @@ export function ReadingHistory() {
               onChange={(e) => {
                 setDateTo(e.target.value);
                 setPage(0);
+                setSelectedReading(null);
               }}
               className="px-3 py-1.5 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-200"
             />
@@ -288,7 +298,7 @@ export function ReadingHistory() {
       )}
 
       {/* Empty */}
-      {data && sortedReadings.length === 0 && (
+      {data && readings.length === 0 && (
         <FadeIn delay={240}>
           <EmptyState
             icon="readings"
@@ -302,14 +312,14 @@ export function ReadingHistory() {
       )}
 
       {/* Card grid */}
-      {data && sortedReadings.length > 0 && (
+      {data && readings.length > 0 && (
         <>
           <FadeIn delay={240}>
             <StaggerChildren
               staggerMs={40}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
             >
-              {sortedReadings.map((reading) => (
+              {readings.map((reading) => (
                 <ReadingCard
                   key={reading.id}
                   reading={reading}

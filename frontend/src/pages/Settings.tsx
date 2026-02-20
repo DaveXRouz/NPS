@@ -11,7 +11,7 @@ export default function Settings() {
 
   return (
     <div className="space-y-4 max-w-3xl lg:max-w-4xl">
-      <h2 className="text-xl font-bold text-[var(--nps-text-bright)]">
+      <h2 className="text-2xl font-bold text-[var(--nps-text-bright)]">
         {t("settings.title")}
       </h2>
 

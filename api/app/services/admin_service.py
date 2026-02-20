@@ -247,8 +247,12 @@ class AdminService:
             )
         return profiles, total
 
-    def delete_oracle_profile(self, profile_id: int) -> dict | None:
-        """Hard-delete an Oracle profile and its readings."""
+    def delete_oracle_profile(self, profile_id: int, *, hard: bool = False) -> dict | None:
+        """Delete an Oracle profile.
+
+        By default performs a soft-delete (sets ``deleted_at``).  Pass ``hard=True``
+        to permanently remove the profile and cascade-delete related rows.
+        """
         profile = self.db.query(OracleUser).filter(OracleUser.id == profile_id).first()
         if not profile:
             return None
@@ -265,6 +269,16 @@ class AdminService:
             "deleted_at": profile.deleted_at,
             "reading_count": 0,
         }
+
+        if not hard:
+            # Soft-delete: preserve data, just mark as deleted
+            from datetime import datetime, timezone
+
+            profile.deleted_at = datetime.now(timezone.utc)
+            data["deleted_at"] = profile.deleted_at
+            return data
+
+        # Hard-delete: cascade-remove all related rows in correct order
 
         # Collect reading IDs for this profile before deletion
         reading_ids = [

@@ -67,13 +67,15 @@ export function PreferencesSection() {
               key={lang}
               type="button"
               onClick={() => handleLocaleChange(lang)}
-              className={`px-4 py-1.5 text-sm rounded border transition-colors ${
+              className={`px-4 py-1.5 text-sm rounded-lg border transition-all duration-300 ${
                 currentLocale === lang
-                  ? "bg-nps-accent text-white border-nps-accent"
-                  : "bg-nps-bg-card text-nps-text-dim border-nps-border hover:border-nps-accent"
+                  ? "bg-[var(--nps-accent)] text-white border-[var(--nps-accent)]"
+                  : "bg-[var(--nps-glass-bg)] text-[var(--nps-text-dim)] border-[var(--nps-glass-border)] hover:border-[var(--nps-accent)]"
               }`}
             >
-              {lang === "en" ? "English" : "فارسی"}
+              {lang === "en"
+                ? t("settings.lang_english")
+                : t("settings.lang_persian")}
             </button>
           ))}
         </div>
@@ -90,10 +92,10 @@ export function PreferencesSection() {
               key={theme}
               type="button"
               onClick={() => save("theme", theme)}
-              className={`px-4 py-1.5 text-sm rounded border transition-colors ${
+              className={`px-4 py-1.5 text-sm rounded-lg border transition-all duration-300 ${
                 currentTheme === theme
-                  ? "bg-nps-accent text-white border-nps-accent"
-                  : "bg-nps-bg-card text-nps-text-dim border-nps-border hover:border-nps-accent"
+                  ? "bg-[var(--nps-accent)] text-white border-[var(--nps-accent)]"
+                  : "bg-[var(--nps-glass-bg)] text-[var(--nps-text-dim)] border-[var(--nps-glass-border)] hover:border-[var(--nps-accent)]"
               }`}
             >
               {t(`settings.theme_${theme}`)}
@@ -110,7 +112,7 @@ export function PreferencesSection() {
         <select
           value={currentTimezone}
           onChange={(e) => save("timezone", e.target.value)}
-          className="nps-input-focus w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright"
+          className="nps-input-focus w-full px-3 py-2 text-sm bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text-bright)] transition-all duration-300"
         >
           {TIMEZONES.map((tz) => (
             <option key={tz} value={tz}>
@@ -131,10 +133,10 @@ export function PreferencesSection() {
               key={sys}
               type="button"
               onClick={() => save("numerology_system", sys)}
-              className={`px-4 py-1.5 text-sm rounded border transition-colors ${
+              className={`px-4 py-1.5 text-sm rounded-lg border transition-all duration-300 ${
                 currentSystem === sys
-                  ? "bg-nps-accent text-white border-nps-accent"
-                  : "bg-nps-bg-card text-nps-text-dim border-nps-border hover:border-nps-accent"
+                  ? "bg-[var(--nps-accent)] text-white border-[var(--nps-accent)]"
+                  : "bg-[var(--nps-glass-bg)] text-[var(--nps-text-dim)] border-[var(--nps-glass-border)] hover:border-[var(--nps-accent)]"
               }`}
             >
               {t(`settings.numerology_${sys}`)}

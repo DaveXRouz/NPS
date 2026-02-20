@@ -705,6 +705,8 @@ def list_readings(
     date_from: str | None = Query(None, description="Filter from date (ISO 8601)"),
     date_to: str | None = Query(None, description="Filter to date (ISO 8601)"),
     is_favorite: bool | None = Query(None, description="Filter favorites only"),
+    sort_by: str = Query("created_at", pattern=r"^(created_at|confidence)$"),
+    sort_order: str = Query("desc", pattern=r"^(asc|desc)$"),
     _user: dict = Depends(get_current_user),
     svc: OracleReadingService = Depends(get_oracle_reading_service),
     audit: AuditService = Depends(get_audit_service),
@@ -721,6 +723,8 @@ def list_readings(
         date_to=date_to,
         is_favorite=is_favorite,
         search_query=search,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
     audit.log_reading_listed(
         ip=_get_client_ip(request),

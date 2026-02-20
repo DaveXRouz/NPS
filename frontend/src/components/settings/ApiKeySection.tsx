@@ -5,6 +5,7 @@ import {
   useCreateApiKey,
   useRevokeApiKey,
 } from "@/hooks/useSettings";
+import { useFormattedDate } from "@/hooks/useFormattedDate";
 
 const EXPIRY_OPTIONS = [
   { label: "api_key_never", value: undefined },
@@ -15,6 +16,7 @@ const EXPIRY_OPTIONS = [
 
 export function ApiKeySection() {
   const { t } = useTranslation();
+  const { formatDateLocale } = useFormattedDate();
   const { data: keys, isLoading } = useApiKeys();
   const { mutate: createKey, isPending: creating } = useCreateApiKey();
   const { mutate: revokeKey } = useRevokeApiKey();
@@ -118,7 +120,7 @@ export function ApiKeySection() {
       {keyList.map((k) => (
         <div
           key={k.id}
-          className="flex items-center justify-between bg-nps-bg-card border border-nps-border rounded p-3"
+          className="flex items-center justify-between bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3"
         >
           <div className="min-w-0 flex-1">
             <p className="text-sm text-nps-text-bright font-medium truncate">
@@ -126,12 +128,12 @@ export function ApiKeySection() {
             </p>
             <p className="text-xs text-nps-text-dim">
               {t("settings.api_key_created_at")}:{" "}
-              {new Date(k.created_at).toLocaleDateString()}
+              {formatDateLocale(k.created_at)}
               {k.last_used && (
                 <>
                   {" · "}
                   {t("settings.api_key_last_used")}:{" "}
-                  {new Date(k.last_used).toLocaleDateString()}
+                  {formatDateLocale(k.last_used)}
                 </>
               )}
             </p>
@@ -175,13 +177,13 @@ export function ApiKeySection() {
 
       {/* Create form */}
       {showForm ? (
-        <div className="bg-nps-bg-card border border-nps-border rounded p-3 space-y-2">
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 space-y-2">
           <input
             type="text"
             placeholder={t("settings.api_key_name")}
             value={keyName}
             onChange={(e) => setKeyName(e.target.value)}
-            className="nps-input-focus w-full px-3 py-2 text-sm bg-nps-bg-card border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim"
+            className="nps-input-focus w-full px-3 py-2 text-sm bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text-bright)] placeholder-[var(--nps-text-dim)] transition-all duration-300"
           />
           <div>
             <label className="text-xs text-nps-text-dim mb-1 block">
@@ -193,10 +195,10 @@ export function ApiKeySection() {
                   key={opt.label}
                   type="button"
                   onClick={() => setExpiryDays(opt.value)}
-                  className={`px-3 py-1 text-xs rounded border transition-colors ${
+                  className={`px-3 py-1 text-xs rounded-lg border transition-all duration-300 ${
                     expiryDays === opt.value
-                      ? "bg-nps-accent text-white border-nps-accent"
-                      : "bg-nps-bg-card text-nps-text-dim border-nps-border hover:border-nps-accent"
+                      ? "bg-[var(--nps-accent)] text-white border-[var(--nps-accent)]"
+                      : "bg-[var(--nps-glass-bg)] text-[var(--nps-text-dim)] border-[var(--nps-glass-border)] hover:border-[var(--nps-accent)]"
                   }`}
                 >
                   {t(`settings.${opt.label}`)}

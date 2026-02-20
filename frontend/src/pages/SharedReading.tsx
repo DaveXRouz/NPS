@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { share } from "@/services/api";
+import { useFormattedDate } from "@/hooks/useFormattedDate";
+import { formatAiInterpretation } from "@/utils/formatAiInterpretation";
 import type { SharedReadingData } from "@/types";
 
 function sanitizeForMeta(raw: string, maxLen = 200): string {
@@ -26,6 +28,9 @@ function setMetaTag(property: string, content: string) {
 export default function SharedReading() {
   const { token } = useParams<{ token: string }>();
   const { t } = useTranslation();
+  const { formatDateLocale } = useFormattedDate();
+  const tRef = useRef(t);
+  tRef.current = t;
   const [data, setData] = useState<SharedReadingData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,11 +51,12 @@ export default function SharedReading() {
       .finally(() => setLoading(false));
   }, [token]);
 
-  // Set OG meta tags
+  // Set OG meta tags (only when data changes, not on language change)
   useEffect(() => {
     if (!data) return;
-    document.title = `${t("oracle.shared_reading_title")} - NPS`;
-    setMetaTag("og:title", t("oracle.shared_reading_title"));
+    const translate = tRef.current;
+    document.title = `${translate("oracle.shared_reading_title")} - NPS`;
+    setMetaTag("og:title", translate("oracle.shared_reading_title"));
     setMetaTag(
       "og:description",
       sanitizeForMeta(
@@ -58,7 +64,7 @@ export default function SharedReading() {
       ),
     );
     setMetaTag("og:type", "article");
-  }, [data, t]);
+  }, [data]);
 
   if (loading) {
     return (
@@ -116,7 +122,7 @@ export default function SharedReading() {
           </span>
           {reading.created_at && (
             <span className="text-xs text-nps-text-dim">
-              {new Date(reading.created_at as string).toLocaleDateString()}
+              {formatDateLocale(reading.created_at as string)}
             </span>
           )}
         </div>
@@ -151,9 +157,24 @@ export default function SharedReading() {
             <h3 className="text-xs text-nps-text-dim mb-1">
               {t("oracle.ai_interpretation")}
             </h3>
-            <p className="text-sm text-nps-text whitespace-pre-line">
-              {reading.ai_interpretation}
-            </p>
+            <div className="space-y-2">
+              {formatAiInterpretation(
+                typeof reading.ai_interpretation === "string"
+                  ? reading.ai_interpretation
+                  : JSON.stringify(reading.ai_interpretation),
+              ).map((section, i) => (
+                <div key={i}>
+                  {section.heading && (
+                    <h4 className="text-sm font-medium text-nps-text-bright mb-0.5">
+                      {section.heading}
+                    </h4>
+                  )}
+                  <p className="text-sm text-nps-text whitespace-pre-line">
+                    {section.body}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

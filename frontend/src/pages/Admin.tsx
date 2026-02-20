@@ -6,7 +6,7 @@ import { StaggerChildren } from "@/components/common/StaggerChildren";
 
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
+    <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-300">
       <p className="text-xs text-[var(--nps-text-dim)] mb-1">{label}</p>
       <p className="text-2xl font-bold text-[var(--nps-text-bright)]">
         {value}
@@ -31,7 +31,7 @@ export default function Admin() {
       {/* Header */}
       <FadeIn delay={0}>
         <div>
-          <h1 className="text-xl font-bold text-[var(--nps-text-bright)]">
+          <h1 className="text-2xl font-bold text-[var(--nps-text-bright)]">
             {t("admin.title")}
           </h1>
           <p className="text-sm text-[var(--nps-text-dim)]">
@@ -65,7 +65,7 @@ export default function Admin() {
 
       {/* Tab navigation */}
       <FadeIn delay={160}>
-        <div className="flex flex-wrap gap-2 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-xl p-2">
+        <div className="flex flex-wrap gap-2 bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-xl p-2">
           <NavLink
             to="/admin/users"
             className={({ isActive }) => tabClass(isActive)}

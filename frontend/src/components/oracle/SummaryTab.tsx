@@ -20,7 +20,26 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { FadeIn } from "@/components/common/FadeIn";
 import { StaggerChildren } from "@/components/common/StaggerChildren";
 import { MoonPhaseIcon } from "@/components/common/icons";
+import { useInView } from "@/hooks/useInView";
 import type { ConsultationResult } from "@/types";
+
+function ScrollRevealNumber({
+  children,
+  delay = "",
+}: {
+  children: React.ReactNode;
+  delay?: string;
+}) {
+  const { ref, inView } = useInView({ threshold: 0.2, triggerOnce: true });
+  return (
+    <div
+      ref={ref}
+      className={`bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 ${inView ? `nps-animate-number-reveal ${delay}` : "opacity-0"}`}
+    >
+      {children}
+    </div>
+  );
+}
 
 interface SummaryTabProps {
   result: ConsultationResult | null;
@@ -83,30 +102,30 @@ function ReadingSummary({
           icon={<Hash size={16} />}
         >
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
-            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 nps-animate-number-reveal">
+            <ScrollRevealNumber>
               <NumerologyNumberDisplay
                 number={data.numerology.life_path}
                 label={t("oracle.life_path")}
                 meaning={data.numerology.interpretation || ""}
                 size="md"
               />
-            </div>
-            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 nps-animate-number-reveal nps-delay-1">
+            </ScrollRevealNumber>
+            <ScrollRevealNumber delay="nps-delay-1">
               <NumerologyNumberDisplay
                 number={data.numerology.day_vibration}
                 label={t("oracle.day_vibration")}
                 meaning=""
                 size="sm"
               />
-            </div>
-            <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 nps-animate-number-reveal nps-delay-2">
+            </ScrollRevealNumber>
+            <ScrollRevealNumber delay="nps-delay-2">
               <NumerologyNumberDisplay
                 number={data.numerology.personal_year}
                 label={t("oracle.personal_year")}
                 meaning=""
                 size="sm"
               />
-            </div>
+            </ScrollRevealNumber>
           </div>
         </ReadingSection>
       )}
@@ -322,30 +341,30 @@ function NameSummary({
         icon={<Hash size={16} />}
       >
         <div className="grid grid-cols-3 gap-3 pt-2">
-          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 nps-animate-number-reveal">
+          <ScrollRevealNumber>
             <NumerologyNumberDisplay
               number={data.expression}
               label={t("oracle.expression")}
               meaning=""
               size="md"
             />
-          </div>
-          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 nps-animate-number-reveal nps-delay-1">
+          </ScrollRevealNumber>
+          <ScrollRevealNumber delay="nps-delay-1">
             <NumerologyNumberDisplay
               number={data.soul_urge}
               label={t("oracle.soul_urge")}
               meaning=""
               size="md"
             />
-          </div>
-          <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3 nps-animate-number-reveal nps-delay-2">
+          </ScrollRevealNumber>
+          <ScrollRevealNumber delay="nps-delay-2">
             <NumerologyNumberDisplay
               number={data.personality}
               label={t("oracle.personality")}
               meaning=""
               size="md"
             />
-          </div>
+          </ScrollRevealNumber>
         </div>
       </ReadingSection>
 

@@ -7,6 +7,7 @@ from sqlalchemy import (
     Boolean,
     Date,
     DateTime,
+    Float,
     ForeignKey,
     Integer,
     String,
@@ -32,8 +33,8 @@ class OracleReading(Base):
     sign_type: Mapped[str] = mapped_column(String(20), nullable=False)
     sign_value: Mapped[str] = mapped_column(String(100), nullable=False)
     reading_result: Mapped[dict | None] = mapped_column(PlatformJSONB)
-    ai_interpretation: Mapped[str | None] = mapped_column(Text)
-    ai_interpretation_persian: Mapped[str | None] = mapped_column(Text)
+    ai_interpretation: Mapped[dict | None] = mapped_column(PlatformJSONB)
+    ai_interpretation_persian: Mapped[dict | None] = mapped_column(PlatformJSONB)
     individual_results: Mapped[dict | None] = mapped_column(PlatformJSONB)
     compatibility_matrix: Mapped[dict | None] = mapped_column(PlatformJSONB)
     combined_energy: Mapped[dict | None] = mapped_column(PlatformJSONB)
@@ -60,7 +61,10 @@ class OracleReadingUser(Base):
 
 
 class OracleDailyReading(Base):
-    """Cache/lookup: maps (user_id, date) to an oracle reading."""
+    """Auto-generated daily readings, one per user per day.
+
+    Matches init.sql ``oracle_daily_readings`` table with full reading data storage.
+    """
 
     __tablename__ = "oracle_daily_readings"
 
@@ -69,10 +73,14 @@ class OracleDailyReading(Base):
         Integer, ForeignKey("oracle_users.id", ondelete="CASCADE"), nullable=False
     )
     reading_date: Mapped[date] = mapped_column(Date, nullable=False)
-    reading_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("oracle_readings.id", ondelete="CASCADE"), nullable=False
+    reading_result: Mapped[dict] = mapped_column(PlatformJSONB, nullable=False)
+    daily_insights: Mapped[dict | None] = mapped_column(PlatformJSONB)
+    numerology_system: Mapped[str] = mapped_column(
+        String(20), nullable=False, server_default="pythagorean"
     )
-    generated_at: Mapped[datetime] = mapped_column(
+    confidence_score: Mapped[float | None] = mapped_column(Float, default=0)
+    framework_version: Mapped[str | None] = mapped_column(String(20))
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 

@@ -14,6 +14,7 @@ interface TimeReadingFormProps {
     progress: number;
     message: string;
   }) => void;
+  onLoadingChange?: (loading: boolean) => void;
   abortControllerRef?: React.MutableRefObject<AbortController | null>;
 }
 
@@ -26,6 +27,7 @@ export default function TimeReadingForm({
   userName,
   onResult,
   onProgress,
+  onLoadingChange,
   abortControllerRef,
 }: TimeReadingFormProps) {
   const { t, i18n } = useTranslation();
@@ -84,6 +86,7 @@ export default function TimeReadingForm({
         abortControllerRef.current = controller;
       }
 
+      onLoadingChange?.(true);
       mutation.mutate(
         {
           user_id: userId,
@@ -101,6 +104,7 @@ export default function TimeReadingForm({
             onResult(data);
           },
           onError: (err) => {
+            onLoadingChange?.(false);
             // Silently ignore abort errors
             if (err instanceof DOMException && err.name === "AbortError")
               return;
@@ -272,6 +276,7 @@ export default function TimeReadingForm({
       <div aria-live="polite">
         {error && (
           <p
+            id="time-form-error"
             className="text-xs text-nps-error"
             role="alert"
             data-testid="time-error"
@@ -286,6 +291,7 @@ export default function TimeReadingForm({
         type="submit"
         disabled={mutation.isPending}
         aria-busy={mutation.isPending}
+        aria-describedby={error ? "time-form-error" : undefined}
         className="w-full rounded-lg bg-gradient-to-r from-[var(--nps-accent)] to-[var(--nps-accent-hover)] px-4 py-3 text-[var(--nps-bg)] font-medium nps-btn-lift disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
       >
         {mutation.isPending && (

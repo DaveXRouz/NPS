@@ -977,6 +977,8 @@ class OracleReadingService:
             return None
         return self._decrypt_reading(row)
 
+    _ALLOWED_SORT_FIELDS = {"created_at", "confidence"}
+
     def list_readings(
         self,
         user_id: int | None,
@@ -988,6 +990,8 @@ class OracleReadingService:
         date_to: str | None = None,
         is_favorite: bool | None = None,
         search_query: str | None = None,
+        sort_by: str = "created_at",
+        sort_order: str = "desc",
     ) -> tuple[list[dict], int]:
         """Query readings with filters + pagination. Excludes soft-deleted."""
         query = self.db.query(OracleReading).filter(OracleReading.deleted_at.is_(None))
@@ -1013,7 +1017,23 @@ class OracleReadingService:
             )
 
         total = query.count()
-        rows = query.order_by(OracleReading.created_at.desc()).offset(offset).limit(limit).all()
+
+        # Server-side sorting
+        if sort_by == "confidence" and sort_by in self._ALLOWED_SORT_FIELDS:
+            from sqlalchemy import text as sqla_text
+
+            order_expr = sqla_text(
+                "CAST(reading_result->>'confidence' AS FLOAT) "
+                + ("DESC NULLS LAST" if sort_order == "desc" else "ASC NULLS LAST")
+            )
+            rows = query.order_by(order_expr).offset(offset).limit(limit).all()
+        else:
+            sort_col = OracleReading.created_at
+            if sort_order == "asc":
+                rows = query.order_by(sort_col.asc()).offset(offset).limit(limit).all()
+            else:
+                rows = query.order_by(sort_col.desc()).offset(offset).limit(limit).all()
+
         return [self._decrypt_reading(r) for r in rows], total
 
     def soft_delete_reading(self, reading_id: int) -> bool:

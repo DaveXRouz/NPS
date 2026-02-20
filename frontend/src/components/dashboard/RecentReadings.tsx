@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate, Link } from "react-router-dom";
 import { useFormattedDate } from "@/hooks/useFormattedDate";
+import { useInView } from "@/hooks/useInView";
 import type { StoredReading } from "@/types";
 
 interface RecentReadingsProps {
@@ -71,6 +72,10 @@ export function RecentReadings({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { formatRelative } = useFormattedDate();
+  const { ref: gridRef, inView: gridInView } = useInView({
+    threshold: 0.1,
+    triggerOnce: true,
+  });
 
   if (isLoading) {
     return (
@@ -144,7 +149,10 @@ export function RecentReadings({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div
+          ref={gridRef}
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${gridInView ? "nps-animate-rise-in" : "opacity-0"}`}
+        >
           {readings.map((reading) => {
             const rawConfidence = getConfidence(reading);
             const pct =

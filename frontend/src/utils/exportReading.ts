@@ -33,7 +33,7 @@ export function formatAsText(
       );
       if (d.generated_at) {
         lines.push(
-          `${isFA ? "تاریخ" : "Date"}: ${new Date(d.generated_at).toLocaleDateString(locale === "fa" ? "fa-IR" : "en-US")}`,
+          `${isFA ? "تاریخ" : "Date"}: ${new Intl.DateTimeFormat(locale === "fa" ? "fa-IR" : "en-US", { year: "numeric", month: "short", day: "numeric" }).format(new Date(d.generated_at))}`,
         );
       }
       lines.push("");

@@ -12,7 +12,7 @@ export default function Vault() {
       {/* Page Header */}
       <FadeIn delay={0}>
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-[var(--nps-text-bright)]">
+          <h2 className="text-2xl font-bold text-[var(--nps-text-bright)]">
             {t("vault.title")}
           </h2>
           <span className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-[var(--nps-accent)]/15 text-[var(--nps-accent)] border border-[var(--nps-accent)]/30 rounded-full">
@@ -31,7 +31,7 @@ export default function Vault() {
           ].map((card) => (
             <div
               key={card.labelKey}
-              className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300"
+              className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300"
             >
               <p className="text-xs uppercase tracking-wider text-[var(--nps-text-dim)] mb-1">
                 {t(card.labelKey)}
@@ -46,7 +46,7 @@ export default function Vault() {
 
       {/* Main Content Area */}
       <FadeIn delay={160}>
-        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-6 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300">
+        <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-6 hover:shadow-[0_0_12px_var(--nps-glass-glow)] transition-all duration-300">
           <EmptyState
             icon="vault"
             title={t("vault.empty")}

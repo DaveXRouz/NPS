@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Search, ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react";
+import { useFormattedDate } from "@/hooks/useFormattedDate";
 import type { AdminOracleProfile, ProfileSortField, SortOrder } from "@/types";
 import { ProfileActions } from "./ProfileActions";
 
@@ -52,6 +53,7 @@ export function ProfileTable({
   onDelete,
 }: ProfileTableProps) {
   const { t } = useTranslation();
+  const { formatDateLocale } = useFormattedDate();
   const [searchInput, setSearchInput] = useState("");
 
   useEffect(() => {
@@ -79,12 +81,12 @@ export function ProfileTable({
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder={t("admin.search_profiles")}
-          className="w-full ps-10 pe-4 py-2 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] placeholder:text-[var(--nps-text-dim)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-200"
+          className="w-full ps-10 pe-4 py-2 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg text-[var(--nps-text)] placeholder:text-[var(--nps-text-dim)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-200"
         />
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl">
+      <div className="overflow-x-auto bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[var(--nps-glass-border)]">
@@ -162,7 +164,7 @@ export function ProfileTable({
                       {profile.birthday}
                     </td>
                     <td className="px-4 py-3 text-[var(--nps-text-dim)]">
-                      {new Date(profile.created_at).toLocaleDateString()}
+                      {formatDateLocale(profile.created_at)}
                     </td>
                     <td
                       className="px-4 py-3 text-[var(--nps-text-dim)]"
@@ -208,7 +210,7 @@ export function ProfileTable({
             <select
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg px-2 py-1 text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] transition-all duration-200"
+              className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg px-2 py-1 text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] transition-all duration-200"
             >
               {[10, 20, 50].map((n) => (
                 <option key={n} value={n}>
@@ -219,14 +221,14 @@ export function ProfileTable({
             <button
               onClick={() => onPageChange(page - 1)}
               disabled={page === 0}
-              className="px-3 py-1.5 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
+              className="px-3 py-1.5 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
             >
               {t("admin.page_prev")}
             </button>
             <button
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages - 1}
-              className="px-3 py-1.5 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
+              className="px-3 py-1.5 text-sm bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-sm)] border border-[var(--nps-glass-border)] rounded-lg hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_8px_var(--nps-glass-glow)] disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-[var(--nps-glass-border)] disabled:hover:shadow-none transition-all duration-200"
             >
               {t("admin.page_next")}
             </button>

@@ -61,7 +61,7 @@ export const StatsCard = React.memo(function StatsCard({
     <div
       role="group"
       aria-label={label}
-      className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 min-h-[72px] nps-card-hover"
+      className="group bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 min-h-[72px] nps-card-hover"
       style={
         accentColor
           ? {
@@ -74,9 +74,10 @@ export const StatsCard = React.memo(function StatsCard({
       <div className="flex items-center gap-2">
         {icon && accentColor ? (
           <span
-            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+            className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-shadow duration-300 group-hover:shadow-[0_0_8px_var(--accent-glow)]"
             style={{
               backgroundColor: `color-mix(in srgb, ${accentColor} 10%, transparent)`,
+              ["--accent-glow" as string]: accentColor,
             }}
           >
             <span className="w-4 h-4" style={{ color: accentColor }}>

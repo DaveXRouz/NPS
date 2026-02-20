@@ -16,11 +16,11 @@ export function SettingsSection({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="bg-nps-bg-card border border-nps-border rounded-lg overflow-hidden">
+    <div className="bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl overflow-hidden">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 text-start hover:bg-nps-bg-card/80 transition-colors"
+        className="w-full flex items-center justify-between p-4 text-start hover:bg-[var(--nps-bg-hover)] transition-colors duration-300"
         aria-expanded={isOpen}
         aria-label={`${title} section`}
       >

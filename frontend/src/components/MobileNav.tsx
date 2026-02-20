@@ -51,7 +51,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-200 ${
+        className={`fixed inset-0 bg-black/50 z-[55] transition-opacity duration-200 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
@@ -64,7 +64,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
         role="dialog"
         aria-modal="true"
         aria-label={t("accessibility.menu_toggle")}
-        className={`fixed inset-y-0 z-50 w-[280px] max-w-[calc(100vw-56px)] bg-[var(--nps-bg-sidebar)] border-e border-[var(--nps-border)] flex flex-col transition-transform duration-200 ease-in-out ${
+        className={`fixed inset-y-0 z-60 w-[280px] max-w-[calc(100vw-56px)] bg-[var(--nps-bg-sidebar)] border-e border-[var(--nps-border)] flex flex-col transition-transform duration-200 ease-in-out ${
           isRTL ? "end-0" : "start-0"
         } ${
           isOpen
