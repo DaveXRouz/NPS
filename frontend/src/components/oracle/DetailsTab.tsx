@@ -5,6 +5,10 @@ import { NumerologyNumberDisplay } from "./NumerologyNumberDisplay";
 import { EmptyState } from "@/components/common/EmptyState";
 import { MoonPhaseIcon } from "@/components/common/icons";
 import { formatAiInterpretation } from "@/utils/formatAiInterpretation";
+import {
+  getLifePathMeaning,
+  getNumberMeaning,
+} from "@/data/numerologyMeanings";
 import type { ConsultationResult } from "@/types";
 
 interface DetailsTabProps {
@@ -59,7 +63,8 @@ function ReadingDetails({
 }: {
   result: Extract<ConsultationResult, { type: "reading" }>;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
   const {
     fc60,
     numerology,
@@ -127,18 +132,27 @@ function ReadingDetails({
               label={t("oracle.life_path")}
               meaning=""
               size="sm"
+              archetype={
+                getLifePathMeaning(numerology.life_path, locale) ?? undefined
+              }
             />
             <NumerologyNumberDisplay
               number={numerology.day_vibration}
               label={t("oracle.day_vibration")}
               meaning=""
               size="sm"
+              archetype={
+                getNumberMeaning(numerology.day_vibration, locale) ?? undefined
+              }
             />
             <NumerologyNumberDisplay
               number={numerology.personal_year}
               label={t("oracle.personal_year")}
               meaning=""
               size="sm"
+              archetype={
+                getNumberMeaning(numerology.personal_year, locale) ?? undefined
+              }
             />
           </div>
           <DataRow
@@ -172,6 +186,21 @@ function ReadingDetails({
             value={`${moon.age_days} ${t("oracle.cosmic.days")}`}
           />
           <DataRow label={t("oracle.energy")} value={moon.meaning} />
+          {moon.energy && (
+            <DataRow
+              label={t("oracle.moon_energy_label")}
+              value={moon.energy}
+            />
+          )}
+          {moon.best_for && (
+            <DataRow
+              label={t("oracle.moon_best_for_label")}
+              value={moon.best_for}
+            />
+          )}
+          {moon.avoid && (
+            <DataRow label={t("oracle.moon_avoid_label")} value={moon.avoid} />
+          )}
         </DetailSection>
       )}
 
@@ -255,7 +284,8 @@ function QuestionDetails({
 }: {
   result: Extract<ConsultationResult, { type: "question" }>;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
   const {
     question_number,
     detected_script,
@@ -266,11 +296,17 @@ function QuestionDetails({
     ai_interpretation,
   } = result.data;
 
+  const archetype = getNumberMeaning(question_number, locale);
+
   return (
     <div className="space-y-2">
       <DataRow
         label={t("oracle.question_number_label")}
-        value={question_number}
+        value={
+          archetype
+            ? `${question_number} — ${archetype.title}`
+            : question_number
+        }
       />
       <DataRow label={t("oracle.detected_script")} value={detected_script} />
       <DataRow
@@ -316,7 +352,8 @@ function NameDetails({
 }: {
   result: Extract<ConsultationResult, { type: "name" }>;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
   const {
     expression,
     soul_urge,
@@ -325,12 +362,35 @@ function NameDetails({
     ai_interpretation,
   } = result.data;
 
+  const exprArchetype = getNumberMeaning(expression, locale);
+  const soulArchetype = getNumberMeaning(soul_urge, locale);
+  const persArchetype = getNumberMeaning(personality, locale);
+
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <DataRow label={t("oracle.expression")} value={expression} />
-        <DataRow label={t("oracle.soul_urge")} value={soul_urge} />
-        <DataRow label={t("oracle.personality")} value={personality} />
+        <DataRow
+          label={t("oracle.expression")}
+          value={
+            exprArchetype
+              ? `${expression} — ${exprArchetype.title}`
+              : expression
+          }
+        />
+        <DataRow
+          label={t("oracle.soul_urge")}
+          value={
+            soulArchetype ? `${soul_urge} — ${soulArchetype.title}` : soul_urge
+          }
+        />
+        <DataRow
+          label={t("oracle.personality")}
+          value={
+            persArchetype
+              ? `${personality} — ${persArchetype.title}`
+              : personality
+          }
+        />
       </div>
 
       <DetailSection title={t("oracle.details_letters")}>

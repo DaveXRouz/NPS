@@ -17,11 +17,16 @@ export interface FC60Data {
 
 export interface NumerologyData {
   life_path: number;
+  life_path_title?: string;
+  life_path_keywords?: string;
   day_vibration: number;
   personal_year: number;
   personal_month: number;
   personal_day: number;
   interpretation: string;
+  expression?: number;
+  soul_urge?: number;
+  personality?: number;
 }
 
 export interface MoonData {
@@ -30,6 +35,9 @@ export interface MoonData {
   age_days: number;
   meaning: string;
   emoji: string;
+  energy?: string;
+  best_for?: string;
+  avoid?: string;
 }
 
 export interface AngelMatch {

@@ -9,7 +9,6 @@ import type {
   QuestionReadingResult,
   OracleReading,
   MultiUserFrameworkRequest,
-  MoonData,
   GanzhiData,
 } from "@/types";
 import { useSubmitMultiUserReading } from "@/hooks/useOracleReadings";
@@ -42,16 +41,50 @@ function normalizeFrameworkResult(
       numerology: response.numerology
         ? {
             life_path: response.numerology.life_path?.number ?? 0,
+            life_path_title: response.numerology.life_path?.title ?? "",
+            life_path_keywords: response.numerology.life_path?.message ?? "",
             day_vibration: response.numerology.personal_day,
             personal_year: response.numerology.personal_year,
             personal_month: response.numerology.personal_month,
             personal_day: response.numerology.personal_day,
             interpretation: response.ai_interpretation?.core_identity ?? "",
+            expression: response.numerology.expression ?? 0,
+            soul_urge: response.numerology.soul_urge ?? 0,
+            personality: response.numerology.personality ?? 0,
           }
         : null,
       zodiac: null,
       chinese: null,
-      moon: response.moon as MoonData | null,
+      moon: response.moon
+        ? {
+            phase_name: String(
+              (response.moon as Record<string, unknown>).phase_name ?? "",
+            ),
+            illumination: Number(
+              (response.moon as Record<string, unknown>).illumination ?? 0,
+            ),
+            age_days: Number(
+              (response.moon as Record<string, unknown>).age ??
+                (response.moon as Record<string, unknown>).age_days ??
+                0,
+            ),
+            meaning: String(
+              (response.moon as Record<string, unknown>).meaning ?? "",
+            ),
+            emoji: String(
+              (response.moon as Record<string, unknown>).emoji ?? "",
+            ),
+            energy: String(
+              (response.moon as Record<string, unknown>).energy ?? "",
+            ),
+            best_for: String(
+              (response.moon as Record<string, unknown>).best_for ?? "",
+            ),
+            avoid: String(
+              (response.moon as Record<string, unknown>).avoid ?? "",
+            ),
+          }
+        : null,
       angel: null,
       chaldean: null,
       ganzhi: response.ganzhi as GanzhiData | null,

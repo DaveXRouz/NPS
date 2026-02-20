@@ -6,6 +6,7 @@ interface NumerologyNumberDisplayProps {
   label: string;
   meaning: string;
   size?: "sm" | "md" | "lg";
+  archetype?: { title: string; keywords: string };
 }
 
 const MASTER_NUMBERS = [11, 22, 33];
@@ -24,8 +25,9 @@ export function NumerologyNumberDisplay({
   label,
   meaning,
   size = "md",
+  archetype,
 }: NumerologyNumberDisplayProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isMaster = MASTER_NUMBERS.includes(number);
   const displayNumber =
     i18n.language === "fa" ? toPersianDigits(number) : String(number);
@@ -46,15 +48,28 @@ export function NumerologyNumberDisplay({
       >
         {displayNumber}
       </span>
-      <span className={`${sizeClasses.meaning} text-nps-text-dim mt-1`}>
-        {meaning}
-      </span>
+      {archetype ? (
+        <>
+          <span className="text-sm text-[var(--nps-accent)] font-medium mt-0.5">
+            {archetype.title}
+          </span>
+          <span className="text-xs text-nps-text-dim mt-0.5">
+            {archetype.keywords}
+          </span>
+        </>
+      ) : (
+        meaning && (
+          <span className={`${sizeClasses.meaning} text-nps-text-dim mt-1`}>
+            {meaning}
+          </span>
+        )
+      )}
       {isMaster && (
         <span
           className="text-xs text-nps-score-peak mt-0.5"
           data-testid="master-badge"
         >
-          Master Number
+          {t("oracle.master_number_label")}
         </span>
       )}
     </div>

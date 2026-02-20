@@ -36,7 +36,7 @@ describe("NumerologyNumberDisplay", () => {
     );
     expect(screen.getByTestId("master-badge")).toBeInTheDocument();
     expect(screen.getByTestId("master-badge")).toHaveTextContent(
-      "Master Number",
+      "oracle.master_number_label",
     );
   });
 });

@@ -21,6 +21,10 @@ import { FadeIn } from "@/components/common/FadeIn";
 import { StaggerChildren } from "@/components/common/StaggerChildren";
 import { MoonPhaseIcon } from "@/components/common/icons";
 import { useInView } from "@/hooks/useInView";
+import {
+  getLifePathMeaning,
+  getNumberMeaning,
+} from "@/data/numerologyMeanings";
 import type { ConsultationResult } from "@/types";
 
 function ScrollRevealNumber({
@@ -50,8 +54,19 @@ function ReadingSummary({
 }: {
   result: Extract<ConsultationResult, { type: "reading" }>;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data } = result;
+  const locale = i18n.language;
+
+  // Build life path archetype from backend title or fallback to static data
+  const lifePathArchetype = data.numerology
+    ? data.numerology.life_path_title
+      ? {
+          title: data.numerology.life_path_title,
+          keywords: data.numerology.life_path_keywords ?? "",
+        }
+      : (getLifePathMeaning(data.numerology.life_path, locale) ?? undefined)
+    : undefined;
 
   // Detect element balance warnings: any element at 0 or dominant >3
   const balanceWarnings: string[] = [];
@@ -108,6 +123,7 @@ function ReadingSummary({
                 label={t("oracle.life_path")}
                 meaning={data.numerology.interpretation || ""}
                 size="md"
+                archetype={lifePathArchetype}
               />
             </ScrollRevealNumber>
             <ScrollRevealNumber delay="nps-delay-1">
@@ -116,6 +132,10 @@ function ReadingSummary({
                 label={t("oracle.day_vibration")}
                 meaning=""
                 size="sm"
+                archetype={
+                  getNumberMeaning(data.numerology.day_vibration, locale) ??
+                  undefined
+                }
               />
             </ScrollRevealNumber>
             <ScrollRevealNumber delay="nps-delay-2">
@@ -124,6 +144,10 @@ function ReadingSummary({
                 label={t("oracle.personal_year")}
                 meaning=""
                 size="sm"
+                archetype={
+                  getNumberMeaning(data.numerology.personal_year, locale) ??
+                  undefined
+                }
               />
             </ScrollRevealNumber>
           </div>
@@ -166,6 +190,11 @@ function ReadingSummary({
                   <MoonPhaseIcon phaseName={data.moon.phase_name} size={16} />
                   {data.moon.phase_name} ({data.moon.illumination}%)
                 </p>
+                {data.moon.energy && (
+                  <p className="text-xs text-nps-text-dim mt-1">
+                    {t("oracle.moon_energy_label")}: {data.moon.energy}
+                  </p>
+                )}
               </div>
             )}
             {data.ganzhi && (
@@ -179,6 +208,32 @@ function ReadingSummary({
               </div>
             )}
           </div>
+
+          {/* Moon extended info */}
+          {data.moon && (data.moon.best_for || data.moon.avoid) && (
+            <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
+              {data.moon.best_for && (
+                <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3">
+                  <span className="text-[var(--nps-text-dim)]">
+                    {t("oracle.moon_best_for_label")}
+                  </span>
+                  <p className="text-[var(--nps-text)] mt-0.5">
+                    {data.moon.best_for}
+                  </p>
+                </div>
+              )}
+              {data.moon.avoid && (
+                <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3">
+                  <span className="text-[var(--nps-text-dim)]">
+                    {t("oracle.moon_avoid_label")}
+                  </span>
+                  <p className="text-[var(--nps-text)] mt-0.5">
+                    {data.moon.avoid}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </ReadingSection>
       )}
 
@@ -276,8 +331,9 @@ function QuestionSummary({
 }: {
   result: Extract<ConsultationResult, { type: "question" }>;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data } = result;
+  const locale = i18n.language;
 
   const fc60Stamp =
     data.fc60_stamp && typeof data.fc60_stamp === "object"
@@ -330,8 +386,11 @@ function QuestionSummary({
           <NumerologyNumberDisplay
             number={data.question_number}
             label={t("oracle.question_number_label")}
-            meaning={data.numerology_system}
+            meaning=""
             size="md"
+            archetype={
+              getNumberMeaning(data.question_number, locale) ?? undefined
+            }
           />
           <div className="flex gap-4 text-xs text-nps-text-dim">
             <span>
@@ -370,7 +429,7 @@ function QuestionSummary({
           icon={<Clock size={16} />}
         >
           <div className="grid grid-cols-2 gap-3 pt-2 text-sm">
-            {moonData && moonData.phase_name && (
+            {moonData && Boolean(moonData.phase_name) && (
               <div className="bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-3">
                 <span className="text-xs text-[var(--nps-text-dim)]">
                   {t("oracle.details_moon_phase")}
@@ -382,8 +441,13 @@ function QuestionSummary({
                   />
                   {String(moonData.phase_name)}{" "}
                   {moonData.illumination != null &&
-                    `(${moonData.illumination}%)`}
+                    `(${String(moonData.illumination)}%)`}
                 </p>
+                {moonData.energy ? (
+                  <p className="text-xs text-nps-text-dim mt-1">
+                    {t("oracle.moon_energy_label")}: {String(moonData.energy)}
+                  </p>
+                ) : null}
               </div>
             )}
             {ganzhiData && (
@@ -452,8 +516,9 @@ function NameSummary({
 }: {
   result: Extract<ConsultationResult, { type: "name" }>;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data } = result;
+  const locale = i18n.language;
 
   return (
     <div className="space-y-4">
@@ -475,6 +540,7 @@ function NameSummary({
               label={t("oracle.expression")}
               meaning=""
               size="md"
+              archetype={getNumberMeaning(data.expression, locale) ?? undefined}
             />
           </ScrollRevealNumber>
           <ScrollRevealNumber delay="nps-delay-1">
@@ -483,6 +549,7 @@ function NameSummary({
               label={t("oracle.soul_urge")}
               meaning=""
               size="md"
+              archetype={getNumberMeaning(data.soul_urge, locale) ?? undefined}
             />
           </ScrollRevealNumber>
           <ScrollRevealNumber delay="nps-delay-2">
@@ -491,6 +558,9 @@ function NameSummary({
               label={t("oracle.personality")}
               meaning=""
               size="md"
+              archetype={
+                getNumberMeaning(data.personality, locale) ?? undefined
+              }
             />
           </ScrollRevealNumber>
         </div>
