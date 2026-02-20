@@ -82,15 +82,39 @@ export function WelcomeBanner({
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl p-6 lg:p-8"
+      className="relative overflow-hidden rounded-2xl p-6 lg:p-8 nps-card-hover"
       style={{
-        background:
-          "linear-gradient(135deg, rgba(15, 26, 46, 0.9) 0%, rgba(79, 195, 247, 0.08) 100%)",
+        background: "var(--nps-gradient-hero)",
+        backdropFilter: "blur(var(--nps-glass-blur-md))",
+        border: "1px solid var(--nps-glass-border-std)",
+        boxShadow: "var(--nps-glow-xs)",
       }}
       data-testid="welcome-banner"
     >
-      {/* Glassmorphism overlay */}
-      <div className="absolute inset-0 backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-2xl pointer-events-none" />
+      {/* Orbital ring SVG — decorative */}
+      <svg
+        className="absolute end-6 top-1/2 -translate-y-1/2 w-48 h-48 opacity-[0.06] nps-animate-orbit-slow pointer-events-none"
+        viewBox="0 0 200 200"
+        fill="none"
+        aria-hidden="true"
+      >
+        <circle
+          cx="100"
+          cy="100"
+          r="80"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          className="text-[var(--nps-accent)]"
+        />
+        <circle
+          cx="100"
+          cy="100"
+          r="60"
+          stroke="currentColor"
+          strokeWidth="0.3"
+          className="text-[var(--nps-stat-readings)]"
+        />
+      </svg>
 
       {/* Content */}
       <div className="relative z-10 flex items-center justify-between">
@@ -105,13 +129,19 @@ export function WelcomeBanner({
             </>
           ) : (
             <>
-              <h1 className="text-2xl lg:text-3xl font-bold text-nps-text-bright truncate">
+              <h1
+                className="text-2xl lg:text-3xl font-bold text-nps-text-bright truncate"
+                style={{ fontFamily: "var(--nps-font-display)" }}
+              >
                 {welcomeText}
               </h1>
               <div className="flex items-center gap-3 mt-2 text-nps-text-dim">
                 <p className="text-sm lg:text-base">{dateText}</p>
-                <span className="text-nps-oracle-accent opacity-40">•</span>
-                <time className="text-sm lg:text-base font-mono tabular-nums">
+                <span className="text-[var(--nps-accent)] opacity-40">•</span>
+                <time
+                  className="text-sm lg:text-base tabular-nums"
+                  style={{ fontFamily: "var(--nps-font-mono)" }}
+                >
                   {currentTime}
                 </time>
               </div>

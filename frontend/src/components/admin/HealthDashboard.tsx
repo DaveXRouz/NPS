@@ -4,21 +4,26 @@ import { StaggerChildren } from "@/components/common/StaggerChildren";
 import { FadeIn } from "@/components/common/FadeIn";
 import type { DetailedHealth, ServiceStatus } from "@/types";
 
-const STATUS_COLORS: Record<string, string> = {
-  healthy: "bg-green-500",
-  unhealthy: "bg-red-500",
-  degraded: "bg-yellow-500",
-  not_connected: "bg-gray-400",
-  not_deployed: "bg-gray-400",
-  not_configured: "bg-gray-400",
-  direct_mode: "bg-blue-400",
-  configured: "bg-blue-400",
-  external: "bg-blue-400",
+const STATUS_CSS_VARS: Record<string, string> = {
+  healthy: "var(--nps-status-healthy)",
+  unhealthy: "var(--nps-status-unhealthy)",
+  degraded: "var(--nps-status-degraded)",
+  not_connected: "var(--nps-status-unknown)",
+  not_deployed: "var(--nps-status-unknown)",
+  not_configured: "var(--nps-status-unknown)",
+  direct_mode: "var(--nps-accent)",
+  configured: "var(--nps-accent)",
+  external: "var(--nps-accent)",
 };
 
 function StatusIndicator({ status }: { status: string }) {
-  const color = STATUS_COLORS[status] || "bg-gray-400";
-  return <span className={`inline-block w-2.5 h-2.5 rounded-full ${color}`} />;
+  const color = STATUS_CSS_VARS[status] || "var(--nps-status-unknown)";
+  return (
+    <span
+      className="inline-block w-2.5 h-2.5 rounded-full"
+      style={{ backgroundColor: color }}
+    />
+  );
 }
 
 function formatUptime(seconds: number): string {
@@ -83,7 +88,11 @@ function ServiceCard({
         <p className="text-xs text-[var(--nps-text-dim)] mt-1">{detail}</p>
       )}
       {service.error && (
-        <p className="text-xs text-red-400 mt-1 truncate" title={service.error}>
+        <p
+          className="text-xs mt-1 truncate"
+          style={{ color: "var(--nps-status-unhealthy)" }}
+          title={service.error}
+        >
           {service.error}
         </p>
       )}
@@ -138,8 +147,20 @@ export function HealthDashboard() {
 
   if (error && !health) {
     return (
-      <div className="bg-red-500/10 backdrop-blur-sm border border-red-500/30 rounded-xl p-4">
-        <p className="text-red-400 text-sm">{error}</p>
+      <div
+        className="backdrop-blur-sm rounded-xl p-4"
+        style={{
+          backgroundColor:
+            "color-mix(in srgb, var(--nps-status-unhealthy) 10%, transparent)",
+          borderWidth: "1px",
+          borderStyle: "solid",
+          borderColor:
+            "color-mix(in srgb, var(--nps-status-unhealthy) 30%, transparent)",
+        }}
+      >
+        <p className="text-sm" style={{ color: "var(--nps-status-unhealthy)" }}>
+          {error}
+        </p>
         <button
           onClick={fetchHealth}
           className="mt-2 text-sm text-[var(--nps-accent)] hover:text-[var(--nps-text-bright)] transition-colors"

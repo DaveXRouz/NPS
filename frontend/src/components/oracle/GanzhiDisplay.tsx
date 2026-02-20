@@ -8,11 +8,11 @@ interface GanzhiDisplayProps {
 }
 
 const ELEMENT_COLORS: Record<string, string> = {
-  Wood: "bg-green-500",
-  Fire: "bg-red-500",
-  Earth: "bg-amber-600",
-  Metal: "bg-gray-400",
-  Water: "bg-blue-500",
+  Wood: "var(--nps-element-wood)",
+  Fire: "var(--nps-element-fire)",
+  Earth: "var(--nps-element-earth)",
+  Metal: "var(--nps-element-metal)",
+  Water: "var(--nps-element-water)",
 };
 
 export default function GanzhiDisplay({
@@ -32,7 +32,12 @@ export default function GanzhiDisplay({
           <div className="flex items-center gap-2">
             <span className="text-lg font-bold">{ganzhi.year.animal_name}</span>
             <span
-              className={`inline-block px-2 py-0.5 rounded text-xs font-semibold text-white ${ELEMENT_COLORS[ganzhi.year.element] || "bg-gray-400"}`}
+              className="inline-block px-2 py-0.5 rounded text-xs font-semibold text-white"
+              style={{
+                backgroundColor:
+                  ELEMENT_COLORS[ganzhi.year.element] ||
+                  "var(--nps-element-metal)",
+              }}
             >
               {ganzhi.year.element}
             </span>
@@ -69,7 +74,12 @@ export default function GanzhiDisplay({
             <div className="flex items-center gap-2">
               <span className="font-semibold">{ganzhi.day.animal_name}</span>
               <span
-                className={`inline-block px-1.5 py-0.5 rounded text-xs font-semibold text-white ${ELEMENT_COLORS[ganzhi.day.element] || "bg-gray-400"}`}
+                className="inline-block px-1.5 py-0.5 rounded text-xs font-semibold text-white"
+                style={{
+                  backgroundColor:
+                    ELEMENT_COLORS[ganzhi.day.element] ||
+                    "var(--nps-element-metal)",
+                }}
               >
                 {ganzhi.day.element}
               </span>

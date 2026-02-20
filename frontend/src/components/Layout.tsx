@@ -38,13 +38,17 @@ export const Layout = React.memo(function Layout() {
           className={`
           hidden lg:flex flex-col
           ${sidebarCollapsed ? "lg:w-16" : "lg:w-64"}
-          bg-[var(--nps-bg-sidebar)] border-e border-[var(--nps-border)]
+          bg-gradient-to-b from-[var(--nps-bg-void)] via-[var(--nps-bg-sidebar)] to-[var(--nps-bg-void)]
+          border-e border-[var(--nps-border)]
           transition-all duration-200
         `}
         >
           {/* Logo */}
           <div className="p-4 border-b border-[var(--nps-border)] flex items-center gap-2">
-            <span className="text-xl font-bold text-[var(--nps-accent)]">
+            <span
+              className="text-xl font-bold text-[var(--nps-accent)]"
+              style={{ fontFamily: "var(--nps-font-display)" }}
+            >
               NPS
             </span>
             {!sidebarCollapsed && (

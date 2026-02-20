@@ -10,7 +10,6 @@ interface StatsCardsProps {
 
 function formatConfidence(value: number | null, locale: string): string {
   if (value === null) return "—";
-  // Backend may send 85 (already a percentage) or 0.85 (decimal)
   const pct = value > 1 ? Math.round(value) : Math.round(value * 100);
   return (
     new Intl.NumberFormat(locale === "fa" ? "fa-IR" : "en-US").format(pct) + "%"
@@ -43,6 +42,8 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
       <StatsCard
         label={t("dashboard.stats_total")}
         value={formatNumber(stats?.total_readings ?? 0, locale)}
+        accentColor="var(--nps-stat-readings)"
+        delay={0}
         icon={
           <svg
             className="w-4 h-4"
@@ -61,6 +62,8 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
       <StatsCard
         label={t("dashboard.stats_confidence")}
         value={formatConfidence(stats?.average_confidence ?? null, locale)}
+        accentColor="var(--nps-stat-confidence)"
+        delay={100}
         icon={
           <svg
             className="w-4 h-4"
@@ -84,6 +87,8 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
             ? t(`dashboard.type_${stats.most_used_type}`)
             : "—"
         }
+        accentColor="var(--nps-stat-type)"
+        delay={200}
         icon={
           <svg
             className="w-4 h-4"
@@ -103,6 +108,8 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
         value={t("dashboard.stats_streak_days", {
           count: stats?.streak_days ?? 0,
         })}
+        accentColor="var(--nps-stat-streak)"
+        delay={300}
         icon={
           <svg
             className="w-4 h-4"

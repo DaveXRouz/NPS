@@ -125,7 +125,7 @@ export function NameReadingForm({
   );
 
   const inputClasses =
-    "w-full bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg px-4 py-3 text-sm text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-200 pe-10";
+    "w-full bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg px-4 py-3 text-sm text-[var(--nps-text)] nps-input-focus transition-all duration-200 pe-10";
 
   return (
     <form
@@ -380,7 +380,7 @@ export function NameReadingForm({
         type="submit"
         disabled={mutation.isPending}
         aria-busy={mutation.isPending}
-        className="w-full rounded-lg bg-gradient-to-r from-[var(--nps-accent)] to-[var(--nps-accent-hover)] px-4 py-3 text-[var(--nps-bg)] font-medium hover:shadow-[0_0_16px_var(--nps-glass-glow)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
+        className="w-full rounded-lg bg-gradient-to-r from-[var(--nps-accent)] to-[var(--nps-accent-hover)] px-4 py-3 text-[var(--nps-bg)] font-medium nps-btn-lift disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
         data-testid="submit-name-reading"
       >
         {mutation.isPending && (

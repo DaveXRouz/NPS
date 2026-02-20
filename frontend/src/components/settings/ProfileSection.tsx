@@ -84,7 +84,7 @@ export function ProfileSection() {
           placeholder={t("settings.current_password")}
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim focus:outline-none focus:border-nps-accent"
+          className="nps-input-focus w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim"
           required
         />
         <input
@@ -92,7 +92,7 @@ export function ProfileSection() {
           placeholder={t("settings.new_password")}
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim focus:outline-none focus:border-nps-accent"
+          className="nps-input-focus w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim"
           required
           minLength={8}
         />
@@ -101,15 +101,19 @@ export function ProfileSection() {
           placeholder={t("settings.confirm_password")}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim focus:outline-none focus:border-nps-accent"
+          className="nps-input-focus w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim"
           required
           minLength={8}
         />
         {message && (
           <p
-            className={`text-xs ${
-              message.type === "success" ? "text-green-400" : "text-red-400"
-            }`}
+            className="text-xs"
+            style={{
+              color:
+                message.type === "success"
+                  ? "var(--nps-status-healthy)"
+                  : "var(--nps-status-unhealthy)",
+            }}
           >
             {message.text}
           </p>

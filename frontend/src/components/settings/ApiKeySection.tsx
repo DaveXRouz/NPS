@@ -70,17 +70,38 @@ export function ApiKeySection() {
     <div className="space-y-3">
       {/* Newly created key banner */}
       {newKeyValue && (
-        <div className="bg-yellow-900/30 border border-yellow-700 rounded p-3 space-y-2">
-          <p className="text-xs text-yellow-300 font-semibold">
+        <div
+          className="rounded p-3 space-y-2 border"
+          style={{
+            backgroundColor:
+              "color-mix(in srgb, var(--nps-status-degraded) 15%, transparent)",
+            borderColor:
+              "color-mix(in srgb, var(--nps-status-degraded) 50%, transparent)",
+          }}
+        >
+          <p
+            className="text-xs font-semibold"
+            style={{ color: "var(--nps-status-degraded)" }}
+          >
             {t("settings.api_key_warning")}
           </p>
-          <code className="block text-xs text-yellow-200 bg-nps-bg-card p-2 rounded break-all">
+          <code
+            className="block text-xs bg-nps-bg-card p-2 rounded break-all"
+            style={{
+              color:
+                "color-mix(in srgb, var(--nps-status-degraded) 80%, white)",
+            }}
+          >
             {newKeyValue}
           </code>
           <button
             type="button"
             onClick={handleCopy}
-            className="px-3 py-1 text-xs bg-yellow-700 text-white rounded hover:bg-yellow-600 transition-colors"
+            className="px-3 py-1 text-xs text-white rounded transition-colors"
+            style={{
+              backgroundColor:
+                "color-mix(in srgb, var(--nps-status-degraded) 70%, black)",
+            }}
           >
             {copied ? t("settings.api_key_copied") : t("settings.api_key_copy")}
           </button>
@@ -121,7 +142,8 @@ export function ApiKeySection() {
                 <button
                   type="button"
                   onClick={() => handleRevoke(k.id)}
-                  className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-500"
+                  className="px-2 py-1 text-xs text-white rounded"
+                  style={{ backgroundColor: "var(--nps-status-unhealthy)" }}
                 >
                   {t("common.confirm")}
                 </button>
@@ -137,7 +159,12 @@ export function ApiKeySection() {
               <button
                 type="button"
                 onClick={() => setConfirmRevoke(k.id)}
-                className="px-2 py-1 text-xs text-red-400 border border-red-800 rounded hover:bg-red-900/30"
+                className="px-2 py-1 text-xs rounded border"
+                style={{
+                  color: "var(--nps-status-unhealthy)",
+                  borderColor:
+                    "color-mix(in srgb, var(--nps-status-unhealthy) 40%, transparent)",
+                }}
               >
                 {t("settings.api_key_revoke")}
               </button>
@@ -154,7 +181,7 @@ export function ApiKeySection() {
             placeholder={t("settings.api_key_name")}
             value={keyName}
             onChange={(e) => setKeyName(e.target.value)}
-            className="w-full px-3 py-2 text-sm bg-nps-bg-card border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim focus:outline-none focus:border-nps-accent"
+            className="nps-input-focus w-full px-3 py-2 text-sm bg-nps-bg-card border border-nps-border rounded text-nps-text-bright placeholder-nps-text-dim"
           />
           <div>
             <label className="text-xs text-nps-text-dim mb-1 block">

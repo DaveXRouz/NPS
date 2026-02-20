@@ -141,7 +141,7 @@ export function QuestionReadingForm({
   const minuteSecondOptions = Array.from({ length: 60 }, (_, i) => i);
 
   const selectClasses =
-    "bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg px-4 py-3 text-sm text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-200 min-w-[72px] min-h-[44px]";
+    "bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg px-4 py-3 text-sm text-[var(--nps-text)] nps-input-focus transition-all duration-200 min-w-[72px] min-h-[44px]";
 
   const pillClasses = (selected: boolean) =>
     `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-200 text-xs cursor-pointer ${
@@ -355,7 +355,7 @@ export function QuestionReadingForm({
               dir={script === "persian" ? "rtl" : "ltr"}
               rows={8}
               maxLength={MAX_QUESTION_LENGTH}
-              className="w-full bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg px-4 py-3 text-sm text-[var(--nps-text)] focus:outline-none focus:border-[var(--nps-accent)] focus:shadow-[0_0_8px_var(--nps-glass-glow)] transition-all duration-200 resize-y pe-10"
+              className="w-full bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg px-4 py-3 text-sm text-[var(--nps-text)] nps-input-focus transition-all duration-200 resize-y pe-10"
               disabled={mutation.isPending}
               data-testid="question-input"
             />
@@ -426,10 +426,10 @@ export function QuestionReadingForm({
             <div
               className={`h-1.5 rounded-full transition-all duration-300 ${
                 charPercent < 80
-                  ? "bg-emerald-500"
+                  ? "bg-[var(--nps-confidence-high)]"
                   : charPercent < 95
-                    ? "bg-yellow-500"
-                    : "bg-red-500"
+                    ? "bg-[var(--nps-confidence-medium)]"
+                    : "bg-[var(--nps-confidence-low)]"
               }`}
               style={{ width: `${charPercent}%` }}
               role="progressbar"
@@ -495,7 +495,7 @@ export function QuestionReadingForm({
         type="submit"
         disabled={mutation.isPending}
         aria-busy={mutation.isPending}
-        className="w-full rounded-lg bg-gradient-to-r from-[var(--nps-accent)] to-[var(--nps-accent-hover)] px-4 py-3 text-[var(--nps-bg)] font-medium hover:shadow-[0_0_16px_var(--nps-glass-glow)] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
+        className="w-full rounded-lg bg-gradient-to-r from-[var(--nps-accent)] to-[var(--nps-accent-hover)] px-4 py-3 text-[var(--nps-bg)] font-medium nps-btn-lift disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2"
         data-testid="submit-question-reading"
       >
         {mutation.isPending && (

@@ -205,7 +205,7 @@ export function CalendarPicker({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-describedby={error ? "calendar-error" : undefined}
-        className={`w-full text-start bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
+        className={`w-full text-start bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text nps-input-focus ${
           error ? "border-nps-error" : "border-nps-border"
         }`}
       >

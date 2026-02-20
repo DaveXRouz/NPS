@@ -6,18 +6,14 @@ interface ConfidenceMeterProps {
   boosts: ConfidenceBoost[];
 }
 
+/** Confidence bar/text colors mapped to CSS variable tokens.
+ *  low (<40) red, medium (40-70) amber, high (70-90) green, peak (>90) gold.
+ */
 const LEVEL_COLORS: Record<string, string> = {
-  very_high: "bg-nps-success",
-  high: "bg-nps-oracle-accent",
-  medium: "bg-amber-600",
-  low: "bg-nps-error",
-};
-
-const LEVEL_TEXT_COLORS: Record<string, string> = {
-  very_high: "text-nps-success",
-  high: "text-nps-oracle-accent",
-  medium: "text-amber-600",
-  low: "text-nps-error",
+  very_high: "var(--nps-confidence-peak)",
+  high: "var(--nps-confidence-high)",
+  medium: "var(--nps-confidence-medium)",
+  low: "var(--nps-confidence-low)",
 };
 
 export function ConfidenceMeter({ confidence, boosts }: ConfidenceMeterProps) {
@@ -32,8 +28,7 @@ export function ConfidenceMeter({ confidence, boosts }: ConfidenceMeterProps) {
     );
   }
 
-  const barColor = LEVEL_COLORS[confidence.level] ?? "bg-nps-text-dim";
-  const textColor = LEVEL_TEXT_COLORS[confidence.level] ?? "text-nps-text-dim";
+  const levelColor = LEVEL_COLORS[confidence.level] ?? "var(--nps-text-dim)";
   const levelLabel = t(`oracle.confidence_level_${confidence.level}`);
 
   return (
@@ -44,7 +39,8 @@ export function ConfidenceMeter({ confidence, boosts }: ConfidenceMeterProps) {
           {t("oracle.confidence_label")}
         </span>
         <span
-          className={`font-medium ${textColor}`}
+          className="font-medium"
+          style={{ color: levelColor }}
           data-testid="confidence-label"
         >
           {t("oracle.confidence_score", { score: confidence.score })} —{" "}
@@ -66,8 +62,8 @@ export function ConfidenceMeter({ confidence, boosts }: ConfidenceMeterProps) {
         data-testid="confidence-bar"
       >
         <div
-          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-          style={{ width: `${confidence.score}%` }}
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${confidence.score}%`, backgroundColor: levelColor }}
           data-testid="confidence-fill"
         />
       </div>
@@ -83,12 +79,35 @@ export function ConfidenceMeter({ confidence, boosts }: ConfidenceMeterProps) {
             >
               <span className="flex items-center gap-1.5">
                 <span
-                  className={
-                    boost.filled ? "text-nps-success" : "text-nps-text-dim"
+                  className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full text-[10px] leading-none"
+                  style={
+                    boost.filled
+                      ? {
+                          backgroundColor: "var(--nps-confidence-high)",
+                          color: "#fff",
+                        }
+                      : { border: "1.5px solid var(--nps-text-dim)" }
                   }
                   data-testid={`boost-icon-${boost.field}`}
+                  aria-hidden="true"
                 >
-                  {boost.filled ? "✓" : "○"}
+                  {boost.filled && (
+                    <svg
+                      width="8"
+                      height="8"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M2 6l3 3 5-5"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  )}
                 </span>
                 <span
                   className={

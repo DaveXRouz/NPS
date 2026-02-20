@@ -37,7 +37,7 @@ export function UserSelector({
           const val = e.target.value;
           onSelect(val ? Number(val) : null);
         }}
-        className="bg-nps-bg-input border border-nps-oracle-border text-nps-text rounded px-3 py-2 text-sm min-w-[200px] focus:outline-none focus:border-nps-oracle-accent"
+        className="bg-nps-bg-input border border-nps-oracle-border text-nps-text rounded px-3 py-2 text-sm min-w-[200px] nps-input-focus"
         aria-label={t("oracle.select_profile")}
       >
         <option value="">

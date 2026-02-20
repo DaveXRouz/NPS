@@ -12,6 +12,8 @@ import { ReadingDetail } from "./ReadingDetail";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { StaggerChildren } from "@/components/common/StaggerChildren";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { useToast } from "@/hooks/useToast";
 import type { StoredReading } from "@/types";
 
 const PAGE_SIZE = 12;
@@ -37,6 +39,8 @@ export function ReadingHistory() {
   const [selectedReading, setSelectedReading] = useState<StoredReading | null>(
     null,
   );
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+  const { addToast } = useToast();
 
   // Debounce search input
   useEffect(() => {
@@ -76,13 +80,33 @@ export function ReadingHistory() {
     setSelectedReading(null);
   }
 
-  function handleDelete(id: number) {
-    deleteMutation.mutate(id);
-    if (selectedReading?.id === id) setSelectedReading(null);
+  function handleDeleteRequest(id: number) {
+    setDeleteTarget(id);
+  }
+
+  function handleDeleteConfirm() {
+    if (deleteTarget === null) return;
+    deleteMutation.mutate(deleteTarget, {
+      onSuccess: () => {
+        addToast({ type: "success", message: t("oracle.toast_deleted") });
+        if (selectedReading?.id === deleteTarget) setSelectedReading(null);
+      },
+      onError: () => {
+        addToast({ type: "error", message: t("oracle.toast_delete_error") });
+      },
+    });
+    setDeleteTarget(null);
   }
 
   function handleToggleFavorite(id: number) {
-    favoriteMutation.mutate(id);
+    favoriteMutation.mutate(id, {
+      onSuccess: () => {
+        addToast({
+          type: "success",
+          message: t("oracle.toast_favorite_toggled"),
+        });
+      },
+    });
   }
 
   function handleSelectReading(id: number) {
@@ -115,13 +139,23 @@ export function ReadingHistory() {
         reading={selectedReading}
         onClose={() => setSelectedReading(null)}
         onToggleFavorite={handleToggleFavorite}
-        onDelete={handleDelete}
+        onDelete={handleDeleteRequest}
       />
     );
   }
 
   return (
     <div className="space-y-3">
+      <ConfirmDialog
+        isOpen={deleteTarget !== null}
+        title={t("oracle.delete_reading")}
+        message={t("oracle.delete_confirm_message")}
+        confirmLabel={t("oracle.delete_confirm")}
+        cancelLabel={t("common.cancel")}
+        variant="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteTarget(null)}
+      />
       {/* Stats bar */}
       {stats && (
         <div className="flex gap-4 text-[10px] text-[var(--nps-text-dim)]">
@@ -229,7 +263,7 @@ export function ReadingHistory() {
                 reading={reading}
                 onSelect={handleSelectReading}
                 onToggleFavorite={handleToggleFavorite}
-                onDelete={handleDelete}
+                onDelete={handleDeleteRequest}
               />
             ))}
           </StaggerChildren>

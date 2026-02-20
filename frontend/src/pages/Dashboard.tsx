@@ -48,9 +48,10 @@ export default function Dashboard() {
   } = useDailyReading();
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div className="flex flex-col gap-6">
       <h2 className="sr-only">{t("dashboard.title")}</h2>
-      <FadeIn delay={0} className="lg:col-span-12">
+
+      <FadeIn delay={0}>
         <WelcomeBanner
           isLoading={dailyLoading}
           moonData={
@@ -61,7 +62,12 @@ export default function Dashboard() {
           userName={localStorage.getItem("nps_username") ?? undefined}
         />
       </FadeIn>
-      <FadeIn delay={80} className="lg:col-span-8">
+
+      <FadeIn delay={80}>
+        <QuickActions />
+      </FadeIn>
+
+      <FadeIn delay={160}>
         <DailyReadingCard
           dailyReading={parseDailyInsight(daily)}
           isLoading={dailyLoading}
@@ -69,13 +75,12 @@ export default function Dashboard() {
           onRetry={() => retryDaily()}
         />
       </FadeIn>
-      <FadeIn delay={160} className="lg:col-span-4">
-        <QuickActions />
-      </FadeIn>
-      <FadeIn delay={240} className="lg:col-span-12">
+
+      <FadeIn delay={240}>
         <StatsCards stats={stats} isLoading={statsLoading} />
       </FadeIn>
-      <FadeIn delay={320} className="lg:col-span-12">
+
+      <FadeIn delay={320}>
         <RecentReadings
           readings={recent?.readings ?? []}
           isLoading={recentLoading}

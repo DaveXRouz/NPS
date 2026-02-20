@@ -157,7 +157,10 @@ export default function Oracle() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 lg:gap-6">
+    <div
+      className="flex flex-col md:flex-row gap-4 lg:gap-6"
+      data-page="oracle"
+    >
       {/* LEFT PANEL */}
       <aside className="w-full md:w-72 lg:w-80 md:flex-shrink-0 md:sticky md:top-6 md:self-start space-y-4">
         {/* User Profile Card */}

@@ -80,6 +80,38 @@
   --nps-stat-type: #a78bfa;
   --nps-stat-streak: #f8b400;
 
+  /* Element colors (Chinese five elements) */
+  --nps-element-wood: #22c55e;
+  --nps-element-fire: #ef4444;
+  --nps-element-earth: #eab308;
+  --nps-element-metal: #a1a1aa;
+  --nps-element-water: #3b82f6;
+
+  /* Energy/confidence tiers */
+  --nps-energy-low: #ef4444;
+  --nps-energy-medium: #f59e0b;
+  --nps-energy-high: #10b981;
+  --nps-energy-peak: #f8b400;
+  --nps-confidence-low: #ef4444;
+  --nps-confidence-medium: #f59e0b;
+  --nps-confidence-high: #10b981;
+  --nps-confidence-peak: #f8b400;
+
+  /* Status tokens (health/admin) */
+  --nps-status-healthy: #22c55e;
+  --nps-status-degraded: #f59e0b;
+  --nps-status-unhealthy: #ef4444;
+  --nps-status-unknown: #6b7280;
+
+  /* Z-index scale */
+  --nps-z-dropdown: 40;
+  --nps-z-modal: 50;
+  --nps-z-toast: 60;
+
+  /* Error token */
+  --nps-error: #f85149;
+  --nps-bg-danger: #dc2626;
+
   /* Font tokens */
   --nps-font-display: "Cinzel Decorative", serif;
   --nps-font-body: "Lora", "Georgia", serif;

@@ -106,7 +106,7 @@ export function Navigation({
               aria-label={`${t(item.labelKey)} — ${t("layout.coming_soon")}`}
               className="flex items-center gap-3 px-4 py-2 mx-2 rounded text-sm text-[var(--nps-text-dim)] cursor-not-allowed opacity-50 w-full text-start"
             >
-              <span className="flex-shrink-0">{item.icon}</span>
+              <span className="flex-shrink-0 w-5 h-5">{item.icon}</span>
               {!collapsed && <span>{t(item.labelKey)}</span>}
             </button>
           );
@@ -119,15 +119,30 @@ export function Navigation({
             onClick={onItemClick}
             title={collapsed ? t(item.labelKey) : undefined}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2 mx-2 rounded text-sm transition-colors ${
+              `flex items-center gap-3 px-4 py-2 mx-2 rounded-lg text-sm transition-all duration-200 ${
                 isActive
-                  ? "bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border-s-2 border-[var(--nps-accent)]"
+                  ? "bg-gradient-to-r from-[var(--nps-accent)]/15 to-transparent text-[var(--nps-accent)] border-s-2 border-[var(--nps-accent)]"
                   : "text-[var(--nps-text-dim)] hover:bg-[var(--nps-bg-hover)] hover:text-[var(--nps-text)]"
               }`
             }
           >
-            <span className="flex-shrink-0">{item.icon}</span>
-            {!collapsed && <span>{t(item.labelKey)}</span>}
+            {({ isActive }) => (
+              <>
+                <span
+                  className="flex-shrink-0 w-5 h-5"
+                  style={
+                    isActive
+                      ? {
+                          filter: `drop-shadow(0 0 4px var(--nps-accent))`,
+                        }
+                      : undefined
+                  }
+                >
+                  {item.icon}
+                </span>
+                {!collapsed && <span>{t(item.labelKey)}</span>}
+              </>
+            )}
           </NavLink>
         );
       })}

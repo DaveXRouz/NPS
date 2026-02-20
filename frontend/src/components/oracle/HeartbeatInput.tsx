@@ -170,7 +170,7 @@ export function HeartbeatInput({ value, onChange }: HeartbeatInputProps) {
             placeholder={t("oracle.heartbeat_placeholder")}
             aria-label={t("oracle.heartbeat_label")}
             aria-invalid={!!manualError}
-            className={`flex-1 bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
+            className={`flex-1 bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text nps-input-focus ${
               manualError ? "border-nps-error" : "border-nps-border"
             }`}
             data-testid="heartbeat-manual-input"

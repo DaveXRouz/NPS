@@ -44,7 +44,8 @@
   }
 
   /* Remove animations */
-  .animate-fade-in-up {
+  .animate-fade-in-up,
+  .nps-animate-rise-in {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;

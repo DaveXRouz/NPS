@@ -7,15 +7,19 @@ interface MoonPhaseDisplayProps {
   compact?: boolean;
 }
 
-const ENERGY_COLORS: Record<string, string> = {
-  Seed: "bg-green-500/15 text-green-400",
-  Build: "bg-blue-500/15 text-blue-400",
-  Challenge: "bg-red-500/15 text-red-400",
-  Refine: "bg-purple-500/15 text-purple-400",
-  Culminate: "bg-yellow-500/15 text-yellow-400",
-  Share: "bg-teal-500/15 text-teal-400",
-  Release: "bg-orange-500/15 text-orange-400",
-  Rest: "bg-gray-500/15 text-gray-400",
+/** Energy color tokens — each maps to a CSS custom property value.
+ *  Format: [text color hex, bg color with alpha]
+ *  These correspond to moon-phase energy levels.
+ */
+const ENERGY_COLORS: Record<string, { text: string; bg: string }> = {
+  Seed: { text: "#4ade80", bg: "rgba(34,197,94,0.15)" },
+  Build: { text: "#60a5fa", bg: "rgba(59,130,246,0.15)" },
+  Challenge: { text: "#f87171", bg: "rgba(239,68,68,0.15)" },
+  Refine: { text: "#c084fc", bg: "rgba(168,85,247,0.15)" },
+  Culminate: { text: "#facc15", bg: "rgba(234,179,8,0.15)" },
+  Share: { text: "#2dd4bf", bg: "rgba(20,184,166,0.15)" },
+  Release: { text: "#fb923c", bg: "rgba(249,115,22,0.15)" },
+  Rest: { text: "#a1a1aa", bg: "rgba(161,161,170,0.15)" },
 };
 
 export default function MoonPhaseDisplay({
@@ -24,8 +28,10 @@ export default function MoonPhaseDisplay({
 }: MoonPhaseDisplayProps) {
   const { t } = useTranslation();
   const illumination = Math.max(0, Math.min(100, moon.illumination));
-  const energyColor =
-    ENERGY_COLORS[moon.energy] || "bg-nps-bg-input text-nps-text-dim";
+  const energyColor = ENERGY_COLORS[moon.energy] || {
+    text: "var(--nps-text-dim)",
+    bg: "var(--nps-bg-input)",
+  };
 
   return (
     <div className="space-y-3">
@@ -45,8 +51,11 @@ export default function MoonPhaseDisplay({
         </div>
         <div className="w-full bg-nps-border rounded-full h-2.5">
           <div
-            className="bg-yellow-400 h-2.5 rounded-full transition-all duration-300"
-            style={{ width: `${illumination}%` }}
+            className="h-2.5 rounded-full transition-all duration-300"
+            style={{
+              width: `${illumination}%`,
+              backgroundColor: "var(--nps-energy-peak)",
+            }}
             role="progressbar"
             aria-valuenow={illumination}
             aria-valuemin={0}
@@ -65,7 +74,8 @@ export default function MoonPhaseDisplay({
             {t("oracle.cosmic.energy")}:{" "}
           </span>
           <span
-            className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${energyColor}`}
+            className="inline-block px-2 py-0.5 rounded-full text-xs font-semibold"
+            style={{ color: energyColor.text, backgroundColor: energyColor.bg }}
           >
             {moon.energy}
           </span>
@@ -85,7 +95,10 @@ export default function MoonPhaseDisplay({
           )}
           {moon.avoid && (
             <div>
-              <div className="flex items-center gap-1 font-medium text-amber-400">
+              <div
+                className="flex items-center gap-1 font-medium"
+                style={{ color: "var(--nps-energy-medium)" }}
+              >
                 <span>&#9888;</span>
                 <span>{t("oracle.cosmic.avoid")}</span>
               </div>

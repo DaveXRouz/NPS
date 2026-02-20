@@ -45,8 +45,12 @@ export function EmptyState({
       className="flex flex-col items-center justify-center py-8 text-center"
       data-testid="empty-state"
     >
-      <span className="mb-3 text-nps-oracle-accent" aria-hidden="true">
-        <IconComponent size={48} />
+      <span
+        className="mb-3 text-[var(--nps-accent)]"
+        style={{ filter: "drop-shadow(0 0 8px var(--nps-accent))" }}
+        aria-hidden="true"
+      >
+        <IconComponent size={56} />
       </span>
       <p className="text-sm font-medium text-nps-text mb-1">{title}</p>
       {description && (

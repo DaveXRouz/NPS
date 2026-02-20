@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 interface QuickAction {
   key: string;
   icon: ReactNode;
-  colorClass: string;
+  glowColor: string;
+  subtitle: string;
 }
 
 const ACTIONS: QuickAction[] = [
@@ -25,7 +26,8 @@ const ACTIONS: QuickAction[] = [
         <polyline points="12 6 12 12 16 14" />
       </svg>
     ),
-    colorClass: "text-nps-oracle-accent",
+    glowColor: "var(--nps-stat-readings)",
+    subtitle: "dashboard.quick_time_sub",
   },
   {
     key: "question",
@@ -44,7 +46,8 @@ const ACTIONS: QuickAction[] = [
         <line x1="12" y1="17" x2="12.01" y2="17" />
       </svg>
     ),
-    colorClass: "text-nps-warning",
+    glowColor: "var(--nps-stat-streak)",
+    subtitle: "dashboard.quick_question_sub",
   },
   {
     key: "name",
@@ -62,7 +65,8 @@ const ACTIONS: QuickAction[] = [
         <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
       </svg>
     ),
-    colorClass: "text-[var(--nps-accent)]",
+    glowColor: "var(--nps-accent)",
+    subtitle: "dashboard.quick_name_sub",
   },
 ];
 
@@ -71,28 +75,42 @@ export function QuickActions() {
   const navigate = useNavigate();
 
   return (
-    <div data-testid="quick-actions" className="h-full flex flex-col">
+    <div data-testid="quick-actions">
       <h2 className="text-lg font-semibold text-nps-text-bright mb-4">
         {t("dashboard.quick_actions")}
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4 flex-1">
-        {ACTIONS.map(({ key, icon, colorClass }) => (
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {ACTIONS.map(({ key, icon, glowColor, subtitle }) => (
           <button
             key={key}
             onClick={() => navigate(`/oracle?type=${key}`)}
-            className="group relative overflow-hidden bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-5 flex flex-col items-center justify-center gap-3 transition-all duration-300 hover:border-nps-oracle-accent/40 hover:shadow-[0_0_16px_var(--nps-glass-glow)] hover:scale-105"
+            className="group relative overflow-hidden bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-5 flex flex-col items-center justify-center gap-3 nps-card-hover text-center"
+            style={
+              {
+                "--action-glow": glowColor,
+              } as React.CSSProperties
+            }
             data-testid={`quick-${key}`}
           >
             {/* Gradient overlay on hover */}
-            <div className="absolute inset-0 bg-gradient-to-br from-nps-oracle-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[var(--action-glow)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
             <span
-              className={`relative z-10 ${colorClass} transition-transform duration-300 group-hover:scale-110`}
+              className="relative z-10 transition-transform duration-300 group-hover:scale-110"
+              style={{ color: glowColor }}
             >
               {icon}
             </span>
             <span className="relative z-10 text-sm font-medium text-nps-text-bright">
               {t(`dashboard.quick_${key}`)}
+            </span>
+            <span className="relative z-10 text-xs text-nps-text-dim">
+              {t(subtitle, "")}
+            </span>
+
+            {/* Sliding arrow on hover */}
+            <span className="absolute end-3 top-1/2 -translate-y-1/2 text-[var(--action-glow)] opacity-0 translate-x-2 group-hover:opacity-60 group-hover:translate-x-0 transition-all duration-300">
+              &rarr;
             </span>
           </button>
         ))}

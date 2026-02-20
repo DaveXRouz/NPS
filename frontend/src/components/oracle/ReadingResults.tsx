@@ -71,7 +71,7 @@ export const ReadingResults = React.memo(function ReadingResults({
               onClick={() => setActiveTab(tab)}
               className={`px-3 py-1.5 min-h-[44px] sm:min-h-0 text-xs rounded-md transition-all duration-200 whitespace-nowrap ${
                 activeTab === tab
-                  ? "bg-[var(--nps-accent)] text-white font-medium shadow-[0_0_8px_var(--nps-glass-glow)]"
+                  ? "bg-gradient-to-r from-[var(--nps-accent)] to-[var(--nps-stat-readings)] text-white font-medium shadow-[0_0_8px_var(--nps-glass-glow)]"
                   : "text-[var(--nps-text-dim)] hover:text-[var(--nps-text)] hover:bg-[var(--nps-bg-hover)]"
               }`}
             >

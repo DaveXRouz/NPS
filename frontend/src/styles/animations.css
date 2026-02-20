@@ -428,6 +428,48 @@
   transform: rotate(180deg);
 }
 
+/* === Interaction Utility Classes === */
+
+.nps-card-hover {
+  transition:
+    border-color var(--nps-duration-sm) ease,
+    box-shadow var(--nps-duration-sm) ease,
+    transform var(--nps-duration-sm) ease;
+}
+
+.nps-card-hover:hover {
+  border-color: var(--nps-glass-border-active);
+  box-shadow: var(--nps-glow-sm);
+  transform: translateY(-1px);
+}
+
+.nps-btn-lift {
+  transition:
+    transform var(--nps-duration-micro) ease,
+    box-shadow var(--nps-duration-micro) ease;
+}
+
+.nps-btn-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--nps-glow-sm);
+}
+
+.nps-btn-lift:active {
+  transform: translateY(0);
+}
+
+.nps-input-focus {
+  transition:
+    border-color var(--nps-duration-sm) ease,
+    box-shadow var(--nps-duration-sm) ease;
+}
+
+.nps-input-focus:focus {
+  border-color: var(--nps-border-active);
+  box-shadow: 0 0 0 2px var(--nps-glow-xs);
+  outline: none;
+}
+
 /* === Reduced Motion Override === */
 
 @media (prefers-reduced-motion: reduce) {

@@ -106,7 +106,7 @@ export function MultiUserSelector({
               const val = e.target.value;
               handlePrimaryChange(val ? Number(val) : null);
             }}
-            className="bg-nps-bg-input border border-nps-oracle-border text-nps-text rounded px-3 py-2 text-sm w-full sm:min-w-[200px] sm:w-auto min-h-[44px] sm:min-h-0 focus:outline-none focus:border-nps-oracle-accent"
+            className="bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] text-[var(--nps-text)] rounded-lg px-3 py-2 text-sm w-full sm:min-w-[200px] sm:w-auto min-h-[44px] sm:min-h-0 nps-input-focus"
             aria-label={t("oracle.select_profile")}
           >
             <option value="">
@@ -178,7 +178,7 @@ export function MultiUserSelector({
                         }
                       }}
                       onBlur={() => setShowSecondaryDropdown(false)}
-                      className="bg-nps-bg-input border border-nps-oracle-border text-nps-text rounded px-2 py-1 text-xs focus:outline-none focus:border-nps-oracle-accent"
+                      className="bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] text-[var(--nps-text)] rounded-lg px-2 py-1 text-xs nps-input-focus"
                     >
                       <option value="">{t("oracle.select_profile")}</option>
                       {availableForSecondary.map((user) => (

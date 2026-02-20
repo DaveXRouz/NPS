@@ -142,7 +142,7 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
             value={value?.countryCode ?? ""}
             onChange={(e) => handleCountrySelect(e.target.value)}
             dir="auto"
-            className="flex-1 bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
+            className="flex-1 bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text nps-input-focus"
             aria-label={t("oracle.location_country")}
           >
             <option value="">{t("oracle.location_country")}</option>
@@ -164,7 +164,7 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
                   value={value?.city ?? ""}
                   onChange={(e) => handleCitySelect(e.target.value)}
                   dir="auto"
-                  className="flex-1 bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
+                  className="flex-1 bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text nps-input-focus"
                   aria-label={t("oracle.location_select_city")}
                 >
                   <option value="">{t("oracle.location_select_city")}</option>
@@ -207,7 +207,7 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
               value={value?.lat ?? ""}
               onChange={(e) => handleManualLat(e.target.value)}
               dir="ltr"
-              className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-1.5 text-sm text-nps-text font-mono focus:outline-none focus:border-nps-oracle-accent"
+              className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-1.5 text-sm text-nps-text font-mono nps-input-focus"
               aria-label={t("oracle.location_latitude")}
             />
           </div>
@@ -223,7 +223,7 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
               value={value?.lon ?? ""}
               onChange={(e) => handleManualLon(e.target.value)}
               dir="ltr"
-              className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-1.5 text-sm text-nps-text font-mono focus:outline-none focus:border-nps-oracle-accent"
+              className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-1.5 text-sm text-nps-text font-mono nps-input-focus"
               aria-label={t("oracle.location_longitude")}
             />
           </div>

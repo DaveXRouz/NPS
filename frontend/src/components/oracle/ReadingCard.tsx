@@ -10,12 +10,12 @@ interface ReadingCardProps {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  reading: "bg-nps-oracle-accent/20 text-nps-oracle-accent",
-  time: "bg-nps-oracle-accent/20 text-nps-oracle-accent",
-  question: "bg-nps-purple/20 text-nps-purple",
-  name: "bg-emerald-500/20 text-emerald-300",
-  daily: "bg-amber-500/20 text-amber-300",
-  multi_user: "bg-rose-500/20 text-rose-300",
+  reading: "bg-[var(--nps-stat-readings)]/20 text-[var(--nps-stat-readings)]",
+  time: "bg-[var(--nps-stat-readings)]/20 text-[var(--nps-stat-readings)]",
+  question: "bg-[var(--nps-stat-type)]/20 text-[var(--nps-stat-type)]",
+  name: "bg-[var(--nps-accent)]/20 text-[var(--nps-accent)]",
+  daily: "bg-[var(--nps-stat-streak)]/20 text-[var(--nps-stat-streak)]",
+  multi_user: "bg-[var(--nps-stat-type)]/20 text-[var(--nps-stat-type)]",
 };
 
 export function ReadingCard({
@@ -33,7 +33,17 @@ export function ReadingCard({
   const dateStr = new Date(reading.created_at).toLocaleDateString();
 
   return (
-    <div className="group bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-4 cursor-pointer transition-all duration-300 hover:border-[var(--nps-accent)]/40 hover:shadow-[0_0_12px_var(--nps-glass-glow)]">
+    <div
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect(reading.id);
+        }
+      }}
+      className="group bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 cursor-pointer nps-card-hover"
+    >
       {/* Header row: type badge + date + actions */}
       <div className="flex items-center gap-2 mb-2">
         <span

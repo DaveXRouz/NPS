@@ -11,11 +11,26 @@ interface FC60StampDisplayProps {
 }
 
 const ELEMENT_COLORS: Record<string, { text: string; bg: string }> = {
-  WU: { text: "text-green-500", bg: "bg-green-500/10" },
-  FI: { text: "text-red-500", bg: "bg-red-500/10" },
-  ER: { text: "text-amber-700", bg: "bg-amber-700/10" },
-  MT: { text: "text-yellow-400", bg: "bg-yellow-400/10" },
-  WA: { text: "text-blue-500", bg: "bg-blue-500/10" },
+  WU: {
+    text: "text-[var(--nps-element-wood)]",
+    bg: "bg-[var(--nps-element-wood)]/10",
+  },
+  FI: {
+    text: "text-[var(--nps-element-fire)]",
+    bg: "bg-[var(--nps-element-fire)]/10",
+  },
+  ER: {
+    text: "text-[var(--nps-element-earth)]",
+    bg: "bg-[var(--nps-element-earth)]/10",
+  },
+  MT: {
+    text: "text-[var(--nps-element-metal)]",
+    bg: "bg-[var(--nps-element-metal)]/10",
+  },
+  WA: {
+    text: "text-[var(--nps-element-water)]",
+    bg: "bg-[var(--nps-element-water)]/10",
+  },
 };
 
 const ANIMAL_MEANINGS: Record<string, string> = {

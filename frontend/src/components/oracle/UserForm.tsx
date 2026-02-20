@@ -4,6 +4,7 @@ import { Keyboard } from "lucide-react";
 import type { OracleUser, OracleUserCreate, LocationData } from "@/types";
 import { LocationSelector } from "./LocationSelector";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 
 const PersianKeyboard = lazy(() =>
   import("./PersianKeyboard").then((m) => ({ default: m.PersianKeyboard })),
@@ -89,7 +90,7 @@ export function UserForm({
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [activeKeyboard, setActiveKeyboard] = useState<string | null>(null);
 
   function handleFieldChange(
@@ -337,7 +338,7 @@ export function UserForm({
                   onChange={(e) =>
                     handleFieldChange("gender", e.target.value || undefined)
                   }
-                  className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
+                  className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text nps-input-focus"
                   data-testid="gender-select"
                 >
                   <option value="">{t("oracle.gender_unset")}</option>
@@ -367,7 +368,7 @@ export function UserForm({
                     )
                   }
                   aria-invalid={!!errors.heart_rate_bpm}
-                  className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
+                  className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text nps-input-focus ${
                     errors.heart_rate_bpm
                       ? "border-nps-error"
                       : "border-nps-border"
@@ -415,7 +416,7 @@ export function UserForm({
                   onChange={(e) =>
                     handleFieldChange("timezone_hours", Number(e.target.value))
                   }
-                  className="flex-1 bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
+                  className="flex-1 bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text nps-input-focus"
                   aria-label={t("oracle.timezone_hours")}
                   data-testid="timezone-hours"
                 >
@@ -433,7 +434,7 @@ export function UserForm({
                       Number(e.target.value),
                     )
                   }
-                  className="w-24 bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent"
+                  className="w-24 bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text nps-input-focus"
                   aria-label={t("oracle.timezone_minutes")}
                   data-testid="timezone-minutes"
                 >
@@ -479,25 +480,28 @@ export function UserForm({
             </button>
 
             {isEdit && onDelete && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirmDelete) {
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="ms-auto px-4 py-2 text-sm rounded transition-colors text-nps-error border border-nps-error/30 hover:border-nps-error"
+                >
+                  {t("oracle.delete_profile")}
+                </button>
+                <ConfirmDialog
+                  isOpen={showDeleteConfirm}
+                  title={t("oracle.delete_profile")}
+                  message={t("oracle.delete_profile_confirm_message")}
+                  confirmLabel={t("oracle.delete_confirm")}
+                  cancelLabel={t("common.cancel")}
+                  variant="danger"
+                  onConfirm={() => {
                     onDelete();
-                  } else {
-                    setConfirmDelete(true);
-                  }
-                }}
-                className={`ms-auto px-4 py-2 text-sm rounded transition-colors ${
-                  confirmDelete
-                    ? "bg-nps-bg-danger text-white"
-                    : "text-nps-error border border-nps-error/30 hover:border-nps-error"
-                }`}
-              >
-                {confirmDelete
-                  ? t("oracle.delete_confirm")
-                  : t("oracle.delete_profile")}
-              </button>
+                    setShowDeleteConfirm(false);
+                  }}
+                  onCancel={() => setShowDeleteConfirm(false)}
+                />
+              </>
             )}
           </div>
         </form>
@@ -548,7 +552,7 @@ function Field({
         aria-required={required}
         aria-invalid={!!error}
         aria-describedby={error ? errorId : undefined}
-        className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
+        className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text nps-input-focus ${
           error ? "border-nps-error" : "border-nps-border"
         }`}
       />

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useInView } from "@/hooks/useInView";
 
 interface CountUpProps {
   value: number;
@@ -9,6 +10,7 @@ interface CountUpProps {
   prefix?: string;
   suffix?: string;
   className?: string;
+  startOnView?: boolean;
 }
 
 function easeOutCubic(t: number): number {
@@ -23,8 +25,15 @@ export function CountUp({
   prefix = "",
   suffix = "",
   className = "",
+  startOnView = false,
 }: CountUpProps) {
   const reduced = useReducedMotion();
+  const { ref: viewRef, inView } = useInView({
+    triggerOnce: true,
+    threshold: 0.3,
+  });
+  const shouldAnimate = !startOnView || inView;
+
   const [display, setDisplay] = useState(reduced ? value : 0);
   const rafRef = useRef(0);
   const startRef = useRef<number | null>(null);
@@ -43,6 +52,8 @@ export function CountUp({
       setDisplay(value);
       return;
     }
+
+    if (!shouldAnimate) return;
 
     if (!isFinite(value)) {
       setDisplay(value);
@@ -89,7 +100,11 @@ export function CountUp({
       if (delayTimer !== undefined) clearTimeout(delayTimer);
       fromRef.current = value;
     };
-  }, [value, duration, delay, reduced]);
+  }, [value, duration, delay, reduced, shouldAnimate]);
 
-  return <span className={className}>{format(display)}</span>;
+  return (
+    <span ref={startOnView ? viewRef : undefined} className={className}>
+      {format(display)}
+    </span>
+  );
 }

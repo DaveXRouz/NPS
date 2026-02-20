@@ -67,7 +67,7 @@ export default function SharedReading() {
           <h1 className="text-lg font-bold text-nps-oracle-accent mb-2">
             NPS Oracle
           </h1>
-          <p className="text-sm text-red-400" role="alert">
+          <p className="text-sm text-nps-error" role="alert">
             {error}
           </p>
         </div>
@@ -98,7 +98,7 @@ export default function SharedReading() {
         </p>
       </header>
 
-      <div className="space-y-4 bg-nps-bg-card border border-nps-border/30 rounded p-4">
+      <div className="space-y-4 bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border-std)] rounded-xl p-4 shadow-lg">
         {/* Reading type badge */}
         <div className="flex items-center gap-2">
           <span className="px-2 py-0.5 text-xs bg-nps-oracle-accent/20 text-nps-oracle-accent rounded">

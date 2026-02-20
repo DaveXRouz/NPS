@@ -9,9 +9,9 @@ interface CompatibilityMeterProps {
 }
 
 function getColor(score: number): string {
-  if (score >= 70) return "bg-green-500";
-  if (score >= 40) return "bg-yellow-500";
-  return "bg-red-500";
+  if (score >= 70) return "bg-[var(--nps-confidence-high)]";
+  if (score >= 40) return "bg-[var(--nps-confidence-medium)]";
+  return "bg-[var(--nps-confidence-low)]";
 }
 
 function getClassification(score: number): string {
@@ -48,7 +48,11 @@ export default function CompatibilityMeter({
     const circumference = 2 * Math.PI * 45;
     const offset = circumference - (width / 100) * circumference;
     const strokeColor =
-      score >= 70 ? "#22c55e" : score >= 40 ? "#eab308" : "#ef4444";
+      score >= 70
+        ? "var(--nps-confidence-high)"
+        : score >= 40
+          ? "var(--nps-confidence-medium)"
+          : "var(--nps-confidence-low)";
 
     return (
       <div className="flex flex-col items-center gap-2">

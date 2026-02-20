@@ -48,14 +48,14 @@ describe("ConfidenceMeter", () => {
     const conf: ConfidenceData = { score: 80, level: "high", factors: "4" };
     render(<ConfidenceMeter confidence={conf} boosts={[]} />);
     const fill = screen.getByTestId("confidence-fill");
-    expect(fill.className).toContain("bg-nps-oracle-accent");
+    expect(fill.style.backgroundColor).toBe("var(--nps-confidence-high)");
   });
 
   it("shows correct color for low confidence", () => {
     const conf: ConfidenceData = { score: 55, level: "low", factors: "2" };
     render(<ConfidenceMeter confidence={conf} boosts={[]} />);
     const fill = screen.getByTestId("confidence-fill");
-    expect(fill.className).toContain("bg-nps-error");
+    expect(fill.style.backgroundColor).toBe("var(--nps-confidence-low)");
   });
 
   it("displays completeness breakdown", () => {
@@ -66,13 +66,17 @@ describe("ConfidenceMeter", () => {
     expect(screen.getByTestId("boost-heartbeat")).toBeDefined();
   });
 
-  it("marks filled fields with checkmark", () => {
+  it("marks filled fields with styled checkmark and unfilled with empty circle", () => {
     const conf: ConfidenceData = { score: 75, level: "high", factors: "4" };
     render(<ConfidenceMeter confidence={conf} boosts={BOOSTS} />);
     const motherIcon = screen.getByTestId("boost-icon-mother");
-    expect(motherIcon.textContent).toBe("✓");
+    // Filled: green circle with SVG checkmark
+    expect(motherIcon.style.backgroundColor).toBe("var(--nps-confidence-high)");
+    expect(motherIcon.querySelector("svg")).toBeTruthy();
     const heartbeatIcon = screen.getByTestId("boost-icon-heartbeat");
-    expect(heartbeatIcon.textContent).toBe("○");
+    // Unfilled: bordered circle, no SVG
+    expect(heartbeatIcon.style.border).toBe("1.5px solid var(--nps-text-dim)");
+    expect(heartbeatIcon.querySelector("svg")).toBeNull();
   });
 
   it("shows 'Add to boost' for unfilled fields", () => {

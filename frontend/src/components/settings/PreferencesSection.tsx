@@ -110,7 +110,7 @@ export function PreferencesSection() {
         <select
           value={currentTimezone}
           onChange={(e) => save("timezone", e.target.value)}
-          className="w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright focus:outline-none focus:border-nps-accent"
+          className="nps-input-focus w-full px-3 py-2 text-sm bg-nps-bg-input border border-nps-border rounded text-nps-text-bright"
         >
           {TIMEZONES.map((tz) => (
             <option key={tz} value={tz}>
@@ -143,7 +143,11 @@ export function PreferencesSection() {
         </div>
       </div>
 
-      {saved && <p className="text-xs text-green-400">{t("settings.saved")}</p>}
+      {saved && (
+        <p className="text-xs" style={{ color: "var(--nps-status-healthy)" }}>
+          {t("settings.saved")}
+        </p>
+      )}
     </div>
   );
 }

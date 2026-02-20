@@ -102,7 +102,7 @@ export function UserProfileList({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={t("oracle.search_profiles")}
-          className="flex-1 bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text placeholder:text-nps-text-dim focus:outline-none focus:border-nps-oracle-accent"
+          className="flex-1 bg-nps-bg-input border border-nps-border rounded px-3 py-2 text-sm text-nps-text placeholder:text-nps-text-dim nps-input-focus"
           data-testid="profile-search"
         />
         <button

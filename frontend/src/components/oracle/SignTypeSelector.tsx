@@ -39,7 +39,7 @@ export function SignTypeSelector({
         id="sign-type-select"
         value={value.type}
         onChange={(e) => handleTypeChange(e.target.value as SignType)}
-        className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-2 min-h-[44px] sm:min-h-0 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent mb-2"
+        className="w-full bg-nps-bg-input border border-nps-border rounded px-3 py-2 min-h-[44px] sm:min-h-0 text-sm text-nps-text nps-input-focus mb-2"
         aria-label={t("oracle.sign_type_label")}
         aria-required="true"
         aria-describedby={error ? "sign-error" : undefined}
@@ -57,7 +57,7 @@ export function SignTypeSelector({
           type="time"
           value={value.value}
           onChange={(e) => handleValueChange(e.target.value)}
-          className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
+          className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text nps-input-focus ${
             error ? "border-nps-error" : "border-nps-border"
           }`}
           aria-label={t("oracle.sign_type_time")}
@@ -71,7 +71,7 @@ export function SignTypeSelector({
           value={value.value}
           onChange={(e) => handleValueChange(e.target.value)}
           placeholder={t("oracle.sign_placeholder_number")}
-          className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
+          className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text nps-input-focus ${
             error ? "border-nps-error" : "border-nps-border"
           }`}
           aria-label={t("oracle.sign_type_number")}
@@ -84,7 +84,7 @@ export function SignTypeSelector({
           value={value.value}
           onChange={(e) => handleValueChange(e.target.value.toUpperCase())}
           placeholder={t("oracle.sign_placeholder_carplate")}
-          className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
+          className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text nps-input-focus ${
             error ? "border-nps-error" : "border-nps-border"
           }`}
           aria-label={t("oracle.sign_type_carplate")}
@@ -97,7 +97,7 @@ export function SignTypeSelector({
           value={value.value}
           onChange={(e) => handleValueChange(e.target.value)}
           placeholder={t("oracle.sign_placeholder_custom")}
-          className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text focus:outline-none focus:border-nps-oracle-accent ${
+          className={`w-full bg-nps-bg-input border rounded px-3 py-2 text-sm text-nps-text nps-input-focus ${
             error ? "border-nps-error" : "border-nps-border"
           }`}
           aria-label={t("oracle.sign_type_custom")}

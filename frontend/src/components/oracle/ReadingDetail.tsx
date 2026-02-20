@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Star } from "lucide-react";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import type { StoredReading } from "@/types";
 
 interface ReadingDetailProps {
@@ -16,9 +18,24 @@ export function ReadingDetail({
   onDelete,
 }: ReadingDetailProps) {
   const { t } = useTranslation();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   return (
     <div className="bg-[var(--nps-glass-bg)] backdrop-blur-md border border-[var(--nps-glass-border)] rounded-xl p-6 space-y-4 shadow-lg">
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title={t("oracle.delete_reading")}
+        message={t("oracle.delete_confirm_message")}
+        confirmLabel={t("oracle.delete_confirm")}
+        cancelLabel={t("common.cancel")}
+        variant="danger"
+        onConfirm={() => {
+          onDelete(reading.id);
+          setShowDeleteConfirm(false);
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -43,8 +60,8 @@ export function ReadingDetail({
           </button>
           <button
             type="button"
-            onClick={() => onDelete(reading.id)}
-            className="text-sm text-[var(--nps-text-dim)] hover:text-red-400 transition-all duration-200"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="text-sm text-[var(--nps-text-dim)] hover:text-[var(--nps-error)] transition-all duration-200"
             title={t("oracle.delete_reading")}
           >
             {t("oracle.delete_reading")}

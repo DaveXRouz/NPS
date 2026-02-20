@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 interface LoadingAnimationProps {
   step: number;
@@ -14,6 +15,7 @@ export function LoadingAnimation({
   onCancel,
 }: LoadingAnimationProps) {
   const { t } = useTranslation();
+  const reduced = useReducedMotion();
   const progressPct = total > 0 ? (step / total) * 100 : 0;
 
   return (
@@ -22,32 +24,123 @@ export function LoadingAnimation({
       aria-live="polite"
       data-testid="loading-animation"
     >
-      {/* Pulsing orb */}
-      <div className="relative w-24 h-24 mx-auto mb-6">
-        <div className="absolute inset-0 rounded-full bg-[var(--nps-accent)]/20 animate-ping" />
-        <div className="absolute inset-2 rounded-full bg-[var(--nps-accent)]/40 animate-pulse" />
-        <div className="absolute inset-4 rounded-full bg-[var(--nps-accent)] shadow-lg shadow-[var(--nps-accent)]/30" />
+      {/* Concentric orbital rings */}
+      <div className="relative w-32 h-32 mx-auto mb-8">
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 128 128"
+          fill="none"
+          aria-hidden="true"
+        >
+          {/* Outer ring */}
+          <circle
+            cx="64"
+            cy="64"
+            r="58"
+            stroke="var(--nps-stat-readings)"
+            strokeWidth="0.5"
+            opacity="0.3"
+            className={reduced ? "" : "origin-center"}
+            style={
+              reduced
+                ? undefined
+                : {
+                    animation: "spin 12s linear infinite",
+                  }
+            }
+          />
+          {/* Middle ring — counter-rotation */}
+          <circle
+            cx="64"
+            cy="64"
+            r="42"
+            stroke="var(--nps-accent)"
+            strokeWidth="0.75"
+            opacity="0.4"
+            strokeDasharray="4 8"
+            className={reduced ? "" : "origin-center"}
+            style={
+              reduced
+                ? undefined
+                : {
+                    animation: "spin 8s linear infinite reverse",
+                  }
+            }
+          />
+          {/* Inner ring */}
+          <circle
+            cx="64"
+            cy="64"
+            r="26"
+            stroke="var(--nps-stat-streak)"
+            strokeWidth="0.5"
+            opacity="0.5"
+            className={reduced ? "" : "origin-center"}
+            style={
+              reduced
+                ? undefined
+                : {
+                    animation: "spin 16s linear infinite",
+                  }
+            }
+          />
+          {/* Core glow dot */}
+          <circle
+            cx="64"
+            cy="64"
+            r="4"
+            fill="var(--nps-accent)"
+            className={reduced ? "" : "nps-animate-orb-pulse"}
+          />
+        </svg>
       </div>
 
-      {/* Progress message */}
-      <p className="text-sm text-[var(--nps-text)] transition-opacity duration-300">
-        {message}
+      {/* Typewriter message */}
+      <p className="text-sm text-[var(--nps-text)] flex items-center gap-0.5">
+        <span>{message}</span>
+        <span
+          className="inline-block w-[2px] h-4 bg-[var(--nps-accent)] nps-animate-cursor-blink"
+          aria-hidden="true"
+        />
       </p>
 
-      {/* Progress bar */}
-      <div className="w-48 h-1 bg-[var(--nps-border)] rounded-full mx-auto mt-4">
+      {/* Progress track with shimmer */}
+      <div className="w-56 h-[2px] bg-[var(--nps-border)] rounded-full mx-auto mt-5 overflow-hidden">
         <div
-          className="h-full bg-[var(--nps-accent)] rounded-full transition-all duration-500"
-          style={{ width: `${progressPct}%` }}
+          className="h-full rounded-full transition-all duration-700 ease-out nps-animate-glimmer"
+          style={{
+            width: `${progressPct}%`,
+            background:
+              "linear-gradient(90deg, var(--nps-accent), var(--nps-stat-readings))",
+          }}
           data-testid="progress-bar"
         />
       </div>
 
-      {/* Step counter */}
+      {/* Step dots */}
       {total > 0 && (
-        <p className="text-xs text-[var(--nps-text-dim)] mt-2">
-          {t("oracle.progress_step", { step, total })}
-        </p>
+        <div className="flex items-center gap-2 mt-4">
+          {Array.from({ length: total }).map((_, i) => {
+            const isPast = i < step;
+            const isCurrent = i === step;
+            return (
+              <span
+                key={i}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  isPast
+                    ? "bg-[var(--nps-accent)]"
+                    : isCurrent
+                      ? "bg-[var(--nps-accent)] shadow-[0_0_6px_var(--nps-accent)]"
+                      : "bg-[var(--nps-border)]"
+                }`}
+                aria-hidden="true"
+              />
+            );
+          })}
+          <span className="text-xs text-[var(--nps-text-dim)] ms-2">
+            {t("oracle.progress_step", { step, total })}
+          </span>
+        </div>
       )}
 
       {/* Cancel button */}
@@ -55,12 +148,20 @@ export function LoadingAnimation({
         <button
           type="button"
           onClick={onCancel}
-          className="mt-4 text-xs text-[var(--nps-text-dim)] hover:text-[var(--nps-accent)] underline transition-colors"
+          className="mt-6 text-xs text-[var(--nps-text-dim)] hover:text-[var(--nps-accent)] transition-colors"
           data-testid="cancel-button"
         >
           {t("oracle.loading_cancel")}
         </button>
       )}
+
+      {/* Inline keyframe for spin (avoids adding to global CSS) */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

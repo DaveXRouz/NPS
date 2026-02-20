@@ -1,9 +1,31 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { translation } from "@/services/api";
+import { formatAiInterpretation } from "@/utils/formatAiInterpretation";
 
 interface TranslatedReadingProps {
   reading: string;
+}
+
+function InterpretationBody({ text }: { text: string }) {
+  const sections = formatAiInterpretation(text);
+
+  if (sections.length === 0) return <p>{text}</p>;
+
+  return (
+    <div className="space-y-3">
+      {sections.map((section, i) => (
+        <div key={i}>
+          {section.heading && (
+            <h4 className="text-xs font-semibold text-[var(--nps-accent)] mb-1">
+              {section.heading}
+            </h4>
+          )}
+          {section.body && <p className="leading-relaxed">{section.body}</p>}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function TranslatedReading({ reading }: TranslatedReadingProps) {
@@ -29,17 +51,17 @@ export function TranslatedReading({ reading }: TranslatedReadingProps) {
 
   return (
     <div className="space-y-2">
-      {/* Original reading */}
+      {/* Reading content */}
       <div
         aria-live="polite"
         className={`text-sm text-nps-text ${translatedText && !showTranslation ? "opacity-60" : ""}`}
       >
         {showTranslation && translatedText ? (
-          <p dir="rtl" lang="fa" className="font-[Vazirmatn]">
-            {translatedText}
-          </p>
+          <div dir="rtl" lang="fa" className="font-[Vazirmatn]">
+            <InterpretationBody text={translatedText} />
+          </div>
         ) : (
-          <p>{reading}</p>
+          <InterpretationBody text={reading} />
         )}
       </div>
 

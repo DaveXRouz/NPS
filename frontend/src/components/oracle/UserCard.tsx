@@ -47,10 +47,10 @@ export function UserCard({
             }
           : undefined
       }
-      className={`bg-nps-bg-card border rounded-lg p-4 transition-colors ${
+      className={`bg-[var(--nps-glass-bg)] backdrop-blur-sm border rounded-xl p-4 nps-card-hover ${
         isSelected
-          ? "border-nps-oracle-accent ring-1 ring-nps-oracle-accent/30"
-          : "border-nps-border hover:border-nps-oracle-accent/50"
+          ? "border-[var(--nps-accent)] ring-1 ring-[var(--nps-accent)]/30"
+          : "border-[var(--nps-glass-border)]"
       } ${onSelect ? "cursor-pointer" : ""}`}
       data-testid={`user-card-${user.id}`}
     >

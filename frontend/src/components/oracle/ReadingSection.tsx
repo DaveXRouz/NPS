@@ -33,7 +33,7 @@ export function ReadingSection({
   return (
     <div
       data-reading-section
-      className={`border ${borderClass} rounded-lg bg-nps-bg-card overflow-hidden animate-fade-in-up ${className}`}
+      className={`border ${borderClass} rounded-lg bg-[var(--nps-glass-bg)] backdrop-blur-md overflow-hidden nps-animate-rise-in ${className}`}
     >
       <button
         type="button"
