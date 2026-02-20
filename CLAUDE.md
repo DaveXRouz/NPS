@@ -5,29 +5,19 @@
 
 ---
 
-## BOOT SEQUENCE
+## HOW THIS WORKS
 
-When you open this project, execute this SILENTLY (no output to user):
+CLAUDE.md loads automatically when you open the project. Then:
 
-```
-1. READ this file (CLAUDE.md)
-2. READ BUILD_HISTORY.md → find the next task
-3. READ .claude/startup.md → run silent checks
-4. SHOW 1-line status: "Continuing session [N]: [task name]"
-5. CREATE comprehensive plan → show to user → wait for approval
-6. EXECUTE after approval
-```
+- **User gives a specific task** → execute it (plan first if complex)
+- **User says "continue" or "next"** → read BUILD_HISTORY.md, pick up the "Next:" task
+- **User says nothing** → wait for instructions
 
-**If user says "continue" or "next" or "go":** follow steps 1-7 automatically.
-**If user gives a specific task:** skip step 2, do that task instead.
-**If user says nothing after opening:** follow steps 1-4, then wait.
+**Simple tasks** (bug fix, single-file edit, direct instruction): execute directly.
+**Complex tasks** (multi-file, new features, architecture): show plan first, wait for approval.
 
-**First session (no prior entries in BUILD_HISTORY.md):**
-If BUILD_HISTORY.md has zero session entries, start Session 1 of the current block. Read the session-to-spec mapping table in BUILD_HISTORY.md to find relevant reference specs.
-
-For detailed startup protocol → `.claude/startup.md`
-For workflow modes → `.claude/workflows.md`
-For all workflow paths → `.claude/master-workflow.md`
+For startup checks → `.claude/startup.md`
+For workflow details → `.claude/workflows.md`
 
 ---
 
@@ -46,35 +36,18 @@ For all workflow paths → `.claude/master-workflow.md`
 
 ## CURRENT STATE
 
-**Active plan:** 45-session Oracle rebuild (hybrid approach)
 **Strategy:** Keep infrastructure, rewrite Oracle logic
-**Sessions completed:** Check BUILD_HISTORY.md for current count
+**Progress:** Check BUILD_HISTORY.md for current status
 
-### What EXISTS (from earlier 16-session scaffolding):
-
-| Layer                   | Status          | Keep/Rewrite                           |
-| ----------------------- | --------------- | -------------------------------------- |
-| Frontend (React)        | ~80% scaffolded | KEEP shells, REWRITE Oracle internals  |
-| API (FastAPI)           | ~70% scaffolded | KEEP skeleton, REWRITE Oracle handlers |
-| Backend/Oracle          | ~60% scaffolded | REWRITE engines, reading logic, AI     |
-| Database (PostgreSQL)   | Done            | KEEP                                   |
-| Scanner (Rust)          | Removed         | DELETED — not part of product          |
-| Infrastructure (Docker) | Partial         | KEEP                                   |
-| DevOps (Monitoring)     | Partial         | KEEP                                   |
-| Integration Tests       | 56+ tests       | KEEP, extend                           |
-
-### 45-Session Blocks:
-
-| Block                  | Sessions | Focus                           |
-| ---------------------- | -------- | ------------------------------- |
-| Foundation             | 1-5      | Database schema, auth, profiles |
-| Calculation Engines    | 6-12     | FC60, numerology, zodiac        |
-| AI & Reading Types     | 13-18    | Wisdom AI, 5 reading flows      |
-| Frontend Core          | 19-25    | Layout, Oracle UI, results      |
-| Frontend Advanced      | 26-31    | RTL, responsive, accessibility  |
-| Features & Integration | 32-37    | Export, share, Telegram         |
-| Admin & DevOps         | 38-40    | Admin UI, monitoring, backup    |
-| Testing & Deployment   | 41-45    | Tests, optimization, deploy     |
+| Layer                   | Status          |
+| ----------------------- | --------------- |
+| Frontend (React)        | ~80% scaffolded |
+| API (FastAPI)           | ~70% scaffolded |
+| Backend/Oracle          | ~60% scaffolded |
+| Database (PostgreSQL)   | Done            |
+| Infrastructure (Docker) | Partial         |
+| DevOps (Monitoring)     | Partial         |
+| Integration Tests       | 56+ tests       |
 
 ---
 
@@ -121,10 +94,9 @@ NPS/
 ├── CURRENT_STATE.md       ← Full project audit + architecture
 ├── ISSUES.md              ← All tracked issues (157+)
 ├── WISHLIST.md            ← Design vision + future features
-├── .claude/               ← Detailed Claude Code configs
-│   ├── startup.md             Boot protocol + silent checks
-│   ├── workflows.md           Single-terminal + multi-terminal modes
-│   ├── master-workflow.md     All paths through the 45-session build
+├── .claude/               ← Claude Code configs
+│   ├── startup.md             Boot checks + formatting + security
+│   ├── workflows.md           Plan template + quality checklist
 │   └── templates.md           File templates (Python, TS)
 ├── logic/                 ← Algorithm docs + recipes
 │   ├── FC60_ALGORITHM.md      FC60 math + formulas + test vectors
@@ -199,8 +171,8 @@ Write code
 ### Git Behavior:
 
 - Auto-commit after each completed task
-- Commit message format: `[layer] description (#session)`
-  - Example: `[api] add oracle reading endpoint (#session-13)`
+- Commit message format: `[layer] description`
+  - Example: `[api] add oracle reading endpoint`
 - Auto `git stash` before risky changes (revert if broken)
 - Never commit broken code — tests must pass first
 
@@ -361,17 +333,6 @@ When you touch any file that doesn't match project standards:
 
 ---
 
-## SESSION END PROTOCOL
-
-Every session MUST end with:
-
-1. ✅ Update BUILD_HISTORY.md (what done, files changed, test results)
-2. ✅ Git commit with descriptive message
-3. ✅ Define next session's task clearly in BUILD_HISTORY.md
-4. ✅ Show summary to Dave
-
----
-
 ## ENVIRONMENT VARIABLES
 
 All config in `.env` (copy from `.env.example`):
@@ -402,18 +363,15 @@ All config in `.env` (copy from `.env.example`):
 
 ## FILE REFERENCES
 
-| Need                               | Read                              |
-| ---------------------------------- | --------------------------------- |
-| Boot protocol + silent checks      | `.claude/startup.md`              |
-| Single vs multi-terminal workflows | `.claude/workflows.md`            |
-| File creation templates            | `.claude/templates.md`            |
-| FC60 math + formulas               | `logic/FC60_ALGORITHM.md`         |
-| Numerology systems                 | `logic/NUMEROLOGY_SYSTEMS.md`     |
-| Architecture decisions             | `logic/ARCHITECTURE_DECISIONS.md` |
-| Scanner↔Oracle loop                | `logic/SCANNER_ORACLE_LOOP.md`    |
-| Common task step-by-step           | `logic/RECIPES.md`                |
-| Session history                    | `BUILD_HISTORY.md`                |
-| All workflow paths                 | `.claude/master-workflow.md`      |
-| Legacy source (reference)          | `.archive/v3/`                    |
-| Error recovery recipes             | `docs/ERROR_RECOVERY.md`          |
-| Layer verification checklists      | `docs/VERIFICATION_CHECKLISTS.md` |
+| Need                          | Read                              |
+| ----------------------------- | --------------------------------- |
+| Boot checks + security scans  | `.claude/startup.md`              |
+| Plan template + quality rules | `.claude/workflows.md`            |
+| File creation templates       | `.claude/templates.md`            |
+| FC60 math + formulas          | `logic/FC60_ALGORITHM.md`         |
+| Numerology systems            | `logic/NUMEROLOGY_SYSTEMS.md`     |
+| Architecture decisions        | `logic/ARCHITECTURE_DECISIONS.md` |
+| Scanner↔Oracle loop           | `logic/SCANNER_ORACLE_LOOP.md`    |
+| Common task step-by-step      | `logic/RECIPES.md`                |
+| Development history           | `BUILD_HISTORY.md`                |
+| Legacy source (reference)     | `.archive/v3/`                    |
