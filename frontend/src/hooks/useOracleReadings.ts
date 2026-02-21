@@ -38,6 +38,7 @@ export function useSubmitQuestion() {
       signal?: AbortSignal;
       category?: string;
       questionTime?: string;
+      inquiryContext?: Record<string, string>;
     }) =>
       oracle.question(
         params.question,
@@ -46,6 +47,7 @@ export function useSubmitQuestion() {
         params.signal,
         params.category,
         params.questionTime,
+        params.inquiryContext,
       ),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
     retry: 0,
@@ -61,6 +63,7 @@ export function useSubmitName() {
       userId?: number;
       system?: string;
       signal?: AbortSignal;
+      inquiryContext?: Record<string, string>;
     }) =>
       oracle.name(
         params.name,
@@ -68,6 +71,7 @@ export function useSubmitName() {
         params.system,
         params.motherName,
         params.signal,
+        params.inquiryContext,
       ),
     onSuccess: () => qc.invalidateQueries({ queryKey: HISTORY_KEY }),
     retry: 0,

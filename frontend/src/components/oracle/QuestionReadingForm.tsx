@@ -1,10 +1,11 @@
-import React, { useState, lazy, Suspense, useCallback } from "react";
+import React, { useState, useRef, lazy, Suspense, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type { QuestionReadingResult, QuestionCategory } from "@/types";
 import { useSubmitQuestion } from "@/hooks/useOracleReadings";
 import { useSessionForm } from "@/hooks/useSessionForm";
 import { NumerologySystemSelector } from "./NumerologySystemSelector";
 import type { NumerologySystem } from "@/utils/scriptDetector";
+import OracleInquiry from "./OracleInquiry";
 
 const PersianKeyboard = lazy(() =>
   import("./PersianKeyboard").then((m) => ({ default: m.PersianKeyboard })),
@@ -72,6 +73,15 @@ export function QuestionReadingForm({
   const [second, setSecond] = useState(0);
   const [timeManuallySet, setTimeManuallySet] = useState(false);
 
+  const [showInquiry, setShowInquiry] = useState(false);
+  const pendingSubmitRef = useRef<{
+    trimmed: string;
+    system: string;
+    cat: QuestionCategory;
+    time: string;
+    signal: AbortSignal;
+  } | null>(null);
+
   const mutation = useSubmitQuestion();
 
   const script = detectScript(question);
@@ -130,15 +140,45 @@ export function QuestionReadingForm({
         abortControllerRef.current = controller;
       }
 
+      // Store pending params and show inquiry
+      pendingSubmitRef.current = {
+        trimmed,
+        system: numerologySystem === "auto" ? "auto" : numerologySystem,
+        cat: category,
+        time: `${pad2(hour)}:${pad2(minute)}:${pad2(second)}`,
+        signal: controller.signal,
+      };
+      setShowInquiry(true);
+    },
+    [
+      question,
+      numerologySystem,
+      timeManuallySet,
+      category,
+      hour,
+      minute,
+      second,
+      abortControllerRef,
+      t,
+    ],
+  );
+
+  const handleInquiryComplete = useCallback(
+    (context: Record<string, string>) => {
+      setShowInquiry(false);
+      const pending = pendingSubmitRef.current;
+      if (!pending) return;
+
       onLoadingChange?.(true);
       mutation.mutate(
         {
-          question: trimmed,
+          question: pending.trimmed,
           userId,
-          system: numerologySystem === "auto" ? "auto" : numerologySystem,
-          signal: controller.signal,
-          category,
-          questionTime: `${pad2(hour)}:${pad2(minute)}:${pad2(second)}`,
+          system: pending.system,
+          signal: pending.signal,
+          category: pending.cat,
+          questionTime: pending.time,
+          inquiryContext: context,
         },
         {
           onSuccess: (data) => {
@@ -152,7 +192,6 @@ export function QuestionReadingForm({
           },
           onError: (err) => {
             onLoadingChange?.(false);
-            // Silently ignore abort errors
             if (err instanceof DOMException && err.name === "AbortError")
               return;
             const msg =
@@ -164,21 +203,13 @@ export function QuestionReadingForm({
       );
     },
     [
-      question,
       userId,
-      numerologySystem,
-      timeManuallySet,
-      category,
-      hour,
-      minute,
-      second,
       mutation,
       onResult,
       onError,
       onLoadingChange,
       clearQuestion,
       clearCategory,
-      abortControllerRef,
       t,
     ],
   );
@@ -202,6 +233,24 @@ export function QuestionReadingForm({
         ? "bg-[var(--nps-accent)] text-[var(--nps-bg)] border-[var(--nps-accent)] shadow-[0_0_8px_var(--nps-glass-glow)]"
         : "bg-[var(--nps-accent)]/10 text-[var(--nps-accent)] border-[var(--nps-accent)]/20 hover:bg-[var(--nps-accent)]/20"
     }`;
+
+  if (showInquiry) {
+    return (
+      <div
+        className="space-y-5 text-start nps-animate-fade-in"
+        dir={isRTL ? "rtl" : "ltr"}
+      >
+        <h3 className="text-lg font-semibold text-[var(--nps-text-bright)]">
+          {t("oracle.question_reading_title")}
+        </h3>
+        <OracleInquiry
+          readingType="question"
+          onComplete={handleInquiryComplete}
+          onCancel={() => setShowInquiry(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <form

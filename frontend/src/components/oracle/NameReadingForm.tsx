@@ -1,9 +1,10 @@
-import React, { useState, lazy, Suspense, useCallback } from "react";
+import React, { useState, useRef, lazy, Suspense, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type { NameReading } from "@/types";
 import { useSubmitName } from "@/hooks/useOracleReadings";
 import { useSessionForm } from "@/hooks/useSessionForm";
 import { NumerologySystemSelector } from "./NumerologySystemSelector";
+import OracleInquiry from "./OracleInquiry";
 
 const PersianKeyboard = lazy(() =>
   import("./PersianKeyboard").then((m) => ({ default: m.PersianKeyboard })),
@@ -49,6 +50,13 @@ export function NameReadingForm({
   const [numerologySystem, setNumerologySystem] =
     useState<NumerologySystem>("pythagorean");
   const [error, setError] = useState<string | null>(null);
+  const [showInquiry, setShowInquiry] = useState(false);
+  const pendingSubmitRef = useRef<{
+    trimmedName: string;
+    trimmedMother: string | undefined;
+    system: string;
+    signal: AbortSignal;
+  } | null>(null);
 
   const mutation = useSubmitName();
 
@@ -110,14 +118,32 @@ export function NameReadingForm({
         abortControllerRef.current = controller;
       }
 
+      pendingSubmitRef.current = {
+        trimmedName,
+        trimmedMother: trimmedMother || undefined,
+        system: numerologySystem,
+        signal: controller.signal,
+      };
+      setShowInquiry(true);
+    },
+    [name, motherName, numerologySystem, abortControllerRef, t],
+  );
+
+  const handleInquiryComplete = useCallback(
+    (context: Record<string, string>) => {
+      setShowInquiry(false);
+      const pending = pendingSubmitRef.current;
+      if (!pending) return;
+
       onLoadingChange?.(true);
       mutation.mutate(
         {
-          name: trimmedName,
-          motherName: trimmedMother || undefined,
+          name: pending.trimmedName,
+          motherName: pending.trimmedMother,
           userId,
-          system: numerologySystem,
-          signal: controller.signal,
+          system: pending.system,
+          signal: pending.signal,
+          inquiryContext: context,
         },
         {
           onSuccess: (data) => {
@@ -131,7 +157,6 @@ export function NameReadingForm({
           },
           onError: (err) => {
             onLoadingChange?.(false);
-            // Silently ignore abort errors
             if (err instanceof DOMException && err.name === "AbortError")
               return;
             const msg =
@@ -143,22 +168,37 @@ export function NameReadingForm({
       );
     },
     [
-      name,
-      motherName,
       userId,
-      numerologySystem,
       mutation,
       onResult,
       onError,
+      onLoadingChange,
       clearName,
       clearMotherName,
-      abortControllerRef,
       t,
     ],
   );
 
   const inputClasses =
     "w-full bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg px-4 py-3 text-sm text-[var(--nps-text)] nps-input-focus transition-all duration-200 pe-10";
+
+  if (showInquiry) {
+    return (
+      <div
+        className="space-y-5 text-start nps-animate-fade-in"
+        dir={isRTL ? "rtl" : "ltr"}
+      >
+        <h3 className="text-lg font-semibold text-[var(--nps-text-bright)]">
+          {t("oracle.name_reading_title")}
+        </h3>
+        <OracleInquiry
+          readingType="name"
+          onComplete={handleInquiryComplete}
+          onCancel={() => setShowInquiry(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <form

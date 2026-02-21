@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   useOracleDailyReading,
@@ -6,6 +6,7 @@ import {
 } from "@/hooks/useOracleReadings";
 import { MoonPhaseIcon } from "@/components/common/icons";
 import type { FrameworkReadingResponse, DailyInsights } from "@/types";
+import OracleInquiry from "./OracleInquiry";
 
 interface DailyReadingCardProps {
   userId: number;
@@ -23,6 +24,7 @@ export default function DailyReadingCard({
   const [selectedDate, setSelectedDate] = useState<string | undefined>(
     undefined,
   );
+  const [showInquiry, setShowInquiry] = useState(false);
 
   const { data: cached, isLoading } = useOracleDailyReading(
     userId,
@@ -38,14 +40,23 @@ export default function DailyReadingCard({
   )?.daily_insights;
 
   function handleGenerate() {
-    generateMutation.mutate({
-      user_id: userId,
-      reading_type: "daily",
-      date: selectedDate,
-      locale: i18n.language,
-      numerology_system: "auto",
-    });
+    setShowInquiry(true);
   }
+
+  const handleInquiryComplete = useCallback(
+    (context: Record<string, string>) => {
+      setShowInquiry(false);
+      generateMutation.mutate({
+        user_id: userId,
+        reading_type: "daily",
+        date: selectedDate,
+        locale: i18n.language,
+        numerology_system: "auto",
+        inquiry_context: context,
+      });
+    },
+    [userId, selectedDate, i18n.language, generateMutation],
+  );
 
   // Loading state
   if (isLoading) {
@@ -90,8 +101,17 @@ export default function DailyReadingCard({
         {t("oracle.consulting_for", { name: userName })}
       </p>
 
+      {/* Inquiry flow */}
+      {showInquiry && !generateMutation.isPending && (
+        <OracleInquiry
+          readingType="daily"
+          onComplete={handleInquiryComplete}
+          onCancel={() => setShowInquiry(false)}
+        />
+      )}
+
       {/* No reading yet */}
-      {!reading && !generateMutation.isPending && (
+      {!reading && !generateMutation.isPending && !showInquiry && (
         <div className="text-center py-6">
           <p className="text-nps-text-dim mb-4">
             {t("oracle.no_daily_reading")}

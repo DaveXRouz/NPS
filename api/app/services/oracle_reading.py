@@ -504,6 +504,7 @@ class OracleReadingService:
         numerology_system: str,
         force_regenerate: bool = False,
         progress_callback=None,
+        inquiry_context: dict[str, str] | None = None,
     ) -> dict:
         """Create a daily reading (or return cached version).
 
@@ -528,7 +529,9 @@ class OracleReadingService:
         from oracle_service.reading_orchestrator import ReadingOrchestrator
 
         orchestrator = ReadingOrchestrator(progress_callback=progress_callback)
-        result = await orchestrator.generate_daily_reading(user_profile, target_date, locale)
+        result = await orchestrator.generate_daily_reading(
+            user_profile, target_date, locale, inquiry_context=inquiry_context
+        )
 
         # Store in oracle_readings
         ai_text = ""
@@ -777,6 +780,7 @@ class OracleReadingService:
         locale: str,
         numerology_system: str,
         progress_callback=None,
+        inquiry_context: dict[str, str] | None = None,
     ) -> dict:
         """Create a reading using the framework pipeline.
 
@@ -811,7 +815,13 @@ class OracleReadingService:
 
         orchestrator = ReadingOrchestrator(progress_callback=progress_callback)
         result = await orchestrator.generate_time_reading(
-            user_profile, hour, minute, second, target_date, locale
+            user_profile,
+            hour,
+            minute,
+            second,
+            target_date,
+            locale,
+            inquiry_context=inquiry_context,
         )
 
         # 5. Store in database
@@ -848,6 +858,7 @@ class OracleReadingService:
         user_id: int | None = None,
         numerology_system: str = "pythagorean",
         include_ai: bool = True,
+        inquiry_context: dict[str, str] | None = None,
     ) -> dict:
         """Name reading using framework via ReadingOrchestrator."""
         from oracle_service.reading_orchestrator import ReadingOrchestrator
@@ -891,6 +902,7 @@ class OracleReadingService:
             gender=gender,
             numerology_system=numerology_system,
             include_ai=include_ai,
+            inquiry_context=inquiry_context,
         )
 
     def get_question_reading_v2(
@@ -901,6 +913,7 @@ class OracleReadingService:
         include_ai: bool = True,
         category: str | None = None,
         question_time: str | None = None,
+        inquiry_context: dict[str, str] | None = None,
     ) -> dict:
         """Question reading using framework via ReadingOrchestrator."""
         from oracle_service.reading_orchestrator import ReadingOrchestrator
@@ -948,6 +961,7 @@ class OracleReadingService:
             include_ai=include_ai,
             category=category,
             question_time=question_time,
+            inquiry_context=inquiry_context,
         )
 
     # ── DB storage methods ──

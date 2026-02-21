@@ -228,12 +228,35 @@ def _format_confidence(confidence: dict) -> str:
     return "\n".join(lines)
 
 
+def _format_inquiry_context(inquiry: dict[str, str] | None) -> str:
+    """Format the oracle inquiry context section."""
+    if not inquiry:
+        return ""
+    label_map = {
+        "emotional_state": "Emotional State",
+        "urgency": "Urgency Level",
+        "desired_outcome": "Desired Outcome",
+        "name_relationship": "Name Relationship",
+        "intent": "Reading Intent",
+        "moment_significance": "Moment Significance",
+        "focus_area": "Focus Area",
+        "morning_intention": "Morning Intention",
+        "energy_level": "Energy Level",
+    }
+    lines = ["--- ORACLE INQUIRY ---"]
+    for key, value in inquiry.items():
+        label = label_map.get(key, key.replace("_", " ").title())
+        lines.append(f"{label}: {value}")
+    return "\n".join(lines)
+
+
 def build_reading_prompt(
     reading: dict,
     reading_type: str = "daily",
     question: str = "",
     locale: str = "en",
     category: str = "",
+    inquiry_context: dict[str, str] | None = None,
 ) -> str:
     """Build user prompt from MasterOrchestrator.generate_reading() output.
 
@@ -260,6 +283,11 @@ def build_reading_prompt(
             parts.append(f"CATEGORY: {category}")
     parts.append(f"LOCALE: {locale}")
     parts.append("")
+
+    inquiry_section = _format_inquiry_context(inquiry_context)
+    if inquiry_section:
+        parts.append(inquiry_section)
+        parts.append("")
 
     parts.append(_format_person(reading))
     parts.append("")

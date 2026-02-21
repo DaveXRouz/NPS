@@ -73,6 +73,19 @@ vi.mock("../NumerologySystemSelector", () => ({
   NumerologySystemSelector: () => <div data-testid="numerology-selector" />,
 }));
 
+// Mock OracleInquiry — renders a button that completes the inquiry with empty context
+vi.mock("../OracleInquiry", () => ({
+  default: ({
+    onComplete,
+  }: {
+    onComplete: (ctx: Record<string, string>) => void;
+  }) => (
+    <button data-testid="inquiry-complete" onClick={() => onComplete({})}>
+      Complete Inquiry
+    </button>
+  ),
+}));
+
 // Mock PersianKeyboard
 vi.mock("../PersianKeyboard", () => ({
   PersianKeyboard: ({
@@ -162,6 +175,12 @@ describe("QuestionReadingForm", () => {
     });
     fireEvent.submit(screen.getByTestId("question-reading-form"));
 
+    // Complete the inquiry step
+    await waitFor(() => {
+      expect(screen.getByTestId("inquiry-complete")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByTestId("inquiry-complete"));
+
     await waitFor(() => {
       expect(mockQuestionApi).toHaveBeenCalledWith(
         "Will I succeed in my career?",
@@ -170,6 +189,7 @@ describe("QuestionReadingForm", () => {
         expect.any(AbortSignal),
         "general",
         expect.stringMatching(/^\d{2}:\d{2}:\d{2}$/),
+        {},
       );
     });
   });

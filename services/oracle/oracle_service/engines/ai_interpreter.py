@@ -155,6 +155,7 @@ def interpret_reading(
     locale: str = "en",
     use_cache: bool = True,
     category: str | None = None,
+    inquiry_context: dict[str, str] | None = None,
 ) -> ReadingInterpretation:
     """Generate AI interpretation from framework reading output.
 
@@ -192,6 +193,7 @@ def interpret_reading(
         question=question,
         locale=locale,
         category=category or "",
+        inquiry_context=inquiry_context,
     )
     system_prompt = get_system_prompt(locale)
 

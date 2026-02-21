@@ -46,6 +46,7 @@ class ReadingOrchestrator:
         second: int,
         target_date: Optional[datetime] = None,
         locale: str = "en",
+        inquiry_context: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """Full pipeline for time reading.
 
@@ -73,7 +74,11 @@ class ReadingOrchestrator:
         await self._send_progress(2, total_steps, "Interpreting patterns...")
         ai_sections = await loop.run_in_executor(
             None,
-            lambda: self._call_ai_interpreter(reading_result.framework_output, locale),
+            lambda: self._call_ai_interpreter(
+                reading_result.framework_output,
+                locale,
+                inquiry_context=inquiry_context,
+            ),
         )
 
         # Step 3: Format response
@@ -108,6 +113,7 @@ class ReadingOrchestrator:
         reading_type: str = "time",
         question: str = "",
         category: str | None = None,
+        inquiry_context: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """Invoke AI interpreter from Session 13."""
         try:
@@ -119,6 +125,7 @@ class ReadingOrchestrator:
                 question=question,
                 locale=locale,
                 category=category,
+                inquiry_context=inquiry_context,
             )
             return result.to_dict() if hasattr(result, "to_dict") else result
         except Exception:
@@ -175,6 +182,7 @@ class ReadingOrchestrator:
         numerology_system: str = "pythagorean",
         include_ai: bool = True,
         locale: str = "en",
+        inquiry_context: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """Generate a name-based reading using the framework."""
         from oracle_service.framework_bridge import generate_name_reading as fw_name
@@ -201,7 +209,12 @@ class ReadingOrchestrator:
         # AI interpretation
         ai_text = None
         if include_ai:
-            ai_sections = self._call_ai_interpreter(fw, locale, reading_type="name")
+            ai_sections = self._call_ai_interpreter(
+                fw,
+                locale,
+                reading_type="name",
+                inquiry_context=inquiry_context,
+            )
             ai_text = ai_sections.get("full_text", "")
 
         # Extract numerology from framework output
@@ -286,6 +299,7 @@ class ReadingOrchestrator:
         locale: str = "en",
         category: str | None = None,
         question_time: str | None = None,
+        inquiry_context: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """Generate a question-based reading with question hashing."""
         from oracle_service.question_analyzer import question_number
@@ -324,6 +338,7 @@ class ReadingOrchestrator:
                 reading_type="question",
                 question=question,
                 category=category,
+                inquiry_context=inquiry_context,
             )
             ai_text = ai_sections.get("full_text", "")
 
@@ -401,6 +416,7 @@ class ReadingOrchestrator:
         user_profile: UserProfile,
         target_date: Optional[datetime] = None,
         locale: str = "en",
+        inquiry_context: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         """Full pipeline for daily reading.
 
@@ -424,7 +440,10 @@ class ReadingOrchestrator:
         ai_sections = await loop.run_in_executor(
             None,
             lambda: self._call_ai_interpreter(
-                reading_result.framework_output, locale, reading_type="daily"
+                reading_result.framework_output,
+                locale,
+                reading_type="daily",
+                inquiry_context=inquiry_context,
             ),
         )
 

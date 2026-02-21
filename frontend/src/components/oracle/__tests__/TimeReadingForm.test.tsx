@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import TimeReadingForm from "../TimeReadingForm";
 
@@ -32,6 +32,19 @@ vi.mock("@/hooks/useOracleReadings", () => ({
     data: null,
     error: null,
   }),
+}));
+
+// Mock OracleInquiry — renders a button that completes the inquiry with empty context
+vi.mock("../OracleInquiry", () => ({
+  default: ({
+    onComplete,
+  }: {
+    onComplete: (ctx: Record<string, string>) => void;
+  }) => (
+    <button data-testid="inquiry-complete" onClick={() => onComplete({})}>
+      Complete Inquiry
+    </button>
+  ),
 }));
 
 // Mock WebSocket
@@ -103,7 +116,7 @@ describe("TimeReadingForm", () => {
     expect(h).toBeLessThanOrEqual(23);
   });
 
-  it("submit calls API with correct format", () => {
+  it("submit calls API with correct format", async () => {
     renderForm();
 
     // Set specific time
@@ -114,9 +127,15 @@ describe("TimeReadingForm", () => {
     const secondSelect = screen.getByLabelText("Second") as HTMLSelectElement;
     fireEvent.change(secondSelect, { target: { value: "0" } });
 
-    // Submit
+    // Submit — triggers inquiry flow
     const form = screen.getByText("Submit Reading").closest("form")!;
     fireEvent.submit(form);
+
+    // Complete the inquiry step
+    await waitFor(() => {
+      expect(screen.getByTestId("inquiry-complete")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByTestId("inquiry-complete"));
 
     expect(mockMutate).toHaveBeenCalledTimes(1);
     const callArgs = mockMutate.mock.calls[0][0];
@@ -124,5 +143,6 @@ describe("TimeReadingForm", () => {
     expect(callArgs.reading_type).toBe("time");
     expect(callArgs.sign_value).toBe("14:30:00");
     expect(callArgs.locale).toBe("en");
+    expect(callArgs.inquiry_context).toEqual({});
   });
 });

@@ -101,6 +101,7 @@ export const oracle = {
     signal?: AbortSignal,
     category?: string,
     questionTime?: string,
+    inquiryContext?: Record<string, string>,
   ) =>
     request<import("@/types").QuestionReadingResult>("/oracle/question", {
       method: "POST",
@@ -111,6 +112,9 @@ export const oracle = {
         include_ai: true,
         ...(category ? { category } : {}),
         ...(questionTime ? { question_time: questionTime } : {}),
+        ...(inquiryContext && Object.keys(inquiryContext).length > 0
+          ? { inquiry_context: inquiryContext }
+          : {}),
       }),
       signal,
     }),
@@ -120,6 +124,7 @@ export const oracle = {
     system?: string,
     motherName?: string,
     signal?: AbortSignal,
+    inquiryContext?: Record<string, string>,
   ) =>
     request<import("@/types").NameReading>("/oracle/name", {
       method: "POST",
@@ -129,6 +134,9 @@ export const oracle = {
         user_id: userId,
         numerology_system: system || "pythagorean",
         include_ai: true,
+        ...(inquiryContext && Object.keys(inquiryContext).length > 0
+          ? { inquiry_context: inquiryContext }
+          : {}),
       }),
       signal,
     }),

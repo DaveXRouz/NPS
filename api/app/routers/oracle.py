@@ -214,6 +214,7 @@ async def create_question_sign(
                     include_ai=body.include_ai,
                     category=body.category,
                     question_time=body.question_time,
+                    inquiry_context=body.inquiry_context,
                 ),
             ),
             timeout=45.0,
@@ -269,6 +270,7 @@ async def create_name_reading(
                     user_id=body.user_id,
                     numerology_system=body.numerology_system,
                     include_ai=body.include_ai,
+                    inquiry_context=body.inquiry_context,
                 ),
             ),
             timeout=45.0,
@@ -488,6 +490,7 @@ async def create_framework_reading(
                     numerology_system=body.numerology_system,
                     force_regenerate=body.force_regenerate,
                     progress_callback=progress_callback,
+                    inquiry_context=body.inquiry_context,
                 ),
                 timeout=_READING_TIMEOUT,
             )
@@ -536,6 +539,7 @@ async def create_framework_reading(
                     locale=body.locale,
                     numerology_system=body.numerology_system,
                     progress_callback=progress_callback,
+                    inquiry_context=body.inquiry_context,
                 ),
                 timeout=_READING_TIMEOUT,
             )

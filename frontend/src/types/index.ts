@@ -1,5 +1,29 @@
 // NPS TypeScript types — mirrors API Pydantic models
 
+// ─── Oracle Inquiry ───
+
+export interface InquiryOption {
+  id: string;
+  emoji: string;
+  labelKey: string;
+  descKey: string;
+}
+
+export interface InquiryQuestion {
+  id: string;
+  promptKey: string;
+  options: InquiryOption[];
+  allowFreeText: boolean;
+  freeTextPlaceholderKey: string;
+}
+
+export interface InquiryAnswer {
+  questionId: string;
+  selectedOptionId: string | null;
+  freeText: string | null;
+  skipped: boolean;
+}
+
 // ─── Oracle ───
 
 export interface FC60Data {
@@ -489,6 +513,7 @@ export interface TimeReadingRequest {
   date?: string; // "YYYY-MM-DD"
   locale?: string; // "en" | "fa"
   numerology_system?: string; // "pythagorean" | "chaldean" | "abjad" | "auto"
+  inquiry_context?: Record<string, string>;
 }
 
 /** Framework confidence. `score` is always 0–100 int (not 0–1 float). */
@@ -573,6 +598,7 @@ export interface DailyReadingRequest {
   locale?: string;
   numerology_system?: string;
   force_regenerate?: boolean;
+  inquiry_context?: Record<string, string>;
 }
 
 export interface DailyInsights {

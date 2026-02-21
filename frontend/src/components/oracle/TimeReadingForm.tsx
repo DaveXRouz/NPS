@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import type { FrameworkReadingResponse } from "@/types";
 import { useSubmitTimeReading } from "@/hooks/useOracleReadings";
 import { useSessionForm } from "@/hooks/useSessionForm";
 import { useReadingProgress } from "@/hooks/useReadingProgress";
+import OracleInquiry from "./OracleInquiry";
 
 interface TimeReadingFormProps {
   userId: number;
@@ -46,6 +47,11 @@ export default function TimeReadingForm({
     0,
   );
   const [error, setError] = useState<string | null>(null);
+  const [showInquiry, setShowInquiry] = useState(false);
+  const pendingSubmitRef = useRef<{
+    signValue: string;
+    signal: AbortSignal;
+  } | null>(null);
 
   const mutation = useSubmitTimeReading();
   const readingProgress = useReadingProgress();
@@ -86,15 +92,31 @@ export default function TimeReadingForm({
         abortControllerRef.current = controller;
       }
 
+      pendingSubmitRef.current = {
+        signValue,
+        signal: controller.signal,
+      };
+      setShowInquiry(true);
+    },
+    [hour, minute, second, abortControllerRef],
+  );
+
+  const handleInquiryComplete = useCallback(
+    (context: Record<string, string>) => {
+      setShowInquiry(false);
+      const pending = pendingSubmitRef.current;
+      if (!pending) return;
+
       onLoadingChange?.(true);
       mutation.mutate(
         {
           user_id: userId,
           reading_type: "time",
-          sign_value: signValue,
+          sign_value: pending.signValue,
           locale: i18n.language === "fa" ? "fa" : "en",
           numerology_system: "auto",
-          signal: controller.signal,
+          signal: pending.signal,
+          inquiry_context: context,
         },
         {
           onSuccess: (data) => {
@@ -109,7 +131,6 @@ export default function TimeReadingForm({
           },
           onError: (err) => {
             onLoadingChange?.(false);
-            // Silently ignore abort errors
             if (err instanceof DOMException && err.name === "AbortError")
               return;
             const msg =
@@ -120,17 +141,14 @@ export default function TimeReadingForm({
       );
     },
     [
-      hour,
-      minute,
-      second,
       userId,
       i18n.language,
       mutation,
       onResult,
+      onLoadingChange,
       clearHour,
       clearMinute,
       clearSecond,
-      abortControllerRef,
       t,
     ],
   );
@@ -140,6 +158,24 @@ export default function TimeReadingForm({
 
   const selectClasses =
     "bg-[var(--nps-bg-input)] border border-[var(--nps-glass-border)] rounded-lg px-4 py-3 text-sm text-[var(--nps-text)] nps-input-focus transition-all duration-200 min-w-[72px] min-h-[44px]";
+
+  if (showInquiry) {
+    return (
+      <div
+        className="space-y-5 text-start nps-animate-fade-in"
+        dir={isRTL ? "rtl" : "ltr"}
+      >
+        <div className="text-sm text-[var(--nps-text-dim)]">
+          {t("oracle.consulting_for", { name: userName })}
+        </div>
+        <OracleInquiry
+          readingType="time"
+          onComplete={handleInquiryComplete}
+          onCancel={() => setShowInquiry(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <form

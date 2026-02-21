@@ -20,6 +20,7 @@ class TimeReadingRequest(BaseModel):
     date: str | None = None  # "YYYY-MM-DD", defaults to today
     locale: str = "en"
     numerology_system: NumerologySystemType = "auto"
+    inquiry_context: dict[str, str] | None = None
 
     @field_validator("sign_value")
     @classmethod
@@ -282,6 +283,7 @@ class QuestionReadingRequest(BaseModel):
     include_ai: bool = True
     category: str | None = None
     question_time: str | None = None  # "HH:MM:SS"
+    inquiry_context: dict[str, str] | None = None
 
     @field_validator("question")
     @classmethod
@@ -348,6 +350,7 @@ class NameReadingRequest(BaseModel):
     user_id: int | None = None
     numerology_system: str = "pythagorean"
     include_ai: bool = True
+    inquiry_context: dict[str, str] | None = None
 
     @field_validator("name")
     @classmethod
@@ -609,6 +612,7 @@ class DailyReadingRequest(BaseModel):
     locale: str = "en"
     numerology_system: NumerologySystemType = "auto"
     force_regenerate: bool = False
+    inquiry_context: dict[str, str] | None = None
 
     @field_validator("date")
     @classmethod
