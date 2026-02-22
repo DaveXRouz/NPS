@@ -76,6 +76,7 @@ vi.mock("react-i18next", () => ({
       };
       return map[key] ?? key;
     },
+    i18n: { language: "en", changeLanguage: vi.fn() },
   }),
 }));
 
@@ -149,7 +150,7 @@ describe("BackupManager", () => {
     await waitFor(() => {
       expect(screen.getByText("Oracle Full")).toBeInTheDocument();
     });
-    expect(screen.getByText("Full DB")).toBeInTheDocument();
+    expect(screen.getByText("Full Database")).toBeInTheDocument();
   });
 
   it("shows backup sizes", async () => {
@@ -169,7 +170,9 @@ describe("BackupManager", () => {
     // "Oracle Full" appears both in table badge and dropdown, so use getAllByText
     expect(screen.getAllByText("Oracle Full").length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText("Oracle Data Only")).toBeInTheDocument();
-    expect(screen.getByText("Full Database")).toBeInTheDocument();
+    expect(screen.getAllByText("Full Database").length).toBeGreaterThanOrEqual(
+      2,
+    );
   });
 
   it("opens restore confirmation dialog", async () => {

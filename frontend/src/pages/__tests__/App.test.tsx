@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { screen, waitFor } from "@testing-library/react";
+import { renderWithProviders } from "@/test/testUtils";
 import App from "../../App";
 
 vi.mock("../../hooks/useTheme", () => ({
@@ -75,11 +75,7 @@ vi.mock("../AdminPanel", () => ({
   default: () => <div data-testid="admin-page">Admin Page</div>,
 }));
 function renderApp(initialRoute = "/") {
-  return render(
-    <MemoryRouter initialEntries={[initialRoute]}>
-      <App />
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<App />, { initialEntries: [initialRoute] });
 }
 
 describe("App routing", () => {

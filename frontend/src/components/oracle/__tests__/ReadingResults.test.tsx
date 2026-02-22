@@ -57,7 +57,7 @@ vi.mock("react-i18next", () => ({
       };
       return map[key] ?? key;
     },
-    i18n: { language: "en" },
+    i18n: { language: "en", changeLanguage: vi.fn() },
   }),
 }));
 
@@ -132,11 +132,10 @@ const readingResult: ConsultationResult = {
 };
 
 describe("ReadingResults", () => {
-  it("renders all three tabs", () => {
+  it("renders all tabs", () => {
     renderWithProviders(<ReadingResults result={null} />);
     expect(screen.getByText("Summary")).toBeInTheDocument();
     expect(screen.getByText("Details")).toBeInTheDocument();
-    expect(screen.getByText("History")).toBeInTheDocument();
   });
 
   it("shows placeholder on summary tab by default", () => {

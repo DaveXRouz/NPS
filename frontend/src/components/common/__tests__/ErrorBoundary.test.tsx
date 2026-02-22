@@ -1,9 +1,39 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { I18nextProvider } from "react-i18next";
-import i18n from "@/i18n/config";
 import { ErrorBoundary } from "../ErrorBoundary";
+
+vi.mock("react-i18next", () => ({
+  withTranslation:
+    () => (Component: React.ComponentType<Record<string, unknown>>) => {
+      const Wrapped = (props: Record<string, unknown>) => {
+        const t = (key: string) => {
+          const map: Record<string, string> = {
+            "common.error_boundary_title": "Something went wrong",
+            "common.error_boundary_message": "An unexpected error occurred",
+            "common.retry": "Try Again",
+            "common.go_home": "Go to Dashboard",
+            "common.error_details": "Error details",
+          };
+          return map[key] ?? key;
+        };
+        return (
+          <Component
+            {...props}
+            t={t}
+            i18n={{ language: "en", changeLanguage: () => {} }}
+          />
+        );
+      };
+      Wrapped.displayName = `withTranslation(${Component.displayName ?? Component.name ?? "Component"})`;
+      return Wrapped;
+    },
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: { language: "en", changeLanguage: vi.fn() },
+  }),
+  initReactI18next: { type: "3rdParty", init: () => {} },
+}));
 
 // Suppress React error boundary console.error noise in tests
 const originalError = console.error;
@@ -24,13 +54,9 @@ function ThrowingComponent({ shouldThrow = true }: { shouldThrow?: boolean }) {
   return <div>All good</div>;
 }
 
-function renderWithI18n(ui: React.ReactElement) {
-  return render(<I18nextProvider i18n={i18n}>{ui}</I18nextProvider>);
-}
-
 describe("ErrorBoundary", () => {
   it("renders children when no error", () => {
-    renderWithI18n(
+    render(
       <ErrorBoundary>
         <div>Child content</div>
       </ErrorBoundary>,
@@ -39,7 +65,7 @@ describe("ErrorBoundary", () => {
   });
 
   it("shows fallback when child throws during render", () => {
-    renderWithI18n(
+    render(
       <ErrorBoundary>
         <ThrowingComponent />
       </ErrorBoundary>,
@@ -56,7 +82,7 @@ describe("ErrorBoundary", () => {
       return <div>Recovered</div>;
     }
 
-    renderWithI18n(
+    render(
       <ErrorBoundary>
         <ConditionalThrower />
       </ErrorBoundary>,
@@ -72,7 +98,7 @@ describe("ErrorBoundary", () => {
   });
 
   it("custom fallback prop is used when provided", () => {
-    renderWithI18n(
+    render(
       <ErrorBoundary fallback={<div>Custom fallback</div>}>
         <ThrowingComponent />
       </ErrorBoundary>,
@@ -81,7 +107,7 @@ describe("ErrorBoundary", () => {
   });
 
   it("has Go to Dashboard link", () => {
-    renderWithI18n(
+    render(
       <ErrorBoundary>
         <ThrowingComponent />
       </ErrorBoundary>,

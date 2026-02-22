@@ -17,7 +17,7 @@ vi.mock("react-i18next", () => ({
       };
       return map[key] ?? key;
     },
-    i18n: { language: "en" },
+    i18n: { language: "en", changeLanguage: vi.fn() },
   }),
 }));
 
@@ -49,6 +49,9 @@ vi.mock("../MultiUserReadingDisplay", () => ({
 
 vi.mock("@/hooks/useToast", () => ({
   useToast: () => ({ addToast: vi.fn(), dismissToast: vi.fn(), toasts: [] }),
+  ToastContext: {
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+  },
 }));
 
 vi.mock("@/hooks/useOracleReadings", () => ({

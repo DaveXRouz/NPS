@@ -31,17 +31,15 @@ vi.mock("react-i18next", () => ({
       };
       return map[key] ?? key;
     },
-    i18n: { language: "en" },
+    i18n: { language: "en", changeLanguage: vi.fn() },
   }),
 }));
 
 vi.mock("@/hooks/useToast", () => ({
   useToast: () => ({ addToast: vi.fn(), dismissToast: vi.fn(), toasts: [] }),
-  useToastState: () => ({
-    toasts: [],
-    addToast: vi.fn(),
-    dismissToast: vi.fn(),
-  }),
+  ToastContext: {
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+  },
 }));
 
 const mockHistory = vi.fn();

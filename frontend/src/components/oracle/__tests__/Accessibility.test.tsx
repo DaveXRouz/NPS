@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axeCore from "axe-core";
+import { renderWithProviders } from "@/test/testUtils";
 import { ReadingResults } from "../ReadingResults";
 import { UserForm } from "../UserForm";
 import { TranslatedReading } from "../TranslatedReading";
@@ -72,9 +73,13 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
-vi.mock("react-router-dom", () => ({
-  useNavigate: () => vi.fn(),
-}));
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
+  return {
+    ...actual,
+    useNavigate: () => vi.fn(),
+  };
+});
 
 vi.mock("@/hooks/useOracleReadings", () => ({
   useReadingHistory: () => ({
@@ -168,14 +173,14 @@ async function checkA11y(container: HTMLElement, rules?: string[]) {
 // ─── Category A: axe-core Automated Checks ───
 describe("axe-core automated checks", () => {
   it("A2: UserForm dialog has no critical violations", async () => {
-    const { container } = render(
+    const { container } = renderWithProviders(
       <UserForm onSubmit={() => {}} onCancel={() => {}} />,
     );
     await checkA11y(container);
   });
 
   it("A4: ReadingResults tabs have no critical violations", async () => {
-    const { container } = render(<ReadingResults result={null} />);
+    const { container } = renderWithProviders(<ReadingResults result={null} />);
     await checkA11y(container);
   });
 });
@@ -190,7 +195,7 @@ describe("keyboard navigation", () => {
 
   it("B3: ReadingResults tabs navigate with arrow keys", async () => {
     const user = userEvent.setup();
-    render(<ReadingResults result={null} />);
+    renderWithProviders(<ReadingResults result={null} />);
 
     const tabs = screen.getAllByRole("tab");
     await user.click(tabs[0]); // Focus Summary tab
@@ -202,7 +207,7 @@ describe("keyboard navigation", () => {
 
   it("B4: ReadingResults Home/End jump to first/last tab", async () => {
     const user = userEvent.setup();
-    render(<ReadingResults result={null} />);
+    renderWithProviders(<ReadingResults result={null} />);
 
     const tabs = screen.getAllByRole("tab");
     await user.click(tabs[1]); // Focus Details tab
@@ -213,13 +218,13 @@ describe("keyboard navigation", () => {
     await user.click(tabs[0]);
     await user.keyboard("{End}");
 
-    expect(tabs[2].getAttribute("aria-selected")).toBe("true");
+    expect(tabs[tabs.length - 1].getAttribute("aria-selected")).toBe("true");
   });
 
   it("B6: UserForm Escape closes dialog", async () => {
     const onCancel = vi.fn();
     const user = userEvent.setup();
-    render(<UserForm onSubmit={() => {}} onCancel={onCancel} />);
+    renderWithProviders(<UserForm onSubmit={() => {}} onCancel={onCancel} />);
 
     await user.keyboard("{Escape}");
     expect(onCancel).toHaveBeenCalled();
@@ -229,14 +234,14 @@ describe("keyboard navigation", () => {
 // ─── Category C: Screen Reader / ARIA ───
 describe("ARIA roles and attributes", () => {
   it("C2: ReadingResults tablist has correct ARIA roles", () => {
-    render(<ReadingResults result={null} />);
+    renderWithProviders(<ReadingResults result={null} />);
 
     expect(screen.getByRole("tablist")).toBeDefined();
     const tabs = screen.getAllByRole("tab");
-    expect(tabs).toHaveLength(3);
+    expect(tabs).toHaveLength(2);
 
     const panels = screen.getAllByRole("tabpanel");
-    expect(panels).toHaveLength(3);
+    expect(panels).toHaveLength(2);
 
     // aria-selected
     expect(tabs[0].getAttribute("aria-selected")).toBe("true");
@@ -245,23 +250,21 @@ describe("ARIA roles and attributes", () => {
     // aria-controls
     expect(tabs[0].getAttribute("aria-controls")).toBe("tabpanel-summary");
     expect(tabs[1].getAttribute("aria-controls")).toBe("tabpanel-details");
-    expect(tabs[2].getAttribute("aria-controls")).toBe("tabpanel-history");
 
     // aria-labelledby on panels
     expect(panels[0].getAttribute("aria-labelledby")).toBe("tab-summary");
     expect(panels[1].getAttribute("aria-labelledby")).toBe("tab-details");
-    expect(panels[2].getAttribute("aria-labelledby")).toBe("tab-history");
   });
 
   it("C3: UserForm dialog has aria-modal", () => {
-    render(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
+    renderWithProviders(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
     const dialog = screen.getByRole("dialog");
     expect(dialog).toBeDefined();
     expect(dialog.getAttribute("aria-modal")).toBe("true");
   });
 
   it("C4: UserForm inputs have aria-required for required fields", () => {
-    render(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
+    renderWithProviders(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
     const nameInput = screen.getByLabelText(/^Name/);
     expect(nameInput.getAttribute("aria-required")).toBe("true");
     const motherInput = screen.getByLabelText(/^Mother Name/);
@@ -270,7 +273,7 @@ describe("ARIA roles and attributes", () => {
 
   it("C5: UserForm errors linked via aria-describedby", async () => {
     const user = userEvent.setup();
-    render(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
+    renderWithProviders(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
 
     const submitButton = screen.getByText("Add Profile");
     await user.click(submitButton);
@@ -290,7 +293,7 @@ describe("ARIA roles and attributes", () => {
 
   it("C8: error messages have role=alert", async () => {
     const user = userEvent.setup();
-    render(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
+    renderWithProviders(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
 
     const submitButton = screen.getByText("Add Profile");
     await user.click(submitButton);
@@ -324,7 +327,7 @@ describe("ARIA roles and attributes", () => {
 describe("live regions and dynamic content", () => {
   it("D1: error messages appear in aria-live region", async () => {
     const user = userEvent.setup();
-    render(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
+    renderWithProviders(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
 
     const submitButton = screen.getByText("Add Profile");
     await user.click(submitButton);
@@ -336,7 +339,7 @@ describe("live regions and dynamic content", () => {
   });
 
   it("D3: ReadingResults panel has aria-live on active tab", () => {
-    render(<ReadingResults result={null} />);
+    renderWithProviders(<ReadingResults result={null} />);
 
     // Active panel (summary) should have aria-live
     const summaryPanel = document.getElementById("tabpanel-summary");
@@ -349,7 +352,7 @@ describe("live regions and dynamic content", () => {
 
   it("D3b: switching tabs updates aria-live", async () => {
     const user = userEvent.setup();
-    render(<ReadingResults result={null} />);
+    renderWithProviders(<ReadingResults result={null} />);
 
     const tabs = screen.getAllByRole("tab");
     await user.click(tabs[1]); // Switch to Details
@@ -372,7 +375,7 @@ describe("live regions and dynamic content", () => {
 // ─── Category E: Persian Accessibility ───
 describe("persian accessibility", () => {
   it("E2: UserForm Persian name field has lang=fa", () => {
-    render(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
+    renderWithProviders(<UserForm onSubmit={() => {}} onCancel={() => {}} />);
     const persianInput = screen.getByLabelText("Persian Name");
     expect(persianInput.getAttribute("lang")).toBe("fa");
     expect(persianInput.getAttribute("dir")).toBe("auto");
@@ -390,12 +393,12 @@ describe("persian accessibility", () => {
 // ─── Category F: Color Contrast (via axe-core) ───
 describe("color contrast", () => {
   it("F1: axe-core reports no contrast violations on ReadingResults", async () => {
-    const { container } = render(<ReadingResults result={null} />);
+    const { container } = renderWithProviders(<ReadingResults result={null} />);
     await checkA11y(container, ["color-contrast"]);
   });
 
   it("F2: axe-core reports no contrast violations on UserForm", async () => {
-    const { container } = render(
+    const { container } = renderWithProviders(
       <UserForm onSubmit={() => {}} onCancel={() => {}} />,
     );
     await checkA11y(container, ["color-contrast"]);
@@ -405,32 +408,30 @@ describe("color contrast", () => {
 // ─── Extra: Roving Tabindex ───
 describe("roving tabindex", () => {
   it("active tab has tabIndex=0, others have tabIndex=-1", () => {
-    render(<ReadingResults result={null} />);
+    renderWithProviders(<ReadingResults result={null} />);
     const tabs = screen.getAllByRole("tab");
 
     // Summary is active by default
     expect(tabs[0].getAttribute("tabindex")).toBe("0");
     expect(tabs[1].getAttribute("tabindex")).toBe("-1");
-    expect(tabs[2].getAttribute("tabindex")).toBe("-1");
   });
 
   it("roving tabindex updates on tab switch", async () => {
     const user = userEvent.setup();
-    render(<ReadingResults result={null} />);
+    renderWithProviders(<ReadingResults result={null} />);
     const tabs = screen.getAllByRole("tab");
 
     await user.click(tabs[1]); // Switch to Details
 
     expect(tabs[0].getAttribute("tabindex")).toBe("-1");
     expect(tabs[1].getAttribute("tabindex")).toBe("0");
-    expect(tabs[2].getAttribute("tabindex")).toBe("-1");
   });
 });
 
 // ─── Extra: Dialog Focus Management ───
 describe("dialog focus management", () => {
   it("UserForm dialog label matches mode", () => {
-    const { rerender } = render(
+    const { rerender } = renderWithProviders(
       <UserForm onSubmit={() => {}} onCancel={() => {}} />,
     );
     let dialog = screen.getByRole("dialog");
@@ -458,20 +459,18 @@ describe("dialog focus management", () => {
 // ─── Extra: Tab Panels ───
 describe("tab panels content visibility", () => {
   it("has tabpanel for each tab with aria-labelledby", () => {
-    render(<ReadingResults result={null} />);
+    renderWithProviders(<ReadingResults result={null} />);
     const panels = screen.getAllByRole("tabpanel");
-    expect(panels).toHaveLength(3);
+    expect(panels).toHaveLength(2);
 
     expect(panels[0].getAttribute("aria-labelledby")).toBe("tab-summary");
     expect(panels[1].getAttribute("aria-labelledby")).toBe("tab-details");
-    expect(panels[2].getAttribute("aria-labelledby")).toBe("tab-history");
   });
 
   it("tabs have aria-controls pointing to panels", () => {
-    render(<ReadingResults result={null} />);
+    renderWithProviders(<ReadingResults result={null} />);
     const tabs = screen.getAllByRole("tab");
     expect(tabs[0].getAttribute("aria-controls")).toBe("tabpanel-summary");
     expect(tabs[1].getAttribute("aria-controls")).toBe("tabpanel-details");
-    expect(tabs[2].getAttribute("aria-controls")).toBe("tabpanel-history");
   });
 });

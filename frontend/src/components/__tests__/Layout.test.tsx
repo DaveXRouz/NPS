@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { renderWithProviders } from "@/test/testUtils";
 import { Layout } from "../Layout";
 
 vi.mock("react-i18next", () => ({
@@ -26,6 +26,7 @@ vi.mock("react-i18next", () => ({
     },
     i18n: { language: "en", changeLanguage: vi.fn() },
   }),
+  initReactI18next: { type: "3rdParty", init: () => {} },
 }));
 
 vi.mock("../../hooks/useTheme", () => ({
@@ -56,12 +57,14 @@ vi.mock("../../hooks/useToast", () => ({
   },
 }));
 
+vi.mock("../../hooks/useAuthUser", () => ({
+  useAuthUser: () => ({ isAdmin: false, isLoading: false, user: null }),
+}));
+
 function renderLayout() {
-  return render(
-    <MemoryRouter initialEntries={["/dashboard"]}>
-      <Layout />
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<Layout />, {
+    initialEntries: ["/dashboard"],
+  });
 }
 
 beforeEach(() => {

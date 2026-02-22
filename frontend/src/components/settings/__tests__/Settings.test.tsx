@@ -48,6 +48,8 @@ vi.mock("react-i18next", () => ({
         "dashboard.type_name": "Name",
         "dashboard.type_question": "Question",
         "dashboard.type_daily": "Daily",
+        "settings.lang_english": "English",
+        "settings.lang_persian": "Persian",
       };
       return map[key] ?? key;
     },

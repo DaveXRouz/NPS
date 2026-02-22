@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { screen, fireEvent } from "@testing-library/react";
+import { renderWithProviders } from "@/test/testUtils";
 import { MobileNav } from "../MobileNav";
 
 // Mock i18next
@@ -31,11 +31,9 @@ vi.mock("@/hooks/useWebSocket", () => ({
 }));
 
 function renderMobileNav(isOpen: boolean, onClose = vi.fn()) {
-  return render(
-    <MemoryRouter initialEntries={["/dashboard"]}>
-      <MobileNav isOpen={isOpen} onClose={onClose} />
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<MobileNav isOpen={isOpen} onClose={onClose} />, {
+    initialEntries: ["/dashboard"],
+  });
 }
 
 describe("MobileNav", () => {

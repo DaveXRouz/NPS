@@ -3,6 +3,10 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LoadingAnimation } from "../LoadingAnimation";
 
+vi.mock("@/hooks/useReducedMotion", () => ({
+  useReducedMotion: () => true,
+}));
+
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, params?: Record<string, unknown>) => {
@@ -12,6 +16,7 @@ vi.mock("react-i18next", () => ({
       };
       return map[key] ?? key;
     },
+    i18n: { language: "en", changeLanguage: vi.fn() },
   }),
 }));
 

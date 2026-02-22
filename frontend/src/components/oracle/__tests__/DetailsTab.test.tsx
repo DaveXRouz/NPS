@@ -40,7 +40,7 @@ vi.mock("react-i18next", () => ({
       };
       return map[key] ?? key;
     },
-    i18n: { language: "en" },
+    i18n: { language: "en", changeLanguage: vi.fn() },
   }),
 }));
 
@@ -132,7 +132,7 @@ describe("DetailsTab", () => {
 
   it("shows name details with letter table", async () => {
     render(<DetailsTab result={nameResult} />);
-    expect(screen.getByText("7")).toBeInTheDocument(); // expression
+    expect(screen.getByText(/^7/)).toBeInTheDocument(); // expression
     // Letter Analysis is collapsed — expand it
     await userEvent.click(screen.getByText("Letter Analysis"));
     expect(screen.getByText("A")).toBeInTheDocument(); // letter

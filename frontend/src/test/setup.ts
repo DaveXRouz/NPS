@@ -1,5 +1,25 @@
 import "@testing-library/jest-dom";
-import { expect } from "vitest";
+import { expect, vi } from "vitest";
+
+// Global i18n mock — per-file vi.mock("react-i18next") overrides this automatically
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string, params?: Record<string, unknown>) => {
+      if (params) {
+        return Object.entries(params).reduce(
+          (str, [k, v]) => str.replace(`{{${k}}}`, String(v)),
+          key,
+        );
+      }
+      return key;
+    },
+    i18n: { language: "en", changeLanguage: vi.fn() },
+  }),
+  withTranslation: () => (Component: unknown) => Component,
+  Trans: ({ children }: { children: React.ReactNode }) => children,
+  I18nextProvider: ({ children }: { children: React.ReactNode }) => children,
+  initReactI18next: { type: "3rdParty", init: () => {} },
+}));
 
 // Mock window.matchMedia for jsdom (used by useBreakpoint hook)
 if (typeof window !== "undefined" && !window.matchMedia) {
