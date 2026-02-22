@@ -35,6 +35,14 @@ function parseDailyInsight(raw: unknown): DailyInsight | null {
   };
 }
 
+function SectionDivider() {
+  return (
+    <div className="flex items-center gap-3 py-1" aria-hidden="true">
+      <div className="flex-1 h-px bg-gradient-to-r from-transparent via-[var(--nps-glass-border)] to-transparent" />
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const { t } = useTranslation();
   usePageTitle("dashboard.title");
@@ -72,6 +80,8 @@ export default function Dashboard() {
         <QuickActions />
       </FadeIn>
 
+      <SectionDivider />
+
       <FadeIn delay={160}>
         <DailyReadingCard
           dailyReading={parseDailyInsight(daily)}
@@ -84,6 +94,8 @@ export default function Dashboard() {
       <FadeIn delay={240}>
         <StatsCards stats={stats} isLoading={statsLoading} />
       </FadeIn>
+
+      <SectionDivider />
 
       <FadeIn delay={320}>
         <RecentReadings

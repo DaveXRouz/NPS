@@ -207,7 +207,11 @@ export function OracleConsultationForm({
     case "daily":
       return (
         <FadeIn key="daily">
-          <DailyReadingCard userId={userId} userName={userName} />
+          <DailyReadingCard
+            userId={userId}
+            userName={userName}
+            onLoadingChange={onLoadingChange}
+          />
         </FadeIn>
       );
     case "multi":

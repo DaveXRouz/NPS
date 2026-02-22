@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, Link } from "react-router-dom";
 import { useFormattedDate } from "@/hooks/useFormattedDate";
@@ -30,15 +31,77 @@ const TYPE_BORDER_COLORS: Record<string, string> = {
   multi_user: "var(--nps-stat-type)",
 };
 
+const svgProps = {
+  width: 14,
+  height: 14,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+};
+
+const TYPE_ICONS: Record<string, ReactNode> = {
+  time: (
+    <svg {...svgProps}>
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+  name: (
+    <svg {...svgProps}>
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  ),
+  question: (
+    <svg {...svgProps}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  ),
+  daily: (
+    <svg {...svgProps}>
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </svg>
+  ),
+  reading: (
+    <svg {...svgProps}>
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  ),
+  multi_user: (
+    <svg {...svgProps}>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  ),
+};
+
 function TypeBadge({ type }: { type: string }) {
   const { t } = useTranslation();
   const colorClass =
     TYPE_COLORS[type] ?? "bg-nps-bg-elevated text-nps-text-dim";
+  const icon = TYPE_ICONS[type] ?? null;
   return (
     <span
-      className={`text-xs px-2 py-0.5 rounded-full ${colorClass}`}
+      className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${colorClass}`}
       data-testid="type-badge"
     >
+      {icon}
       {t(`dashboard.type_${type}`, type)}
     </span>
   );
@@ -167,45 +230,53 @@ export function RecentReadings({
               <button
                 key={reading.id}
                 onClick={() => navigate(`/oracle?reading=${reading.id}`)}
-                className="group bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 text-start nps-card-hover"
+                className="group relative overflow-hidden bg-[var(--nps-glass-bg)] backdrop-blur-[var(--nps-glass-blur-md)] border border-[var(--nps-glass-border)] rounded-xl p-4 text-start nps-card-hover"
                 style={{
                   borderInlineStartWidth: "2px",
                   borderInlineStartColor: borderColor,
                 }}
                 data-testid="reading-card"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <TypeBadge type={reading.sign_type} />
-                  <span className="text-xs text-nps-text-dim">
-                    {formatRelative(reading.created_at)}
-                  </span>
-                </div>
-                <p className="text-sm text-nps-text line-clamp-2 mb-3">
-                  {reading.question ||
-                    reading.sign_value ||
-                    reading.ai_interpretation?.slice(0, 80) ||
-                    "—"}
-                </p>
-                {pct !== null && (
-                  <div className="flex items-center gap-2 text-xs text-nps-text-dim">
-                    <span>{t("dashboard.confidence", "Confidence")}</span>
-                    <div className="flex-1 h-1.5 bg-[var(--nps-bg-card)] rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${pct}%`,
-                          backgroundColor: getConfidenceColor(pct),
-                        }}
-                      />
-                    </div>
-                    <span
-                      className="tabular-nums"
-                      style={{ fontFamily: "var(--nps-font-mono)" }}
-                    >
-                      {pct}%
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                  style={{
+                    background: `linear-gradient(135deg, ${borderColor}12, transparent 60%)`,
+                  }}
+                />
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-2">
+                    <TypeBadge type={reading.sign_type} />
+                    <span className="text-xs text-nps-text-dim">
+                      {formatRelative(reading.created_at)}
                     </span>
                   </div>
-                )}
+                  <p className="text-sm text-nps-text line-clamp-2 mb-3">
+                    {reading.question ||
+                      reading.sign_value ||
+                      reading.ai_interpretation?.slice(0, 80) ||
+                      "—"}
+                  </p>
+                  {pct !== null && (
+                    <div className="flex items-center gap-2 text-xs text-nps-text-dim">
+                      <span>{t("dashboard.confidence", "Confidence")}</span>
+                      <div className="flex-1 h-1.5 bg-[var(--nps-bg-card)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${pct}%`,
+                            backgroundColor: getConfidenceColor(pct),
+                          }}
+                        />
+                      </div>
+                      <span
+                        className="tabular-nums"
+                        style={{ fontFamily: "var(--nps-font-mono)" }}
+                      >
+                        {pct}%
+                      </span>
+                    </div>
+                  )}
+                </div>
               </button>
             );
           })}

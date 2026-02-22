@@ -12,12 +12,14 @@ interface DailyReadingCardProps {
   userId: number;
   userName: string;
   onViewFull?: (reading: FrameworkReadingResponse) => void;
+  onLoadingChange?: (loading: boolean) => void;
 }
 
 export default function DailyReadingCard({
   userId,
   userName,
   onViewFull,
+  onLoadingChange,
 }: DailyReadingCardProps) {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === "fa";
@@ -46,16 +48,23 @@ export default function DailyReadingCard({
   const handleInquiryComplete = useCallback(
     (context: Record<string, string>) => {
       setShowInquiry(false);
-      generateMutation.mutate({
-        user_id: userId,
-        reading_type: "daily",
-        date: selectedDate,
-        locale: i18n.language,
-        numerology_system: "auto",
-        inquiry_context: context,
-      });
+      onLoadingChange?.(true);
+      generateMutation.mutate(
+        {
+          user_id: userId,
+          reading_type: "daily",
+          date: selectedDate,
+          locale: i18n.language,
+          numerology_system: "auto",
+          inquiry_context: context,
+        },
+        {
+          onSuccess: () => onLoadingChange?.(false),
+          onError: () => onLoadingChange?.(false),
+        },
+      );
     },
-    [userId, selectedDate, i18n.language, generateMutation],
+    [userId, selectedDate, i18n.language, generateMutation, onLoadingChange],
   );
 
   // Loading state
