@@ -235,7 +235,7 @@ export default function FC60StampDisplay({
           title={t("oracle.fc60_copy")}
         >
           {copied ? (
-            <span className="text-green-400 text-xs">
+            <span className="text-nps-success text-xs">
               {t("oracle.fc60_copied")}
             </span>
           ) : (

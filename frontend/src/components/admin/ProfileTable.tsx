@@ -182,11 +182,11 @@ export function ProfileTable({
                     </td>
                     <td className="px-4 py-3">
                       {isDeleted ? (
-                        <span className="inline-block px-2.5 py-1 rounded-md text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
+                        <span className="inline-block px-2.5 py-1 rounded-md text-xs font-medium bg-nps-error/20 text-nps-error border border-nps-error/30">
                           {t("admin.status_deleted")}
                         </span>
                       ) : (
-                        <span className="inline-block px-2.5 py-1 rounded-md text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
+                        <span className="inline-block px-2.5 py-1 rounded-md text-xs font-medium bg-nps-success/20 text-nps-success border border-nps-success/30">
                           {t("admin.status_active")}
                         </span>
                       )}

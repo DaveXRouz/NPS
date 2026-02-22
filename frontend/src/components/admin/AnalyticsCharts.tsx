@@ -173,7 +173,7 @@ export function AnalyticsCharts() {
           <p className="text-xs text-[var(--nps-text-dim)]">
             {t("admin.monitoring_errors")}
           </p>
-          <p className="text-lg font-bold text-red-400">
+          <p className="text-lg font-bold text-nps-error">
             {analytics.totals.error_count}
           </p>
         </div>

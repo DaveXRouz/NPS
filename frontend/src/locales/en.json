@@ -166,6 +166,8 @@
     "location_timezone": "Timezone",
     "location_loading_countries": "Loading countries...",
     "location_loading_cities": "Loading cities...",
+    "location_country_error": "Failed to load countries",
+    "location_city_error": "Failed to load cities",
     "keyboard_shift": "Shift",
     "keyboard_numbers": "Numbers & Symbols",
 
@@ -537,6 +539,7 @@
     "use_current_time": "Use current time",
     "generating_reading": "Generating reading...",
     "reading_complete": "Reading complete",
+    "reading_deleted": "Reading deleted",
     "time_reading_progress": "Step {{step}} of {{total}}",
 
     "reading_type": "Reading Type",

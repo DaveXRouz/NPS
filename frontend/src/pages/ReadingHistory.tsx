@@ -8,6 +8,7 @@ import {
   useToggleFavorite,
   useReadingStats,
 } from "@/hooks/useOracleReadings";
+import { useToast } from "@/hooks/useToast";
 import { ReadingCard } from "@/components/oracle/ReadingCard";
 import { ReadingDetail } from "@/components/oracle/ReadingDetail";
 import {
@@ -34,6 +35,7 @@ type FilterType =
 export function ReadingHistory() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   const [filter, setFilter] = useState<FilterType>("");
   const [page, setPage] = useState(0);
@@ -102,7 +104,15 @@ export function ReadingHistory() {
   }
 
   function handleDelete(id: number) {
-    deleteMutation.mutate(id);
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        addToast({
+          type: "success",
+          message: t("oracle.reading_deleted"),
+          duration: 3000,
+        });
+      },
+    });
     if (selectedReading?.id === id) setSelectedReading(null);
   }
 

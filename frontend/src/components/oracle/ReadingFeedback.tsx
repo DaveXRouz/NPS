@@ -86,10 +86,10 @@ export function ReadingFeedback({
   if (isSubmitted) {
     return (
       <div
-        className="mt-4 p-4 bg-green-900/20 border border-green-700/30 rounded text-center"
+        className="mt-4 p-4 bg-nps-success/10 border border-nps-success/30 rounded text-center"
         data-testid="feedback-thank-you"
       >
-        <p className="text-green-400 text-sm font-medium">
+        <p className="text-nps-success text-sm font-medium">
           {t("feedback.thank_you")}
         </p>
         <div className="mt-1">
@@ -133,8 +133,8 @@ export function ReadingFeedback({
                 onClick={() => handleSectionToggle(section, true)}
                 className={`px-1.5 py-0.5 rounded text-xs transition-colors ${
                   sectionFeedback[section] === true
-                    ? "bg-green-700 text-green-100"
-                    : "bg-nps-bg hover:bg-green-900/30 text-nps-text-dim"
+                    ? "bg-nps-success text-nps-text-bright"
+                    : "bg-nps-bg hover:bg-nps-success/20 text-nps-text-dim"
                 }`}
                 aria-label={`${t(SECTION_I18N[section] || section)} ${t("feedback.helpful")}`}
                 data-testid={`thumb-up-${section}`}
@@ -156,8 +156,8 @@ export function ReadingFeedback({
                 onClick={() => handleSectionToggle(section, false)}
                 className={`px-1.5 py-0.5 rounded text-xs transition-colors ${
                   sectionFeedback[section] === false
-                    ? "bg-red-700 text-red-100"
-                    : "bg-nps-bg hover:bg-red-900/30 text-nps-text-dim"
+                    ? "bg-nps-error text-nps-text-bright"
+                    : "bg-nps-bg hover:bg-nps-error/20 text-nps-text-dim"
                 }`}
                 aria-label={`${t(SECTION_I18N[section] || section)} ${t("feedback.not_helpful")}`}
                 data-testid={`thumb-down-${section}`}
@@ -200,7 +200,7 @@ export function ReadingFeedback({
 
       {/* Error */}
       {error && (
-        <p className="text-xs text-red-400" data-testid="feedback-error">
+        <p className="text-xs text-nps-error" data-testid="feedback-error">
           {error}
         </p>
       )}

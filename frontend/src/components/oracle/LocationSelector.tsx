@@ -24,6 +24,7 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectError, setDetectError] = useState<string | null>(null);
   const [countryError, setCountryError] = useState(false);
+  const [cityError, setCityError] = useState(false);
   const [showManualCoords, setShowManualCoords] = useState(false);
 
   // Fetch countries on mount
@@ -40,9 +41,10 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
   useEffect(() => {
     if (value?.countryCode) {
       setIsLoadingCities(true);
+      setCityError(false);
       fetchCities(value.countryCode, lang)
         .then(setCities)
-        .catch(() => setCities([]))
+        .catch(() => setCityError(true))
         .finally(() => setIsLoadingCities(false));
     } else {
       setCities([]);
@@ -196,6 +198,27 @@ export function LocationSelector({ value, onChange }: LocationSelectorProps) {
                 <p className="flex-1 text-xs text-nps-text-dim self-center">
                   {t("oracle.location_loading_cities")}
                 </p>
+              ) : cityError ? (
+                <div className="flex-1 flex items-center gap-2 text-xs self-center">
+                  <p className="text-nps-error">
+                    {t("oracle.location_city_error", "Failed to load cities")}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!value?.countryCode) return;
+                      setIsLoadingCities(true);
+                      setCityError(false);
+                      fetchCities(value.countryCode, lang)
+                        .then(setCities)
+                        .catch(() => setCityError(true))
+                        .finally(() => setIsLoadingCities(false));
+                    }}
+                    className="text-nps-oracle-accent hover:underline"
+                  >
+                    {t("common.retry")}
+                  </button>
+                </div>
               ) : cities.length > 0 ? (
                 <select
                   value={value?.city ?? ""}

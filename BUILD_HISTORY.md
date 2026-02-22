@@ -1,7 +1,7 @@
 # NPS Build History
 
 > Combined development log: changelog, session tracker, and builder report references.
-> Last updated: 2026-02-21
+> Last updated: 2026-02-22
 
 ---
 
@@ -199,6 +199,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - REST API reference (`docs/api/ENDPOINTS.md`)
 - MIT License
 
+### Improvement Session 3 (2026-02-22) — Tracking Sync + Last 4 Fixes
+
+> 20 files changed across frontend + ISSUES.md
+
+#### Tracking Sync (Group A)
+
+Synced ISSUES.md tracking for 9 issues already fixed in code but not updated in tracking:
+
+- #1 (dashboard layout), #13 (admin analytics), #23 (scroll-to-top), #28 (calendar mode), #29 (mood selector), #37 (aria-hidden SVGs), #124 (vault route), #126 (learning theme classes), #131 (oracle exceptions)
+
+#### Fixed
+
+- Issue #14: Location dropdowns no longer silently empty — `fetchCountries`/`fetchCities` now throw on error; `LocationSelector` shows error message + retry for both countries and cities
+- Issue #27: CalendarPicker birthday field shows required asterisk (added `required` prop to CalendarPicker component)
+- Issue #31: ~25 hardcoded Tailwind colors replaced with NPS design tokens across 10 files (LogViewer, UserTable, ProfileTable, UserActions, ProfileActions, LearningDashboard, AnalyticsCharts, ReadingFeedback, ExportShareMenu, ReadingCard, OracleConsultationForm, FC60StampDisplay)
+- Issue #42: Success toast added for reading deletion in ReadingHistory
+
+#### Added
+
+- i18n keys: `location_country_error`, `location_city_error`, `reading_deleted` (en.json + fa.json)
+- `cityError` state + retry UI in LocationSelector
+- `required` prop on CalendarPicker component
+
+#### Deferred
+
+- Issue #129: Migration scripts — large standalone task requiring database schema decisions
+
 ### Open Issues Sweep (2026-02-21) — 6 Issues Resolved
 
 > Targeted sweep of remaining open issues from ISSUES.md.
@@ -265,8 +292,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 **Plan:** 45-session Oracle rebuild (hybrid approach) + 3-session improvement plan + Session 4 final polish
 **Strategy:** Keep infrastructure, rewrite Oracle logic → polish & harden
 **Sessions completed:** 45 of 45 (COMPLETE) + Improvement Sessions 1-3 of 3 (COMPLETE) + Session 4 (COMPLETE)
-**Last session:** Session 4 — Final polish: i18n sweep, UX standardization, vault/learning backend, 56 new tests
-**Current block:** COMPLETE — WISHLIST Phases 1-6 done, 637+ API tests, 329+ Oracle tests
+**Last session:** Improvement Session 3 — Tracking sync (9 issues), 4 quick fixes (#14, #27, #31, #42), NPS color token sweep
+**Current block:** COMPLETE — Only #129 (migration scripts) remains as deferred
 
 ---
 

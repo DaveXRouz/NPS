@@ -27,7 +27,8 @@ interface UserTableProps {
 const ROLE_COLORS: Record<string, string> = {
   admin: "bg-purple-500/20 text-purple-400 border border-purple-500/30",
   user: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  readonly: "bg-gray-500/20 text-gray-400 border border-gray-500/30",
+  readonly:
+    "bg-nps-text-dim/20 text-nps-text-dim border border-nps-text-dim/30",
 };
 
 function SortArrow({
@@ -180,8 +181,8 @@ export function UserTable({
                     <span
                       className={`inline-block px-2.5 py-1 rounded-md text-xs font-medium ${
                         user.is_active
-                          ? "bg-green-500/20 text-green-400 border border-green-500/30"
-                          : "bg-red-500/20 text-red-400 border border-red-500/30"
+                          ? "bg-nps-success/20 text-nps-success border border-nps-success/30"
+                          : "bg-nps-error/20 text-nps-error border border-nps-error/30"
                       }`}
                     >
                       {user.is_active

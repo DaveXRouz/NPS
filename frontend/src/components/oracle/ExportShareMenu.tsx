@@ -222,7 +222,7 @@ export function ExportShareMenu({
                     {item.key === "share" ? t("oracle.share_creating") : "..."}
                   </span>
                 ) : item.key === "share" && copied ? (
-                  <span className="text-green-400">
+                  <span className="text-nps-success">
                     {t("oracle.share_copied")}
                   </span>
                 ) : (
@@ -239,7 +239,7 @@ export function ExportShareMenu({
           )}
 
           {error && (
-            <div className="px-3 py-1 text-[10px] text-red-400" role="alert">
+            <div className="px-3 py-1 text-[10px] text-nps-error" role="alert">
               {error}
             </div>
           )}

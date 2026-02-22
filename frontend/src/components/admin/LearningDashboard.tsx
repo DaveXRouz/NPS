@@ -47,7 +47,7 @@ export function LearningDashboard() {
   }
 
   if (error) {
-    return <div className="p-4 text-red-400 text-sm">{error}</div>;
+    return <div className="p-4 text-nps-error text-sm">{error}</div>;
   }
 
   if (!stats || stats.total_feedback_count < 5) {
@@ -171,10 +171,10 @@ export function LearningDashboard() {
                   <div
                     className={`h-full rounded-full transition-all ${
                       pct >= 0.7
-                        ? "bg-green-500"
+                        ? "bg-nps-success"
                         : pct >= 0.4
-                          ? "bg-amber-500"
-                          : "bg-red-500"
+                          ? "bg-nps-warning"
+                          : "bg-nps-error"
                     }`}
                     style={{ width: `${pct * 100}%` }}
                   />

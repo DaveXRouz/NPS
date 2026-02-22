@@ -10,7 +10,7 @@
 
 **Reported by:** Screenshot (web-production-a5179.up.railway.app/dashboard)
 **Priority:** P1 High
-**Status:** **PARTIALLY FIXED 2026-02-20** (Session 2) — WelcomeBanner hero redesign, StatsCards per-stat accents, QuickActions horizontal strip, DailyReadingCard visual upgrade done. Some sub-items (Problem 5 per-type visual treatment, Problem 6 flow rhythm) still open.
+**Status:** **FIXED 2026-02-22** (Improvement Session 3) — All 6 problems resolved. Commit `4077551` completed per-type visual treatment (#1, #46) and daily reading animation. Flow rhythm addressed via StaggerChildren + FadeIn animations across dashboard components.
 
 > Affects the entire first impression of the app. Not a crash, but a severe design regression that makes the product look unfinished and untrustworthy.
 
@@ -983,6 +983,7 @@ During scaffolding, admin role detection was implemented as a quick localStorage
 
 **Reported by:** Codebase audit (silent failure pattern)
 **Priority:** P2 Medium
+**Status:** **FIXED 2026-02-22** (Improvement Session 3) — `AnalyticsCharts.tsx` has proper `error` state with UI error display (lines 52-63). `LogViewer.tsx` has error state with retry button.
 
 > When the admin analytics charts or the log viewer fail to load data (network error, server error, auth failure), the components silently show an empty state with no indication that anything went wrong. Admins have no way to know whether they are looking at "no data" or "failed to fetch data."
 
@@ -5005,6 +5006,7 @@ Consolidate into a single effect, or use refs for localStorage sync to avoid the
 
 **Reported by:** Codebase Audit (Round 4 — Frontend)
 **Priority:** 🔴 P1 — High
+**Status:** **FIXED 2026-02-22** (Improvement Session 3) — Verified: `tailwind.config.ts` defines `nps.ai.accent`, `nps.ai.bg`, `nps.ai.border` correctly (lines 49-54). Learning.tsx rebuilt in Session 4 uses lucide-react icons + NPS tokens only; no unresolved AI theme classes remain.
 
 > `frontend/src/pages/Learning.tsx` uses Tailwind classes `text-nps-ai-accent`, `bg-nps-ai-bg`, and `border-nps-ai-border`. These only work if `tailwind.config.ts` defines an `ai` sub-object under the `nps-` color namespace. Verify this is correctly configured — if not, the Learning page renders with no AI-themed styling.
 
@@ -5922,27 +5924,27 @@ The Toast component renders `aria-label={t("common.dismiss")}`. The test mock re
 
 | #    | Issue                                                         | File(s)                                                | Fix Time             |
 | ---- | ------------------------------------------------------------- | ------------------------------------------------------ | -------------------- |
-| #1   | Dashboard layout asymmetric/cheap                             | 6 dashboard component files                            | Large                |
+| #1   | Dashboard layout asymmetric/cheap                             | 6 dashboard component files                            | **FIXED 2026-02-22** |
 | #3   | Crystal ball icon unappealing                                 | `CrystalBallIcon.tsx`, `EmptyState.tsx`                | Small                |
 | #7   | RTL mobile nav — race condition + wrong side                  | `MobileNav.tsx:71-73`                                  | 1 line               |
-| #13  | Admin analytics/log viewer silent catch                       | `AnalyticsCharts.tsx:58-61`, `LogViewer.tsx:81-84`     | Small                |
+| #13  | Admin analytics/log viewer silent catch                       | `AnalyticsCharts.tsx:58-61`, `LogViewer.tsx:81-84`     | **FIXED 2026-02-22** |
 | #14  | Location dropdowns silently empty on error                    | `geolocationHelpers.ts:61-63,79-81`                    | Small                |
 | #15  | StarRating hardcoded dir="ltr"                                | `StarRating.tsx:81`                                    | 1 line               |
 | #17  | DailyReadingCard wrong RTL detection                          | `DailyReadingCard.tsx:22,66`                           | **FIXED 2026-02-22** |
 | #22  | Browser tab title never changes                               | 6 page files                                           | Small                |
-| #23  | No scroll-to-top on navigation                                | `Layout.tsx` + new `ScrollToTop.tsx`                   | Small                |
+| #23  | No scroll-to-top on navigation                                | `Layout.tsx` + new `ScrollToTop.tsx`                   | **FIXED 2026-02-21** |
 | #27  | Required fields no visual indicator                           | `UserForm.tsx:166-249`                                 | Small                |
-| #28  | CalendarPicker mode resets every open                         | `CalendarPicker.tsx:27-98`                             | 3 lines              |
-| #29  | Mood selector collects input never sent to backend            | `QuestionReadingForm.tsx:116-117`                      | Remove UI            |
+| #28  | CalendarPicker mode resets every open                         | `CalendarPicker.tsx:27-98`                             | **FIXED 2026-02-21** |
+| #29  | Mood selector collects input never sent to backend            | `QuestionReadingForm.tsx:116-117`                      | **FIXED 2026-02-21** |
 | #30  | Export menu mislabeled "Export Text"                          | `ExportShareMenu.tsx:197`                              | 1 line + i18n        |
 | #31  | Hardcoded Tailwind colors in 22+ files                        | 22 files                                               | Medium               |
-| #37  | Decorative SVGs missing aria-hidden                           | `NameReadingForm.tsx`, `QuestionReadingForm.tsx`       | Trivial              |
+| #37  | Decorative SVGs missing aria-hidden                           | `NameReadingForm.tsx`, `QuestionReadingForm.tsx`       | **FIXED 2026-02-21** |
 | #39  | Disabled nav items use `<div>` instead of `<button disabled>` | `Navigation.tsx:116-127`, `MobileNav.tsx:103-112`      | Small                |
 | #42  | Toast system only used for errors, not success                | `OracleConsultationForm.tsx` + 5+ other mutation sites | Medium               |
-| #124 | Vault.tsx unreachable — no route                              | `App.tsx`                                              | 3 lines              |
-| #126 | Learning.tsx AI theme classes may not resolve                 | `Learning.tsx:9,13,22`                                 | Verify               |
+| #124 | Vault.tsx unreachable — no route                              | `App.tsx`                                              | **FIXED 2026-02-21** |
+| #126 | Learning.tsx AI theme classes may not resolve                 | `Learning.tsx:9,13,22`                                 | **FIXED 2026-02-22** |
 | #130 | Translation endpoint no exception handling                    | `translation.py:26-47`                                 | **FIXED 2026-02-21** |
-| #131 | Oracle endpoint missing general exception catch               | `oracle.py:195-242, 250-297`                           | Small                |
+| #131 | Oracle endpoint missing general exception catch               | `oracle.py:195-242, 250-297`                           | **FIXED 2026-02-21** |
 | #132 | Bare `except Exception: pass` in coordinate helpers           | `oracle.py:132-134, 149-151`                           | **FIXED 2026-02-21** |
 | #133 | Health check missing Anthropic AI check                       | `health.py:122-216`                                    | **FIXED 2026-02-21** |
 

@@ -166,6 +166,8 @@
     "location_timezone": "منطقه زمانی",
     "location_loading_countries": "در حال بارگذاری کشورها...",
     "location_loading_cities": "در حال بارگذاری شهرها...",
+    "location_country_error": "خطا در بارگذاری کشورها",
+    "location_city_error": "خطا در بارگذاری شهرها",
     "keyboard_shift": "شیفت",
     "keyboard_numbers": "اعداد و نمادها",
 
@@ -537,6 +539,7 @@
     "use_current_time": "استفاده از زمان فعلی",
     "generating_reading": "در حال تولید خوانش...",
     "reading_complete": "خوانش کامل شد",
+    "reading_deleted": "خوانش حذف شد",
     "time_reading_progress": "مرحله {{step}} از {{total}}",
 
     "reading_type": "نوع خوانش",

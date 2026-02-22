@@ -19,6 +19,7 @@ interface CalendarPickerProps {
   onChange: (isoDate: string) => void;
   label?: string;
   error?: string;
+  required?: boolean;
 }
 
 const GREGORIAN_MIN_YEAR = 1920;
@@ -29,6 +30,7 @@ export function CalendarPicker({
   onChange,
   label,
   error,
+  required,
 }: CalendarPickerProps) {
   const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -192,7 +194,7 @@ export function CalendarPicker({
       {label && (
         <label className="block text-sm text-nps-text-dim mb-1">
           {label}
-          {error !== undefined && (
+          {required && (
             <span aria-hidden="true" className="text-nps-error ms-1">
               *
             </span>

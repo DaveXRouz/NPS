@@ -86,8 +86,8 @@ export function UserActions({
         title={isSelf ? t("admin.cannot_modify_self") : undefined}
         className={`px-2.5 py-1.5 text-xs backdrop-blur-[var(--nps-glass-blur-sm)] rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 ${
           user.is_active
-            ? "bg-red-500/10 border border-red-500/40 text-red-400 hover:bg-red-500/20 hover:shadow-[0_0_8px_rgba(239,68,68,0.2)]"
-            : "bg-green-500/10 border border-green-500/40 text-green-400 hover:bg-green-500/20 hover:shadow-[0_0_8px_rgba(34,197,94,0.2)]"
+            ? "bg-nps-error/10 border border-nps-error/40 text-nps-error hover:bg-nps-error/20 hover:shadow-[0_0_8px_rgba(248,81,73,0.2)]"
+            : "bg-nps-success/10 border border-nps-success/40 text-nps-success hover:bg-nps-success/20 hover:shadow-[0_0_8px_rgba(63,185,80,0.2)]"
         }`}
       >
         {user.is_active

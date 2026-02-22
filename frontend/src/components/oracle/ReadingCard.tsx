@@ -75,7 +75,7 @@ export function ReadingCard({
             e.stopPropagation();
             onDelete(reading.id);
           }}
-          className="flex items-center justify-center w-10 h-10 -m-2 text-sm text-[var(--nps-text-dim)] opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:text-red-400 transition-all duration-200 rounded"
+          className="flex items-center justify-center w-10 h-10 -m-2 text-sm text-[var(--nps-text-dim)] opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:text-nps-error transition-all duration-200 rounded"
           aria-label={t("oracle.delete_reading")}
           title={t("oracle.delete_reading")}
         >

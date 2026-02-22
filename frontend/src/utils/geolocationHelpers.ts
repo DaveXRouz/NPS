@@ -51,16 +51,12 @@ function authHeaders(): Record<string, string> {
 
 /** Fetch all countries from the location API */
 export async function fetchCountries(lang: string = "en"): Promise<Country[]> {
-  try {
-    const resp = await fetch(`/api/location/countries?lang=${lang}`, {
-      headers: authHeaders(),
-    });
-    if (!resp.ok) return [];
-    const data = await resp.json();
-    return data.countries;
-  } catch {
-    return [];
-  }
+  const resp = await fetch(`/api/location/countries?lang=${lang}`, {
+    headers: authHeaders(),
+  });
+  if (!resp.ok) throw new Error(`Failed to fetch countries: ${resp.status}`);
+  const data = await resp.json();
+  return data.countries;
 }
 
 /** Fetch cities for a country from the location API */
@@ -68,15 +64,11 @@ export async function fetchCities(
   countryCode: string,
   lang: string = "en",
 ): Promise<City[]> {
-  try {
-    const resp = await fetch(
-      `/api/location/countries/${countryCode}/cities?lang=${lang}`,
-      { headers: authHeaders() },
-    );
-    if (!resp.ok) return [];
-    const data = await resp.json();
-    return data.cities;
-  } catch {
-    return [];
-  }
+  const resp = await fetch(
+    `/api/location/countries/${countryCode}/cities?lang=${lang}`,
+    { headers: authHeaders() },
+  );
+  if (!resp.ok) throw new Error(`Failed to fetch cities: ${resp.status}`);
+  const data = await resp.json();
+  return data.cities;
 }

@@ -230,6 +230,7 @@ export function UserForm({
                 onChange={(isoDate) => handleFieldChange("birthday", isoDate)}
                 label={t("oracle.field_birthday")}
                 error={errors.birthday}
+                required
               />
             </Suspense>
           </fieldset>

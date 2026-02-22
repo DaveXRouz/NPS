@@ -310,7 +310,7 @@ function MultiUserFlow({ selectedUsers, onLoadingChange }: MultiUserFlowProps) {
         </button>
       )}
       {mutation.error && (
-        <p className="text-xs text-red-500 mt-2" role="alert">
+        <p className="text-xs text-nps-error mt-2" role="alert">
           {t("oracle.error_submit")}
         </p>
       )}

@@ -7,9 +7,9 @@ import type { AuditLogEntry } from "@/types";
 
 const SEVERITY_COLORS: Record<string, string> = {
   info: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-  warning: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-  error: "bg-red-500/20 text-red-400 border border-red-500/30",
-  critical: "bg-red-700/20 text-red-300 border border-red-700/30",
+  warning: "bg-nps-warning/20 text-nps-warning border border-nps-warning/30",
+  error: "bg-nps-error/20 text-nps-error border border-nps-error/30",
+  critical: "bg-nps-error/30 text-nps-error border border-nps-error/40",
 };
 
 const PAGE_SIZE = 25;
@@ -25,7 +25,7 @@ const TIME_WINDOWS = [
 function SeverityBadge({ severity }: { severity: string }) {
   const cls =
     SEVERITY_COLORS[severity] ||
-    "bg-gray-500/20 text-gray-400 border border-gray-500/30";
+    "bg-nps-text-dim/20 text-nps-text-dim border border-nps-text-dim/30";
   return (
     <span
       className={`px-2.5 py-1 rounded-md text-xs font-medium uppercase ${cls}`}
@@ -230,11 +230,11 @@ export function LogViewer() {
                       </td>
                       <td className="py-1.5 px-3">
                         {log.success ? (
-                          <span className="text-green-400">
+                          <span className="text-nps-success">
                             {t("admin.log_status_ok")}
                           </span>
                         ) : (
-                          <span className="text-red-400">
+                          <span className="text-nps-error">
                             {t("admin.log_status_fail")}
                           </span>
                         )}

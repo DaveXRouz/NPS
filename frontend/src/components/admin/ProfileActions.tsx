@@ -23,7 +23,7 @@ export function ProfileActions({ profile, onDelete }: ProfileActionsProps) {
     <>
       <button
         onClick={() => setShowConfirm(true)}
-        className="px-2.5 py-1.5 text-xs bg-red-500/10 backdrop-blur-[var(--nps-glass-blur-sm)] border border-red-500/40 text-red-400 rounded-lg hover:bg-red-500/20 hover:shadow-[0_0_8px_rgba(239,68,68,0.2)] transition-all duration-200"
+        className="px-2.5 py-1.5 text-xs bg-nps-error/10 backdrop-blur-[var(--nps-glass-blur-sm)] border border-nps-error/40 text-nps-error rounded-lg hover:bg-nps-error/20 hover:shadow-[0_0_8px_rgba(248,81,73,0.2)] transition-all duration-200"
       >
         {t("admin.action_delete")}
       </button>
@@ -46,7 +46,7 @@ export function ProfileActions({ profile, onDelete }: ProfileActionsProps) {
                   onDelete(profile.id);
                   setShowConfirm(false);
                 }}
-                className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="px-4 py-2 text-sm bg-nps-bg-danger text-nps-text-bright rounded-lg hover:bg-nps-bg-danger/80 transition-colors"
               >
                 {t("common.delete")}
               </button>
