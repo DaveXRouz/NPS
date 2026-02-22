@@ -24,19 +24,14 @@ export function useAuthUser(): AuthUser {
     queryFn: async () => {
       try {
         await adminHealth.detailed();
-        localStorage.setItem("nps_user_role", "admin");
         return true;
       } catch {
-        localStorage.removeItem("nps_user_role");
         return false;
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000,
     retry: false,
-    // Use localStorage as optimistic placeholder during initial load
-    placeholderData: () =>
-      localStorage.getItem("nps_user_role") === "admin" ? true : undefined,
   });
 
   return {

@@ -4,6 +4,7 @@ import {
   useOracleDailyReading,
   useGenerateDailyReading,
 } from "@/hooks/useOracleReadings";
+import { useDirection } from "@/hooks/useDirection";
 import { MoonPhaseIcon } from "@/components/common/icons";
 import type { FrameworkReadingResponse, DailyInsights } from "@/types";
 import OracleInquiry from "./OracleInquiry";
@@ -22,7 +23,7 @@ export default function DailyReadingCard({
   onLoadingChange,
 }: DailyReadingCardProps) {
   const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === "fa";
+  const { dir } = useDirection();
   const [selectedDate, setSelectedDate] = useState<string | undefined>(
     undefined,
   );
@@ -87,7 +88,7 @@ export default function DailyReadingCard({
   return (
     <div
       className="rounded-xl border border-nps-border bg-nps-bg-card p-6 shadow-sm"
-      dir={isRTL ? "rtl" : "ltr"}
+      dir={dir}
       data-testid="daily-reading-card"
     >
       {/* Header */}

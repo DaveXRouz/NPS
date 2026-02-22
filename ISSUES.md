@@ -5903,14 +5903,14 @@ The Toast component renders `aria-label={t("common.dismiss")}`. The test mock re
 
 | #    | Issue                                                    | File(s)                                                        | Fix Time | Status               |
 | ---- | -------------------------------------------------------- | -------------------------------------------------------------- | -------- | -------------------- |
-| #4   | AI reading is wall-of-text                               | `TranslatedReading.tsx:42`, `prompt_templates.py`, `oracle.py` | Medium   | Open                 |
+| #4   | AI reading is wall-of-text                               | `TranslatedReading.tsx:42`, `prompt_templates.py`, `oracle.py` | Medium   | **FIXED 2026-02-21** |
 | #8   | `text-nps-bg-danger` in 7 places (wrong CSS)             | 5 files, 7 lines                                               | 5 min    | **FIXED 2026-02-20** |
 | #9   | Delete reading — no confirmation dialog                  | `ReadingHistory.tsx:87-90`, `ReadingCard.tsx:59-69`            | Small    | **FIXED 2026-02-20** |
-| #12  | Admin role from localStorage (bypassable)                | `Layout.tsx:58`, `AdminGuard.tsx:7`                            | Medium   | Open                 |
-| #18  | Date formatting ignores app language                     | 11 files — create `useDateFormatter()`                         | Medium   | Open                 |
+| #12  | Admin role from localStorage (bypassable)                | `Layout.tsx:58`, `AdminGuard.tsx:7`                            | Medium   | **FIXED 2026-02-22** |
+| #18  | Date formatting ignores app language                     | 11 files — create `useDateFormatter()`                         | Medium   | **FIXED 2026-02-22** |
 | #21  | No 404 page                                              | `App.tsx` — add `<Route path="*">`                             | Small    | **FIXED 2026-02-20** |
-| #25  | ai_interpretation inconsistent shape across endpoints    | `oracle.py`, `types/index.ts`                                  | Medium   | Open                 |
-| #26  | Confidence score scale mismatch (0-1 float vs 0-100 int) | Backend engines + frontend normalization                       | Medium   | Open                 |
+| #25  | ai_interpretation inconsistent shape across endpoints    | `oracle.py`, `types/index.ts`                                  | Medium   | **FIXED 2026-02-22** |
+| #26  | Confidence score scale mismatch (0-1 float vs 0-100 int) | Backend engines + frontend normalization                       | Medium   | **FIXED 2026-02-22** |
 | #35  | Focus styles missing/wrong on 25+ interactive elements   | `index.css:86-90` + 25 files                                   | Medium   | **FIXED 2026-02-21** |
 | #36  | Icon-only buttons missing aria-label                     | `ReadingCard.tsx`, `ReadingDetail.tsx`                         | Trivial  | **FIXED 2026-02-21** |
 | #41  | RecentReadings returns null on error (silently vanishes) | `RecentReadings.tsx:73`                                        | Small    | **FIXED 2026-02-21** |
@@ -5928,7 +5928,7 @@ The Toast component renders `aria-label={t("common.dismiss")}`. The test mock re
 | #13  | Admin analytics/log viewer silent catch                       | `AnalyticsCharts.tsx:58-61`, `LogViewer.tsx:81-84`     | Small                |
 | #14  | Location dropdowns silently empty on error                    | `geolocationHelpers.ts:61-63,79-81`                    | Small                |
 | #15  | StarRating hardcoded dir="ltr"                                | `StarRating.tsx:81`                                    | 1 line               |
-| #17  | DailyReadingCard wrong RTL detection                          | `DailyReadingCard.tsx:22,66`                           | 2 lines              |
+| #17  | DailyReadingCard wrong RTL detection                          | `DailyReadingCard.tsx:22,66`                           | **FIXED 2026-02-22** |
 | #22  | Browser tab title never changes                               | 6 page files                                           | Small                |
 | #23  | No scroll-to-top on navigation                                | `Layout.tsx` + new `ScrollToTop.tsx`                   | Small                |
 | #27  | Required fields no visual indicator                           | `UserForm.tsx:166-249`                                 | Small                |
@@ -5941,7 +5941,7 @@ The Toast component renders `aria-label={t("common.dismiss")}`. The test mock re
 | #42  | Toast system only used for errors, not success                | `OracleConsultationForm.tsx` + 5+ other mutation sites | Medium               |
 | #124 | Vault.tsx unreachable — no route                              | `App.tsx`                                              | 3 lines              |
 | #126 | Learning.tsx AI theme classes may not resolve                 | `Learning.tsx:9,13,22`                                 | Verify               |
-| #130 | Translation endpoint no exception handling                    | `translation.py:26-47`                                 | Small                |
+| #130 | Translation endpoint no exception handling                    | `translation.py:26-47`                                 | **FIXED 2026-02-21** |
 | #131 | Oracle endpoint missing general exception catch               | `oracle.py:195-242, 250-297`                           | Small                |
 | #132 | Bare `except Exception: pass` in coordinate helpers           | `oracle.py:132-134, 149-151`                           | **FIXED 2026-02-21** |
 | #133 | Health check missing Anthropic AI check                       | `health.py:122-216`                                    | **FIXED 2026-02-21** |
@@ -5955,14 +5955,14 @@ These are one-liners or near one-liners — highest ROI for time spent:
 | #8   | Wrong CSS class for error text    | 7 files                   | `text-nps-bg-danger` → `text-nps-error`                      | **DONE**    |
 | #11  | AdminGuard not wired              | `App.tsx:78`              | Wrap `/admin` route in `<Route element={<AdminGuard />}>`    | **DONE**    |
 | #15  | StarRating hardcoded LTR          | `StarRating.tsx:81`       | Intentionally LTR — not a bug                                | **INVALID** |
-| #17  | DailyReadingCard RTL detection    | `DailyReadingCard.tsx:22` | `const { isRTL } = useDirection()`                           | Open        |
+| #17  | DailyReadingCard RTL detection    | `DailyReadingCard.tsx:22` | `const { isRTL } = useDirection()`                           | **DONE**    |
 | #22  | Tab title never changes           | 6 page files              | Add `useEffect(() => { document.title = "Page — NPS" }, [])` | **DONE**    |
 | #30  | Export menu mislabeled            | `ExportShareMenu.tsx:197` | `t("oracle.export_and_share")`                               | **DONE**    |
 | #36  | Icon buttons missing aria-label   | 2 files                   | Add `aria-label={t(...)}` to 4 buttons                       | **DONE**    |
 | #39  | Disabled nav items use div        | 2 files                   | `<button disabled aria-disabled="true">`                     | **DONE**    |
 | #121 | Remove hardcoded API key default  | `config.py:27`            | Remove default value                                         | **DONE**    |
 | #125 | Undefined bg-nps-bg-button class  | N/A                       | **NOT A BUG** — class IS valid from `nps.bg.button`          | **INVALID** |
-| #130 | Translation endpoint bare throw   | `translation.py`          | Add try/except HTTPException                                 | Open        |
+| #130 | Translation endpoint bare throw   | `translation.py`          | Add try/except HTTPException                                 | **DONE**    |
 | #132 | Bare except in coordinate helpers | `oracle.py:132,149`       | Catch specific SQLAlchemy exceptions                         | **DONE**    |
 | #133 | Health check missing AI check     | `health.py`               | Add `ANTHROPIC_API_KEY` check                                | **DONE**    |
 

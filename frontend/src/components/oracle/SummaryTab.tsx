@@ -25,6 +25,7 @@ import {
   getLifePathMeaning,
   getNumberMeaning,
 } from "@/data/numerologyMeanings";
+import { normalizeAiInterpretation } from "@/utils/normalizeAiInterpretation";
 import type { ConsultationResult } from "@/types";
 
 function ScrollRevealNumber({
@@ -86,7 +87,7 @@ function ReadingSummary({
         userName={t("oracle.current_reading")}
         readingDate={data.generated_at}
         readingType="reading"
-        confidence={data.fc60 ? data.fc60.energy_level / 10 : undefined}
+        confidence={data.fc60 ? data.fc60.energy_level * 10 : undefined}
       />
 
       {/* Section 2: Universal Address */}
@@ -266,14 +267,16 @@ function ReadingSummary({
       </ReadingSection>
 
       {/* Section 6: The Message (AI Interpretation) */}
-      {data.ai_interpretation && (
+      {normalizeAiInterpretation(data.ai_interpretation) && (
         <ReadingSection
           title={t("oracle.section_message")}
           icon={<Sparkles size={16} />}
         >
           <FadeIn delay={300}>
             <div className="pt-2 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-4 border-s-2 border-s-[var(--nps-accent)]">
-              <TranslatedReading reading={data.ai_interpretation} />
+              <TranslatedReading
+                reading={normalizeAiInterpretation(data.ai_interpretation)!}
+              />
             </div>
           </FadeIn>
         </ReadingSection>
@@ -491,22 +494,22 @@ function QuestionSummary({
           </ReadingSection>
         )}
 
-      {data.ai_interpretation && (
+      {normalizeAiInterpretation(data.ai_interpretation) && (
         <ReadingSection
           title={t("oracle.section_message")}
           icon={<Sparkles size={16} />}
         >
           <FadeIn delay={300}>
             <div className="pt-2 bg-[var(--nps-glass-bg)] backdrop-blur-sm border border-[var(--nps-glass-border)] rounded-lg p-4 border-s-2 border-s-[var(--nps-accent)]">
-              <TranslatedReading reading={data.ai_interpretation} />
+              <TranslatedReading
+                reading={normalizeAiInterpretation(data.ai_interpretation)!}
+              />
             </div>
           </FadeIn>
         </ReadingSection>
       )}
 
-      {data.confidence && (
-        <ReadingFooter confidence={data.confidence.score / 100} />
-      )}
+      {data.confidence && <ReadingFooter confidence={data.confidence.score} />}
     </StaggerChildren>
   );
 }
@@ -526,7 +529,7 @@ function NameSummary({
         userName={data.name}
         readingDate={new Date().toISOString()}
         readingType="name"
-        confidence={data.confidence ? data.confidence.score / 100 : undefined}
+        confidence={data.confidence ? data.confidence.score : undefined}
       />
 
       <ReadingSection
@@ -607,20 +610,20 @@ function NameSummary({
         </ReadingSection>
       )}
 
-      {data.ai_interpretation && (
+      {normalizeAiInterpretation(data.ai_interpretation) && (
         <ReadingSection
           title={t("oracle.section_message")}
           icon={<Sparkles size={16} />}
         >
           <div className="pt-2">
-            <TranslatedReading reading={data.ai_interpretation} />
+            <TranslatedReading
+              reading={normalizeAiInterpretation(data.ai_interpretation)!}
+            />
           </div>
         </ReadingSection>
       )}
 
-      {data.confidence && (
-        <ReadingFooter confidence={data.confidence.score / 100} />
-      )}
+      {data.confidence && <ReadingFooter confidence={data.confidence.score} />}
     </div>
   );
 }

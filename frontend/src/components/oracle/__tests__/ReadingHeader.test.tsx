@@ -12,6 +12,7 @@ vi.mock("react-i18next", () => ({
       };
       return map[key] ?? key;
     },
+    i18n: { language: "en" },
   }),
 }));
 
@@ -36,7 +37,7 @@ describe("ReadingHeader", () => {
         userName="Jane"
         readingDate="2024-01-15T12:00:00Z"
         readingType="reading"
-        confidence={0.85}
+        confidence={85}
       />,
     );
     const pill = screen.getByTestId("confidence-pill");

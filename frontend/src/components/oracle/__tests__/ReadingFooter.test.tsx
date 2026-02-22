@@ -14,19 +14,20 @@ vi.mock("react-i18next", () => ({
       };
       return map[key] ?? key;
     },
+    i18n: { language: "en" },
   }),
 }));
 
 describe("ReadingFooter", () => {
   it("renders confidence bar at correct width", () => {
-    render(<ReadingFooter confidence={0.75} />);
+    render(<ReadingFooter confidence={75} />);
     const bar = screen.getByRole("progressbar");
     expect(bar).toHaveAttribute("aria-valuenow", "75");
     expect(bar.style.width).toBe("75%");
   });
 
   it("shows disclaimer text", () => {
-    render(<ReadingFooter confidence={0.5} />);
+    render(<ReadingFooter confidence={50} />);
     expect(
       screen.getByText(
         "This reading is for entertainment and personal reflection purposes only.",

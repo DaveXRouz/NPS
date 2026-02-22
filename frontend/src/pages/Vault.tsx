@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { useFormattedDate } from "@/hooks/useFormattedDate";
 import { FadeIn } from "@/components/common/FadeIn";
 import { EmptyState } from "@/components/common/EmptyState";
 import { vault } from "@/services/api";
@@ -8,6 +9,7 @@ import { vault } from "@/services/api";
 export default function Vault() {
   const { t } = useTranslation();
   usePageTitle("vault.title");
+  const { formatDateLocale } = useFormattedDate();
 
   const {
     data: findings,
@@ -122,7 +124,7 @@ export default function Vault() {
                         {finding.chain}
                         {finding.source ? ` · ${finding.source}` : ""}
                         {finding.found_at
-                          ? ` · ${new Date(finding.found_at).toLocaleDateString()}`
+                          ? ` · ${formatDateLocale(finding.found_at)}`
                           : ""}
                       </p>
                     </div>

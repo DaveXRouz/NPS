@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useFormattedNumber } from "@/hooks/useFormattedNumber";
 import type { HeartbeatData } from "@/types";
 
 interface HeartbeatDisplayProps {
@@ -13,12 +14,9 @@ const ELEMENT_COLORS: Record<string, string> = {
   Water: "text-blue-500 bg-blue-500/10 border-blue-500/30",
 };
 
-function formatNumber(n: number): string {
-  return n.toLocaleString();
-}
-
 export function HeartbeatDisplay({ heartbeat }: HeartbeatDisplayProps) {
   const { t } = useTranslation();
+  const { formatNumber } = useFormattedNumber();
 
   if (!heartbeat) {
     return (

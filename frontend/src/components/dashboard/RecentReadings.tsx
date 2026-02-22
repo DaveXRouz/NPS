@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate, Link } from "react-router-dom";
 import { useFormattedDate } from "@/hooks/useFormattedDate";
 import { useInView } from "@/hooks/useInView";
+import { normalizeAiInterpretation } from "@/utils/normalizeAiInterpretation";
 import type { StoredReading } from "@/types";
 
 interface RecentReadingsProps {
@@ -107,8 +108,8 @@ function TypeBadge({ type }: { type: string }) {
   );
 }
 
+/** Normalize confidence to 0-100 int. Backend always sends 0-100 but legacy stored data may have 0-1 floats. */
 function normalizeConfidence(val: number): number {
-  // Normalize to 0-100 scale
   return val > 1 ? Math.round(val) : Math.round(val * 100);
 }
 
@@ -253,7 +254,9 @@ export function RecentReadings({
                   <p className="text-sm text-nps-text line-clamp-2 mb-3">
                     {reading.question ||
                       reading.sign_value ||
-                      reading.ai_interpretation?.slice(0, 80) ||
+                      normalizeAiInterpretation(
+                        reading.ai_interpretation,
+                      )?.slice(0, 80) ||
                       "—"}
                   </p>
                   {pct !== null && (

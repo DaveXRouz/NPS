@@ -198,6 +198,7 @@ export interface StoredReading {
   sign_value: string;
   question: string | null;
   reading_result: Record<string, unknown> | null;
+  /** May be a plain string (legacy) or an AIInterpretationSections object (framework). Use normalizeAiInterpretation() before rendering. */
   ai_interpretation: string | null;
   created_at: string;
   is_favorite: boolean;

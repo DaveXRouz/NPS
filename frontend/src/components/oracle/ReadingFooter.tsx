@@ -9,11 +9,11 @@ interface ReadingFooterProps {
 export function ReadingFooter({ confidence, generatedAt }: ReadingFooterProps) {
   const { t } = useTranslation();
   const { formatDateTime } = useFormattedDate();
-  const pct = Math.round(confidence * 100);
+  const pct = Math.round(confidence);
   const barColor =
-    confidence > 0.7
+    confidence > 70
       ? "bg-nps-success"
-      : confidence > 0.4
+      : confidence > 40
         ? "bg-nps-warning"
         : "bg-nps-error";
 

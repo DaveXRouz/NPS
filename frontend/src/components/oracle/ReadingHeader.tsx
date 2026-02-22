@@ -15,8 +15,8 @@ const TYPE_BADGES: Record<string, { color: string }> = {
 };
 
 function getConfidenceColor(confidence: number): string {
-  if (confidence > 0.7) return "bg-nps-success/20 text-nps-success";
-  if (confidence > 0.4) return "bg-nps-warning/20 text-nps-warning";
+  if (confidence > 70) return "bg-nps-success/20 text-nps-success";
+  if (confidence > 40) return "bg-nps-warning/20 text-nps-warning";
   return "bg-nps-error/20 text-nps-error";
 }
 
@@ -55,7 +55,7 @@ export function ReadingHeader({
             className={`px-2 py-0.5 text-xs rounded ${getConfidenceColor(confidence)}`}
             data-testid="confidence-pill"
           >
-            {Math.round(confidence * 100)}%
+            {Math.round(confidence)}%
           </span>
         )}
       </div>
